@@ -35,3 +35,13 @@ test("ALL and ANY follow Kleene logic and report unknown facts only when undecid
   assert.equal(evaluateCondition({ op: "ANY", children: [unknown, no] }, facts).truth, "UNKNOWN");
   assert.equal(evaluateCondition({ op: "ANY", children: [no, no] }, facts).truth, "FALSE");
 });
+
+test("an AI-suggested subtype is unconfirmed, whatever its value", () => {
+  const condition = { op: "EQ" as const, field: "element.subtype" as const, value: "PASSAGE" };
+  const suggested = { project: project(), element: element("CORRIDOR", { subtype: "PASSAGE", extraction: "AI_SUGGESTED" }) };
+  assert.deepEqual(evaluateCondition(condition, suggested), { truth: "UNKNOWN", unknownFacts: ["element.subtype"] });
+  const other = { project: project(), element: element("CORRIDOR", { subtype: "OTHER", extraction: "AI_SUGGESTED" }) };
+  assert.equal(evaluateCondition(condition, other).truth, "UNKNOWN", "an unconfirmed guess cannot rule a check out either");
+  const confirmed = { project: project(), element: element("CORRIDOR", { subtype: "PASSAGE", extraction: "USER_CONFIRMED" }) };
+  assert.equal(evaluateCondition(condition, confirmed).truth, "TRUE");
+});

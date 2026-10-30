@@ -60,7 +60,8 @@ function enumFact(
     case "element.type":
       return element?.type;
     case "element.subtype":
-      return element?.subtype;
+      // A subtype can decide whether a rule applies at all, so only a person-confirmed one counts.
+      return element?.extraction === "AI_SUGGESTED" ? undefined : element?.subtype;
     default:
       return project[field];
   }

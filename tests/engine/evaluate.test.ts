@@ -165,3 +165,19 @@ test("fingerprints ignore generated IDs and timestamps but track inputs", () => 
   assert.equal(canonicalJson({ b: 1, a: [2, { d: undefined, c: 3 }] }), '{"a":[2,{"c":3}],"b":1}');
   assert.equal(fingerprint({ a: 1, b: 2 }), fingerprint({ b: 2, a: 1 }));
 });
+
+test("a subtype-scoped rule waits for a person to confirm an AI-suggested subtype", () => {
+  const scoped = rule({ applicability: { op: "EQ", field: "element.subtype", value: "PASSAGE" } });
+  const evaluate = (extraction: "AI_SUGGESTED" | "USER_CONFIRMED") => {
+    const corridor = element("CORRIDOR", { subtype: "PASSAGE", extraction });
+    return single(scoped, context({ elements: [corridor], measurements: [measurement(corridor, "CLEAR_WIDTH_M", 1.05)] })).evaluation;
+  };
+  const pending = evaluate("AI_SUGGESTED");
+  assert.equal(pending.status, "UNKNOWN");
+  assert.equal(pending.reasonCode, "SUBTYPE_UNCONFIRMED");
+  assert.equal(pending.observed, undefined, "no width verdict before the classification is confirmed");
+  assert.equal(evaluate("USER_CONFIRMED").status, "FAIL");
+
+  const none = single(scoped, context({ elements: [element("CORRIDOR", { extraction: "AI_SUGGESTED" })] })).evaluation;
+  assert.equal(none.reasonCode, "APPLICABILITY_UNKNOWN", "no suggestion at all is plain missing context");
+});

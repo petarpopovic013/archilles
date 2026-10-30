@@ -126,9 +126,11 @@ function gate(rule: ComplianceRule, element: ArchitecturalElement | undefined, c
   const applicability = evaluateCondition(rule.applicability, { project: ctx.project, element });
   if (applicability.truth === "FALSE") return notApplicable("APPLICABILITY_NOT_MET", element);
   if (applicability.truth === "UNKNOWN") {
+    const unconfirmed = element?.extraction === "AI_SUGGESTED" && element.subtype !== undefined &&
+      applicability.unknownFacts.includes("element.subtype");
     return {
       status: "UNKNOWN",
-      reasonCode: "APPLICABILITY_UNKNOWN",
+      reasonCode: unconfirmed ? "SUBTYPE_UNCONFIRMED" : "APPLICABILITY_UNKNOWN",
       evidenceIds: element?.evidenceIds ?? [],
       missingInputs: metricsFor([applicability]),
       measurementIds: [],

@@ -34,6 +34,11 @@ export function templateFinding(
       suggestedAction = "Check the design against the cited provision; use Fix & Recheck to test a revised dimension.";
       break;
     case "UNKNOWN":
+      if (evaluation.reasonCode === "SUBTYPE_UNCONFIRMED") {
+        explanation = `Whether this check applies to ${subject} depends on its suggested classification, which a person has not confirmed yet.`;
+        suggestedAction = "Confirm or correct the element's classification on the drawing.";
+        break;
+      }
       explanation = evaluation.missingInputs.length > 0
         ? `For ${subject}, this check cannot be decided until ${evaluation.missingInputs.join(", ")} is confirmed.`
         : `For ${subject}, this check cannot be decided from the available information (${evaluation.reasonCode}).`;
