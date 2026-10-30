@@ -1,12 +1,5 @@
-"use client";
-
-import React from "react";
-import { WorkspaceProvider, WorkspaceLayout } from "../src/ui";
+import { Workspace } from "../src/ui";
 
 export default function HomePage() {
-  return (
-    <WorkspaceProvider>
-      <WorkspaceLayout />
-    </WorkspaceProvider>
-  );
+  return <Workspace />;
 }

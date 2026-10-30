@@ -1,16 +1,3 @@
+export { Workspace } from "./components/Workspace";
+export { WorkspaceProvider, useWorkspace } from "./state/workspace";
 export * from "./api";
-export * from "./context/WorkspaceContext";
-export * from "./components/common/SvgArrow";
-export * from "./components/common/StatusBadge";
-export * from "./components/common/VerificationBadge";
-export * from "./components/common/ViewerIcons";
-export * from "./components/panels/viewerTransforms";
-export * from "./components/panels/PlanToolbar";
-export * from "./components/panels/PlanCanvas";
-export * from "./components/panels/ElementOverlay";
-export * from "./components/panels/EvidenceOverlay";
-export * from "./components/panels/LeftPanel";
-export * from "./components/panels/CenterPanel";
-export * from "./components/panels/RightPanel";
-export * from "./components/workspace/WorkspaceHeader";
-export * from "./components/workspace/WorkspaceLayout";
