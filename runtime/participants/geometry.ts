@@ -23,6 +23,7 @@ const NEEDS_WIDTH = new Set(["DOOR", "CORRIDOR", "ENTRANCE", "EXIT"]);
  */
 export function createGeometryAgent(ctx: RuntimeContext): Agent {
   const inFlight = new Map<string, Promise<GeometryExtraction>>();
+  const projectWork = new Map<string, Promise<GeometryExtraction>>();
 
   const extractionCache: ExtractionCache = {
     async get(key) {
@@ -50,35 +51,44 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
       : fingerprint([record.render.sha256, record.render.page, record.render.preprocessingVersion, vision?.model ?? "none", PROMPT_VERSION]);
     emitAppEvent(agent, createAppEvent("geometry.extraction.started", scope, { agentRunId: run.id, cacheKey }));
 
+    let reservation: Reservation | undefined;
+    let usage: GeometryExtraction["usage"] | undefined;
     try {
-      let usage: GeometryExtraction["usage"] | undefined;
       if (!reuse) {
         if (!vision) throw new GeometryError("VISION_UNAVAILABLE", true);
         let task = inFlight.get(state.floorId);
         if (!task) {
-          let reservation: Reservation | undefined;
-          task = analyzeDrawing({
-            page: record.render,
-            floor: record.floor,
-            vision,
-            cache: extractionCache,
-            at: ctx.now(),
-            readPrivateRaster: (key) => ctx.store.read(key),
-            reserveBudget: async () => {
-              const perCall = estimateCostUsd(vision.model, VISION_INPUT_TOKENS, VISION_OUTPUT_TOKENS);
-              reservation = ctx.budget.reserve(perCall * 2);
-            },
-          }).then((extraction) => {
+          const prior = projectWork.get(state.projectId);
+          task = (async () => {
+            // At most one active image extraction per project, including superseded sessions.
+            await prior?.catch(() => {});
+            if (findProject(ctx.db, state.projectId)?.revision !== state.projectRevision) throw new GeometryError("REVISION_SUPERSEDED");
+            return analyzeDrawing({
+              page: { ...record.render, revision: state.projectRevision },
+              floor: record.floor,
+              vision,
+              cache: extractionCache,
+              at: ctx.now(),
+              readPrivateRaster: (key) => ctx.store.read(key),
+              reserveBudget: async () => {
+                const perCall = estimateCostUsd(vision.model, VISION_INPUT_TOKENS, VISION_OUTPUT_TOKENS);
+                reservation = ctx.budget.reserve(perCall * 2);
+              },
+            });
+          })().then((extraction) => {
+            usage = extraction.usage;
+            if (findProject(ctx.db, state.projectId)?.revision !== state.projectRevision) throw new GeometryError("REVISION_SUPERSEDED");
             ctx.db.transaction(() => {
               // Another session may have stored this floor first; never duplicate observations.
               if (!hasObservations(ctx.db, state.floorId)) insertObservations(ctx.db, extraction);
             })();
             return extraction;
           }).finally(() => {
-            reservation?.settle();
             inFlight.delete(state.floorId);
+            if (projectWork.get(state.projectId) === task) projectWork.delete(state.projectId);
           });
           inFlight.set(state.floorId, task);
+          projectWork.set(state.projectId, task);
         }
         usage = (await task).usage;
       } else {
@@ -117,12 +127,19 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
       const view = floorView(ctx.db, state.floorId, state.projectRevision);
       state.geometry = "FAILED";
       state.geometryTypesKey = typesKey(view.elements.map((element) => element.type));
-      finishRun(ctx, run.id, { status: "FAILED", errorCode: code, estimatedCostUsd: 0 });
+      const failedUsage = usage ?? (error instanceof GeometryError ? error.usage : undefined);
+      finishRun(ctx, run.id, {
+        status: "FAILED", errorCode: code,
+        ...(failedUsage ? { model: failedUsage.model, inputTokens: failedUsage.inputTokens, outputTokens: failedUsage.outputTokens } : {}),
+        estimatedCostUsd: failedUsage && !failedUsage.cacheHit ? estimateCostUsd(failedUsage.model, failedUsage.inputTokens, failedUsage.outputTokens) : 0,
+      });
       emitAppEvent(agent, createAppEvent("agent.run.failed", scope, {
         agentRunId: run.id,
         errorCode: code,
         retryable: error instanceof GeometryError ? error.retryable : false,
       }));
+    } finally {
+      reservation?.settle();
     }
   }
 

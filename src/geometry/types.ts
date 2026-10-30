@@ -2,7 +2,7 @@ import type { ArchitecturalElement, Drawing, Evidence, Floor, Measurement } from
 import type { Metric } from '../domain/common';
 import type { Affine } from './transforms';
 export class GeometryError extends Error {
-  constructor(public readonly code: string, public readonly retryable = false) { super(code); }
+  constructor(public readonly code: string, public readonly retryable = false, public readonly usage?: GeometryExtraction['usage']) { super(code); }
 }
 export interface PreparedPage {
   projectId: string; drawingId: string; revision: number; page: number; sha256: string;

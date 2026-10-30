@@ -8,6 +8,7 @@ import {
   type InferenceRunner,
 } from "@mozaik-ai/core";
 import { isPricedModel } from "./pricing";
+import { providerFailure } from "../../src/vision/provider-errors";
 
 /** Answer text that marks a failed inference; agents treat it as a visible run failure. */
 const ERROR_PREFIX = "ARCHILLES_INFERENCE_ERROR:";
@@ -21,18 +22,12 @@ function errorOutput(code: string, tokenUsage?: InferenceOutput["tokenUsage"]): 
 }
 
 function isTransient(error: unknown): boolean {
-  return error instanceof Anthropic.APIConnectionError ||
-    (error instanceof Anthropic.APIError && (error.status === 429 || (error.status ?? 0) >= 500));
+  return providerFailure(error).retryable;
 }
 
 function providerErrorCode(error: unknown): string {
-  if (error instanceof Anthropic.APIConnectionError) return "PROVIDER_UNREACHABLE";
-  if (error instanceof Anthropic.APIError) {
-    if (error.status === 429) return "PROVIDER_RATE_LIMITED";
-    if (error.status === 401 || error.status === 403) return "PROVIDER_AUTH";
-    if ((error.status ?? 0) >= 500) return "PROVIDER_UNAVAILABLE";
-    return "PROVIDER_REJECTED";
-  }
+  const failure = providerFailure(error);
+  if (failure.code !== "PROVIDER_REJECTED") return failure.code;
   if (error instanceof Error && /^[A-Z_]+(:|$)/.test(error.message)) return error.message.split(":")[0];
   return "INFERENCE_FAILED";
 }

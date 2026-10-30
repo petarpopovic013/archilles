@@ -8,7 +8,7 @@ The runtime injects private byte reads/writes. Never expose storage references t
 
 `createBrowserPageRenderer` in `browser-renderer.ts` implements the constitution's browser rendering requirement using PDF.js and browser canvas. Team 1 must configure `GlobalWorkerOptions.workerSrc` to a bundled worker of the same installed PDF.js version. EXIF orientation is applied by `createImageBitmap`. Header-only inspection validates PNG/JPEG dimensions and EXIF orientation before decoding; all eight TIFF orientations use the oriented source frame. Image DPI is omitted because it is not physical scale evidence. PDF passwords/corruption are rejected with distinct sanitized errors; password rejection settles promptly, and loading tasks are destroyed on success and failure. The optional `loadPdf` seam supports parser testing without browser canvas.
 
-**Integration gate:** persistent runtime preparation requires an injected `PageRenderer` running in an agreed rendering environment. There is no server renderer in this delivery. Do not silently move confidential uploads to browser-supplied geometry or trust a client-generated raster without server validation. Team 3 must agree the rendering architecture/governance change before enabling server PDF rasterization. A future Node renderer would require direct dependencies added by Team 3, not transitive imports.
+`createNodePageRenderer` in `node-renderer.ts` is the runtime preparation adapter (Tech ADR-08). It uses pinned direct dependencies Sharp and native canvas, plus the Node-compatible PDF.js legacy build. The runtime privately decodes originals, applies EXIF rotation/mirroring, resizes large images, and rasterizes only the selected PDF page. Native pixel tests check crop/rotation alignment. `runtime/main.ts` now supplies this renderer; the old PNG passthrough exists only for isolated tests. The browser renderer remains available for the viewer and never establishes trusted physical measurements.
 
 ## Vision and coordination
 
@@ -24,15 +24,14 @@ AI dimensions are always unverified. Missing-input keys are element/metric withi
 
 Call `loadConfirmedFixture(parsedJson, context)` explicitly with either `fixtures/plans/office-a.json` or `office-b.json`. These are authored synthetic observations, not real architect approvals or regulatory requirements. Display the returned disclosure warning. The JSON geometry refers to the corresponding 800×600 PNG/JPG, not to the PDF render. The two-page PDF is an independent normalization fixture; its source frame is 1600×1200. Fixtures contain no findings or rule thresholds. The engine computes all outcomes.
 
-Optional asset regeneration uses `fixtures/plans/generate.mjs`. It requires a direct development dependency on `@napi-rs/canvas` (currently only transitively installed); request that dependency from Team 3 before relying on regeneration in CI. Committed raster/PDF assets need no generator at runtime.
+Optional asset regeneration uses `fixtures/plans/generate.mjs`. It uses the pinned direct `@napi-rs/canvas` dependency. Committed raster/PDF assets need no generator at runtime.
 
-## Verification limits
+## Verification and remaining gates
 
-Unit tests use injected rendering and inference adapters. A real browser render/alignment rehearsal, live Claude smoke test with configured credentials/model/budget, and Team 3's stale-result/event/engine integration are required before demo acceptance. These checks cannot be claimed from mocked tests.
-
-
-## Follow-up verification after integrating main
-
-- Added header/renderer tests for actual PNG/JPG assets, all eight EXIF orientations, malformed frames/EXIF, pre-allocation limits, selected PDF page rotation/crop metadata, password failures, and cleanup.
-- The actual two-page PDF is parsed using PDF.js's Node-compatible legacy build in tests. This verifies the committed PDF and page metadata, not visual rendering. The standard PDF.js build uses a newer typed-array API absent in the current Node 24 host; keep the browser build in browser code and the legacy build in Node-only parser tests.
-- Browser alignment rehearsal could not run because no browser connection was available. Configured provider model discovery returned HTTP 404; no live inference or model availability has been confirmed. No confidential drawings were submitted.
+- Normal tests use real image/PDF normalization and injected inference. They cover both PNG/JPG fixture pairs, all eight EXIF orientations, malformed frames/EXIF, size limits, selected PDF pages, crop/rotation pixel alignment, and PDF failure cleanup.
+- The HTTP/Mozaik integration test uploads PNG, JPG, and PDF through private storage, extracts with mocked Vision, confirms dimensions, and computes deterministic before/after results. Its synthetic rule is test-only and asserts no Serbian requirement.
+- The viewer HTTP client uses validated source-dimension headers, including when a 4000×3000 source is served as a 2048×1536 raster. It never invents an overlay frame. Late geometry results are checked against the live project revision before persistence. Vision calls for multiple pages in one project are serialized. Token usage is retained for billable invalid responses and for late results discarded after a revision change; budget reservations remain held until the run ledger is updated. Corrected measurements reuse stored geometry; hypothetical rechecks make no model call.
+- `npm run smoke:geometry` explicitly runs the actual local HTTP/Mozaik/Vision path on `office-a.png`, with an isolated temporary database and at most USD 1 reserved from the configured budget. It deletes its local data afterward and prints only sanitized counts, token usage, costs and error codes. It uses no active rules, so a successful extraction still claims no regulatory coverage. It is excluded from `npm test`.
+- Latest live smoke (30 October 2026): upload and normalization succeeded; the configured gateway was unavailable, producing a persisted `PARTIAL` session with Geometry `VISION_UNAVAILABLE` and zero findings. A direct Messages probe returned HTTP 503. Its model-list endpoint returned HTTP 404; that alone is not a reliable model availability check. No confidential plan was sent.
+- Browser visual rehearsal remains unverified because no browser connection was available. Native raster pixel alignment is tested, but UI zoom/pan and hit testing still require Team 1's viewer.
+- Production uses the pending registry until human-verified rules arrive from Team 4; no test threshold is installed in the application.

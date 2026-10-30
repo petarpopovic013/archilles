@@ -147,7 +147,8 @@ export class HttpArchillesApiClient implements ArchillesApiClient {
   ): Promise<UploadDrawingResponse> {
     const meta = UploadDrawingMetadataSchema.parse(metadata);
     const formData = new FormData();
-    formData.append("file", file);
+    const fallbackName: Record<string, string> = { "image/png": "drawing.png", "image/jpeg": "drawing.jpg", "application/pdf": "drawing.pdf" };
+    formData.append("file", file, typeof File !== "undefined" && file instanceof File ? file.name : fallbackName[file.type] ?? "drawing");
     formData.append("baseRevision", String(meta.baseRevision));
     formData.append("selectedPage", String(meta.selectedPage ?? 1));
 
@@ -165,7 +166,7 @@ export class HttpArchillesApiClient implements ArchillesApiClient {
     return `${this.baseUrl}/api/drawings/${encodeURIComponent(drawingId)}/pages/${encodeURIComponent(page)}`;
   }
 
-  async getDrawingPageBlob(drawingId: string, page: number): Promise<Blob> {
+  private async fetchDrawingPage(drawingId: string, page: number): Promise<Response> {
     const url = this.getDrawingPageUrl(drawingId, page);
     let response: Response;
 
@@ -187,46 +188,25 @@ export class HttpArchillesApiClient implements ArchillesApiClient {
       });
     }
 
-    return response.blob();
+    return response;
+  }
+
+  async getDrawingPageBlob(drawingId: string, page: number): Promise<Blob> {
+    return (await this.fetchDrawingPage(drawingId, page)).blob();
   }
 
   async getDrawingPageInfo(drawingId: string, page: number): Promise<DrawingPageInfo> {
-    const blob = await this.getDrawingPageBlob(drawingId, page);
-    const url =
-      typeof URL !== "undefined" && typeof URL.createObjectURL === "function"
-        ? URL.createObjectURL(blob)
-        : this.getDrawingPageUrl(drawingId, page);
-
-    // In browser context, can load dimensions from natural image size
-    return new Promise<DrawingPageInfo>((resolve) => {
-      if (typeof Image !== "undefined" && blob.type.startsWith("image/")) {
-        const img = new Image();
-        img.onload = () => {
-          resolve({
-            blob,
-            url,
-            widthPx: img.naturalWidth || 1000,
-            heightPx: img.naturalHeight || 800,
-          });
-        };
-        img.onerror = () => {
-          resolve({
-            blob,
-            url,
-            widthPx: 1000,
-            heightPx: 800,
-          });
-        };
-        img.src = url;
-      } else {
-        resolve({
-          blob,
-          url,
-          widthPx: 1000,
-          heightPx: 800,
-        });
-      }
-    });
+    const response = await this.fetchDrawingPage(drawingId, page);
+    const widthPx = Number(response.headers.get("x-source-width"));
+    const heightPx = Number(response.headers.get("x-source-height"));
+    if (!Number.isSafeInteger(widthPx) || !Number.isSafeInteger(heightPx) || widthPx <= 0 || heightPx <= 0 || widthPx * heightPx > 40_000_000) {
+      throw new ArchillesApiError(502, { code: "PAGE_DIMENSIONS_INVALID", message: "The page response is missing valid source dimensions", retryable: false });
+    }
+    const blob = await response.blob();
+    const url = typeof URL !== "undefined" && typeof URL.createObjectURL === "function"
+      ? URL.createObjectURL(blob) : this.getDrawingPageUrl(drawingId, page);
+    // These dimensions describe stored geometry; the raster may have been resized for analysis.
+    return { blob, url, widthPx, heightPx };
   }
 
   async startAnalysis(

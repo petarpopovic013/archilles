@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createClaudeVisionRunner } from "../src/vision/claude";
 import { createPendingRegistry } from "./adapters/pending-registry";
-import { createPngPassthroughRenderer } from "./adapters/png-renderer";
+import { createNodePageRenderer } from "../src/geometry/node-renderer";
 import { ClaudeInferenceRunner } from "./ai/inference";
 import { startRuntime } from "./app";
 import { loadConfig } from "./config";
@@ -20,7 +20,7 @@ async function main() {
     config,
     registry: createPendingRegistry(),
     geometry: {
-      renderer: createPngPassthroughRenderer(),
+      renderer: createNodePageRenderer(),
       vision: createClaudeVisionRunner(client, config.visionModel),
     },
     inferenceRunner: new ClaudeInferenceRunner(client),

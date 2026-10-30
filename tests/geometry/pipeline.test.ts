@@ -20,6 +20,6 @@ test('preparation checks signatures, bounds and preserves resize transforms',asy
 test('confirmed observations survive new extraction and stale revisions are rejected',async()=>{const i=input();const fixture=loadConfirmedFixture(JSON.parse(await readFile('fixtures/plans/office-a.json','utf8')),{projectId,drawingId,floorId,revision:1,at});i.existing=fixture;const result=await analyzeDrawing(i);assert.deepEqual(result.elements,fixture.elements);i.existing={...fixture,elements:fixture.elements.map(e=>({...e,revision:2}))};await assert.rejects(analyzeDrawing(i),/EXISTING_REVISION_MISMATCH/);});
 test('Claude adapter retries a transient failure only once and sanitizes provider errors',async()=>{
  let calls=0;
- const client={messages:{parse:async()=>{calls++;throw new Anthropic.APIConnectionError({message:'private provider detail'});}}} as unknown as InstanceType<typeof Anthropic>;
+ const client={messages:{create:async()=>{calls++;throw new Anthropic.APIConnectionError({message:'private provider detail'});}}} as unknown as InstanceType<typeof Anthropic>;
  await assert.rejects(createClaudeVisionRunner(client,'configured-model').run(new Uint8Array(),800,600),e=>e instanceof Error&&e.message==='VISION_UNAVAILABLE');assert.equal(calls,2);
 });
