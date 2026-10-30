@@ -1,0 +1,64 @@
+{
+  "ruleId": "00100000-0000-4000-8000-000000000010",
+  "state": "DECLARATIVE_EXPECTATIONS_ONLY_NOT_ENGINE_TEST_RESULTS",
+  "cases": [
+    {
+      "id": "00100000-0000-4000-8000-000000000200",
+      "name": "pass",
+      "widthM": 1.0,
+      "verification": "USER_CONFIRMED",
+      "subtype": "FIXED_FURNITURE_PASSAGE",
+      "expectedAfterReviewedActivation": "PASS"
+    },
+    {
+      "id": "00100000-0000-4000-8000-000000000201",
+      "name": "fail",
+      "widthM": 0.89,
+      "verification": "USER_CONFIRMED",
+      "subtype": "FIXED_FURNITURE_PASSAGE",
+      "expectedAfterReviewedActivation": "FAIL"
+    },
+    {
+      "id": "00100000-0000-4000-8000-000000000202",
+      "name": "boundary",
+      "widthM": 0.9,
+      "verification": "USER_CONFIRMED",
+      "subtype": "FIXED_FURNITURE_PASSAGE",
+      "expectedAfterReviewedActivation": "PASS"
+    },
+    {
+      "id": "00100000-0000-4000-8000-000000000203",
+      "name": "missing",
+      "widthM": null,
+      "verification": "USER_CONFIRMED",
+      "subtype": "FIXED_FURNITURE_PASSAGE",
+      "expectedAfterReviewedActivation": "UNKNOWN"
+    },
+    {
+      "id": "00100000-0000-4000-8000-000000000204",
+      "name": "unverified",
+      "widthM": 0.95,
+      "verification": "UNVERIFIED",
+      "subtype": "FIXED_FURNITURE_PASSAGE",
+      "expectedAfterReviewedActivation": "UNKNOWN"
+    },
+    {
+      "id": "00100000-0000-4000-8000-000000000205",
+      "name": "not-applicable",
+      "widthM": 1.0,
+      "verification": "USER_CONFIRMED",
+      "subtype": "OTHER",
+      "expectedAfterReviewedActivation": "NOT_APPLICABLE"
+    },
+    {
+      "id": "00100000-0000-4000-8000-000000000206",
+      "name": "missing-subtype",
+      "widthM": 1.0,
+      "verification": "USER_CONFIRMED",
+      "subtype": null,
+      "expectedAfterReviewedActivation": "UNKNOWN"
+    }
+  ],
+  "exceptions": "No independent exception in article 18 paragraph 1 of current captured text; reconstruction excluded from bounded candidate. Human applicability review pending.",
+  "ruleVersion": 2
+}
