@@ -105,8 +105,12 @@ export function hasObservations(db: Db, floorId: string): boolean {
  * measurements stay in the view; the engine resolves `supersedesId` chains to the current value.
  */
 export function floorView(db: Db, floorId: string, revision: number): Observations {
-  const elements = db.prepare("SELECT data FROM elements WHERE floor_id = ? AND revision <= ? ORDER BY rowid")
-    .pluck().all(floorId, revision).map((row) => parse(ArchitecturalElementSchema, row));
+  const elements = db.prepare(`
+    SELECT COALESCE((
+      SELECT v.data FROM element_versions v WHERE v.element_id = e.id AND v.revision <= ?
+      ORDER BY v.revision DESC LIMIT 1
+    ), e.data) FROM elements e WHERE e.floor_id = ? AND e.revision <= ? ORDER BY e.rowid
+  `).pluck().all(revision, floorId, revision).map((row) => parse(ArchitecturalElementSchema, row));
   const ids = elements.map((element) => element.id);
   const measurements = ids.length === 0 ? [] : db.prepare(`
     SELECT m.data FROM measurements m JOIN elements e ON e.id = m.element_id
@@ -128,9 +132,20 @@ export function findEvidence(db: Db, ids: readonly string[]): Evidence[] {
   });
 }
 
+/** The element's latest version (its current state at the newest revision). */
 export function findElement(db: Db, elementId: string): ArchitecturalElement | undefined {
-  const row = db.prepare("SELECT data FROM elements WHERE id = ?").pluck().get(elementId);
+  const row = db.prepare(`
+    SELECT COALESCE((
+      SELECT v.data FROM element_versions v WHERE v.element_id = e.id ORDER BY v.revision DESC LIMIT 1
+    ), e.data) FROM elements e WHERE e.id = ?
+  `).pluck().get(elementId);
   return row === undefined ? undefined : parse(ArchitecturalElementSchema, row);
+}
+
+export function insertElementVersion(db: Db, element: ArchitecturalElement): void {
+  const valid = ArchitecturalElementSchema.parse(element);
+  db.prepare("INSERT INTO element_versions (element_id, revision, data) VALUES (?, ?, ?)")
+    .run(valid.id, valid.revision, json(valid));
 }
 
 // Sessions and agent runs --------------------------------------------------------------------

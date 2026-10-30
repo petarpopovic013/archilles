@@ -21,17 +21,16 @@ import {
   floorView,
   insertObservations,
   insertReviewAction,
-  latestSessionForPage,
 } from "../db/repo";
 import { ApiFailure, notFound, revisionConflict } from "../http/errors";
-import { createAppEvent, emitAppEvent } from "../mozaik/app-events";
-import { startAnalysis } from "./analyses";
+import { createAppEvent } from "../mozaik/app-events";
+import { reanalyseAfterRevision } from "./analyses";
 import { advanceRevision, getProject } from "./projects";
 
 type CorrectionInput = z.output<typeof MeasurementCorrectionRequestSchema>;
 type RecheckInput = z.output<typeof RecheckRequestSchema>;
 
-function loadElement(ctx: RuntimeContext, elementId: string, projectId?: string) {
+export function loadElement(ctx: RuntimeContext, elementId: string, projectId?: string) {
   const element = findElement(ctx.db, elementId);
   if (!element || (projectId && element.projectId !== projectId)) throw notFound("Element");
   const floor = findFloorById(ctx.db, element.floorId);
@@ -83,18 +82,10 @@ export async function correctElementMeasurement(
   })();
 
   const scope = { projectId: project.id, projectRevision: revision.revision, correlationId: measurement.id };
-  const prior = latestSessionForPage(ctx.db, project.id, floor.floor.drawingId, floor.floor.page);
-  const events = (sessionId?: string) => [
+  await reanalyseAfterRevision(ctx, scope, floor.floor, (sessionId) => [
     createAppEvent("project.revision.created", { ...scope, sessionId }, { newRevision: revision.revision, changedEntityIds: revision.changedEntityIds }),
     createAppEvent("geometry.measurement.updated", { ...scope, sessionId }, { measurementId: measurement.id, elementId: element.id, metric: measurement.metric }),
-  ];
-  if (prior) {
-    await startAnalysis(ctx, project.id, { projectRevision: revision.revision, drawingId: floor.floor.drawingId, page: floor.floor.page }, {
-      precedingEvents: events,
-    });
-  } else {
-    for (const event of events()) emitAppEvent(ctx.api, event);
-  }
+  ]);
   return { revision, measurement };
 }
 

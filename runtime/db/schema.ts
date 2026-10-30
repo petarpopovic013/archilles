@@ -155,4 +155,14 @@ export const migrations: readonly string[] = [
     joined_at TEXT NOT NULL
   );
   `,
+  `
+  -- Human confirmations/corrections of an element, one row per revision; the elements row keeps
+  -- the original so earlier revisions still show the element as it was.
+  CREATE TABLE element_versions (
+    element_id TEXT NOT NULL REFERENCES elements(id) ON DELETE CASCADE,
+    revision INTEGER NOT NULL,
+    data TEXT NOT NULL,
+    PRIMARY KEY (element_id, revision)
+  );
+  `,
 ];
