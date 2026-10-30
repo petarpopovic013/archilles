@@ -5,6 +5,7 @@ export {
   evaluateRule,
   evaluateRules,
   evaluateTarget,
+  projectFacts,
   type EngineResult,
   type EvaluationContext,
   type Outcome,

@@ -4,13 +4,19 @@ import { randomUUID } from "node:crypto";
 import { ApiErrorSchema, ProjectSchema, UpdateProjectResponseSchema } from "../../src/domain";
 import { startRuntime, type RuntimeApp } from "../../runtime/app";
 import { openDatabase, recoverInterruptedWork } from "../../runtime/db/connection";
+import { fakeGeometry, fakeInference, fakeRegistry, fakeVision } from "./fakes";
 import { call, removeDataDir, testConfig } from "./helpers";
 
 const config = testConfig();
 let app: RuntimeApp;
 
 before(async () => {
-  app = await startRuntime({ config });
+  app = await startRuntime({
+    config,
+    registry: fakeRegistry([]),
+    geometry: fakeGeometry(fakeVision(() => ({ elements: [], warnings: [] }))),
+    inferenceRunner: fakeInference(),
+  });
 });
 
 after(async () => {

@@ -42,8 +42,9 @@ export function insertRevision(db: Db, revision: ProjectRevision): void {
 }
 
 /**
- * Advances the project to a new revision inside the caller's transaction and marks findings
- * computed at older revisions stale. Throws REVISION_CONFLICT when `baseRevision` is not current.
+ * Advances the project to a new revision inside the caller's transaction and marks dependent
+ * findings from older revisions stale: those of `staleElementIds` when given, otherwise all of
+ * them (metadata can change any rule's applicability). Throws REVISION_CONFLICT on a stale base.
  */
 export function advanceRevision(
   ctx: RuntimeContext,
@@ -51,11 +52,11 @@ export function advanceRevision(
   baseRevision: number,
   kind: ProjectRevision["kind"],
   changedEntityIds: string[],
-  changes: Partial<Project> = {},
+  staleElementIds?: readonly string[],
 ): { project: Project; revision: ProjectRevision } {
   if (project.revision !== baseRevision) throw revisionConflict(project.revision, baseRevision);
   const now = ctx.now();
-  const next: Project = { ...project, ...changes, revision: project.revision + 1, updatedAt: now };
+  const next: Project = { ...project, revision: project.revision + 1, updatedAt: now };
   const revision: ProjectRevision = {
     projectId: project.id,
     revision: next.revision,
@@ -67,10 +68,12 @@ export function advanceRevision(
   };
   saveProject(ctx.db, next);
   insertRevision(ctx.db, revision);
-  ctx.db.prepare(`
+  const markStale = ctx.db.prepare(`
     UPDATE findings SET stale = 1, data = json_set(data, '$.stale', json('true'))
-    WHERE project_id = ? AND project_revision < ? AND stale = 0
-  `).run(project.id, next.revision);
+    WHERE project_id = ? AND project_revision < ? AND stale = 0 AND (? IS NULL OR element_id = ?)
+  `);
+  if (staleElementIds) for (const elementId of staleElementIds) markStale.run(project.id, next.revision, elementId, elementId);
+  else markStale.run(project.id, next.revision, null, null);
   return { project: next, revision };
 }
 

@@ -139,4 +139,11 @@ export const migrations: readonly string[] = [
     data TEXT NOT NULL
   );
   `,
+  `
+  -- A session analyses one drawing page; measurement IDs record evaluation provenance (DB.md §3).
+  ALTER TABLE sessions ADD COLUMN drawing_id TEXT REFERENCES drawings(id) ON DELETE CASCADE;
+  ALTER TABLE sessions ADD COLUMN page INTEGER;
+  ALTER TABLE evaluations ADD COLUMN measurement_ids TEXT NOT NULL DEFAULT '[]';
+  CREATE INDEX elements_floor ON elements (floor_id, revision);
+  `,
 ];

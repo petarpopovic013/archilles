@@ -264,19 +264,23 @@ function finish(
     reasonCode: outcome.reasonCode,
     evaluatedAt: ctx.now,
   });
-  const { jurisdiction, municipality, purpose, classification, phase, buildingHeightM, floorCount, occupantCount, characteristics } = ctx.project;
-  const projectFacts = { jurisdiction, municipality, purpose, classification, phase, buildingHeightM, floorCount, occupantCount, characteristics };
   return {
     evaluation,
     measurementIds: outcome.measurementIds,
     fingerprint: fingerprint({
       rule: { id: rule.id, version: rule.version },
       element: element && { id: element.id, type: element.type, subtype: element.subtype, extraction: element.extraction },
-      projectFacts,
+      projectFacts: projectFacts(ctx.project),
       asOf: ctx.asOf,
       inputs: outcome.facts,
     }),
   };
+}
+
+/** The project metadata a rule can depend on (identity and timestamps excluded). */
+export function projectFacts(project: Project) {
+  const { jurisdiction, municipality, purpose, classification, phase, buildingHeightM, floorCount, occupantCount, characteristics } = project;
+  return { jurisdiction, municipality, purpose, classification, phase, buildingHeightM, floorCount, occupantCount, characteristics };
 }
 
 function notApplicable(reasonCode: string, element: ArchitecturalElement | undefined): Outcome {

@@ -17,6 +17,39 @@ export function runtimePath(template: string, params: Record<string, string>): s
   return template.replace(/:([a-zA-Z]+)/g, (_, key: string) => encodeURIComponent(params[key] ?? ""));
 }
 
+/** Streams a non-JSON runtime response (image, SSE) through, keeping only safe headers. */
+export async function proxyStream(
+  request: Request,
+  path: string,
+  init: { body?: BodyInit | null; headers?: Record<string, string>; passHeaders?: readonly string[] } = {},
+): Promise<Response> {
+  let upstream: Response;
+  try {
+    upstream = await fetch(new URL(path, runtimeUrl()), {
+      method: request.method,
+      headers: init.headers,
+      body: init.body,
+      signal: request.signal,
+      cache: "no-store",
+      ...(init.body ? { duplex: "half" } : {}),
+    } as RequestInit);
+  } catch {
+    return errorResponse(503, { code: "RUNTIME_UNAVAILABLE", message: "Analysis runtime is not reachable", retryable: true });
+  }
+  if (!upstream.ok) {
+    const error = ApiErrorSchema.safeParse(await upstream.json().catch(() => undefined));
+    return errorResponse(upstream.status, error.success
+      ? error.data
+      : { code: "RUNTIME_ERROR", message: "Runtime returned an invalid error", retryable: upstream.status >= 500 });
+  }
+  const headers = new Headers({ "cache-control": upstream.headers.get("cache-control") ?? "no-store", "x-content-type-options": "nosniff" });
+  for (const name of ["content-type", "content-length", ...(init.passHeaders ?? [])]) {
+    const value = upstream.headers.get(name);
+    if (value) headers.set(name, value);
+  }
+  return new Response(upstream.body, { status: upstream.status, headers });
+}
+
 interface ProxyJsonOptions {
   request?: z.ZodType;
   response: z.ZodType;
