@@ -11,9 +11,9 @@ export function testConfig(overrides: Partial<RuntimeConfig> = {}): RuntimeConfi
     port: 0,
     dataDir,
     databasePath: path.join(dataDir, "archilles.sqlite"),
-    uploadsDir: path.join(dataDir, "uploads"),
-    aiBudgetUsd: 1,
-    reviewModel: "claude-haiku-4-5",
+    aiBudgetUsd: 5,
+    reviewModel: "claude-opus-5-5",
+    visionModel: "claude-opus-5-5",
     ...overrides,
   };
 }
@@ -29,4 +29,14 @@ export async function call(baseUrl: string, method: string, route: string, body?
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   return { status: response.status, body: await response.json() as Record<string, unknown> };
+}
+
+export async function waitFor<T>(probe: () => T | undefined | Promise<T | undefined>, timeoutMs = 5_000): Promise<T> {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const value = await probe();
+    if (value !== undefined) return value;
+    if (Date.now() > deadline) throw new Error("waitFor timed out");
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
 }

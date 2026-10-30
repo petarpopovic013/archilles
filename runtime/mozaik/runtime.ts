@@ -6,12 +6,21 @@ export type ComponentState = "PENDING" | "READY" | "BLOCKED" | "FAILED";
 export interface SessionCoordination {
   projectId: string;
   projectRevision: number;
+  drawingId: string;
+  floorId: string;
+  page: number;
+  ruleSetVersion: string;
+  asOf: string;
   geometry: ComponentState;
   rules: ComponentState;
+  /** Element types the latest geometry result and the latest rule selection were based on. */
+  geometryTypesKey?: string;
+  selectionTypesKey?: string;
   selectedRuleIds: string[];
-  /** Fingerprints already handled, keyed by purpose (selection, evaluation, review). */
+  /** Work already done, keyed by purpose (selection, evaluation), for at-most-once guards. */
   fingerprints: Set<string>;
-  aiCalls: number;
+  /** Any participant failure makes the session PARTIAL instead of COMPLETE. */
+  failed: boolean;
 }
 
 export class ArchillesRuntimeState extends RuntimeState {
@@ -29,3 +38,12 @@ export const {
   sendEvent,
   runLoop,
 } = defineRuntime<ArchillesRuntimeState>();
+
+export function coordination(sessionId: string | undefined): SessionCoordination | undefined {
+  return sessionId ? resolveRuntime().state.sessions.get(sessionId) : undefined;
+}
+
+/** Stable key for a set of element types, so selection and geometry can be compared. */
+export function typesKey(types: Iterable<string>): string {
+  return [...new Set(types)].sort().join(",");
+}
