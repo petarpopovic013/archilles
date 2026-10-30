@@ -18,6 +18,7 @@ import type { RuntimeContext } from "../context";
 import { findingForFingerprint, floorView, listSessionEvaluations, saveFinding } from "../db/repo";
 import { createAppEvent, defineAppHandler, emitAppEvent, errorCode, type EventScope } from "../mozaik/app-events";
 import { coordination, runLoop } from "../mozaik/runtime";
+import { findProject } from "../services/projects";
 import { templateFinding } from "../services/findings";
 import { finishRun, finishSession, startRun } from "../services/runs";
 import { scopeOf } from "./geometry";
@@ -165,7 +166,7 @@ export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): 
     let reservation: Reservation;
     try {
       if (!isPricedModel(model)) throw new Error("UNPRICED_MODEL");
-      reservation = ctx.budget.reserve(estimateCostUsd(model, Math.ceil(message.length / 3) + 2_000, MAX_OUTPUT_TOKENS));
+      reservation = ctx.budget.reserve(2 * estimateCostUsd(model, message.length + 2_000, MAX_OUTPUT_TOKENS));
     } catch (error) {
       // Template findings stay; the explanation batch is skipped visibly.
       const code = error instanceof BudgetExceededError ? error.code : errorCode(error);
@@ -183,6 +184,7 @@ export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): 
     runLoop(agent.getId(), message, {
       model,
       context: ModelContext.create().addContextItem(DeveloperMessageItem.create(INSTRUCTION)),
+      tools: agent.getTools(),
       maxOutputTokens: MAX_OUTPUT_TOKENS,
       ...(EFFORT_MODELS.has(model) ? { reasoningEffort: "low" } : {}),
       structuredOutput: { name: "review_explanations", schema: explanationsJsonSchema, strict: true },
@@ -193,15 +195,21 @@ export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): 
     const batch = batches.get(batchId);
     if (!batch) return;
     batches.delete(batchId);
-    batch.reservation.settle();
     const cost = estimateCostUsd(batch.model, batch.inputTokens, batch.outputTokens);
     const usage = { inputTokens: batch.inputTokens, outputTokens: batch.outputTokens, estimatedCostUsd: cost };
 
+    if (!coordination(batch.sessionId) || findProject(ctx.db, batch.scope.projectId)?.revision !== batch.scope.projectRevision) {
+      finishRun(ctx, batch.runId, { status: "CANCELLED", errorCode: "REVISION_SUPERSEDED", ...usage });
+      batch.reservation.settle();
+      finishSession(ctx, batch.sessionId, "PARTIAL", "REVISION_SUPERSEDED");
+      return;
+    }
     const failure = inferenceErrorCode(answer);
     const parsed = failure ? undefined : parseExplanations(answer);
-    if (!parsed) {
+    if (!parsed || parsed.explanations.length !== batch.findings.size || new Set(parsed.explanations.map(item => item.findingId)).size !== batch.findings.size || parsed.explanations.some(item => !batch.findings.has(item.findingId))) {
       const code = failure ?? "REVIEW_OUTPUT_INVALID";
       finishRun(ctx, batch.runId, { status: "FAILED", errorCode: code, ...usage });
+      batch.reservation.settle();
       emitAppEvent(agent, createAppEvent("agent.run.failed", batch.scope, { agentRunId: batch.runId, errorCode: code, retryable: false }));
       finishSession(ctx, batch.sessionId);
       return;
@@ -220,6 +228,7 @@ export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): 
       }
     })();
     finishRun(ctx, batch.runId, { status: "COMPLETED", ...usage });
+    batch.reservation.settle();
     for (const finding of updated) {
       emitAppEvent(agent, createAppEvent("review.finding.updated", batch.scope, { findingId: finding.id, evaluationId: finding.evaluationId }));
     }
@@ -245,12 +254,16 @@ export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): 
           };
           if (event.type === "message_received.started") {
             const { batchId } = JSON.parse(payload.content ?? "{}") as { batchId?: string };
-            if (batchId) loops.set(payload.loopId, batchId);
+            if (batchId && batches.has(batchId)) {
+              loops.set(payload.loopId, batchId);
+              ctx.db.prepare("INSERT INTO agent_loop_events (run_id, loop_id, type, occurred_at) VALUES (?, ?, ?, ?)").run(batches.get(batchId)!.runId, payload.loopId, event.type, ctx.now());
+            }
             return;
           }
           const batchId = loops.get(payload.loopId);
           const batch = batchId ? batches.get(batchId) : undefined;
           if (!batchId || !batch) return;
+          ctx.db.prepare("INSERT INTO agent_loop_events (run_id, loop_id, type, occurred_at) VALUES (?, ?, ?, ?)").run(batch.runId, payload.loopId, event.type, ctx.now());
           if (event.type === "inference.completed") {
             batch.inputTokens += payload.tokenUsage?.inputTokens ?? 0;
             batch.outputTokens += payload.tokenUsage?.outputTokens ?? 0;

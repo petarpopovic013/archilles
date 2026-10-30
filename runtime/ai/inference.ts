@@ -72,7 +72,9 @@ export function safeInferenceRunner(inner: InferenceRunner): InferenceRunner {
   const run = async (input: InferenceInput): Promise<InferenceOutput> => {
     try {
       const output = await inner.run(input);
-      const answered = output.items.some((item) => item.type === "message");
+      const calls = output.items.filter(item => item.type === "function_call");
+      if (calls.length > 1 || (calls.length > 0 && !input.tools?.length)) return errorOutput("UNEXPECTED_TOOL_CALL", output.tokenUsage);
+      const answered = output.items.some((item) => item.type === "message" || item.type === "function_call");
       if (answered) return output;
       const stopReason = (output.rowResponse as { stop_reason?: string } | null)?.stop_reason;
       return errorOutput(stopReason === "refusal" ? "MODEL_REFUSED" : "NO_ANSWER", output.tokenUsage);
