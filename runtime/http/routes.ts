@@ -16,6 +16,7 @@ import { readPageRaster, uploadDrawing } from "../services/drawings";
 import { confirmElement } from "../services/elements";
 import { correctElementMeasurement, recheckProposal } from "../services/measurements";
 import { createProject, getProject, updateProject } from "../services/projects";
+import { ruleRequirements } from "../services/requirements";
 import { ApiFailure, invalidInput, notFound } from "./errors";
 import { Router } from "./server";
 import { readMultipart, streamSessionEvents } from "./streams";
@@ -100,6 +101,7 @@ export function createRouter(ctx: RuntimeContext): Router {
       correctElementMeasurement(ctx, idParam(req.params.id, "Element"), await req.json(MeasurementCorrectionRequestSchema)))
     .add("POST", "/api/projects/:id/rechecks", async (req) =>
       recheckProposal(ctx, idParam(req.params.id, "Project"), await req.json(RecheckRequestSchema)))
+    .add("GET", "/api/rules/requirements", () => ruleRequirements(ctx))
     .add("GET", "/api/projects/:id/coverage", (req) =>
       computeCoverage(ctx, getProject(ctx.db, idParam(req.params.id, "Project")).id));
 }

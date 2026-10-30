@@ -125,7 +125,7 @@ function patchOf(project: Project, draft: Draft): UpdateProjectRequest["patch"] 
 }
 
 function ProjectSummary({ project }: { project: Project }) {
-  const { updateProject, resetWorkspace, busy } = useWorkspace();
+  const { updateProject, resetWorkspace, busy, requirements } = useWorkspace();
   const [draft, setDraft] = useState<Draft | null>(null);
   const editing = draft !== null;
 
@@ -145,6 +145,8 @@ function ProjectSummary({ project }: { project: Project }) {
         <dt>Faza</dt><dd className="text-slate-200">{phases[project.phase]}</dd>
         <dt>Nova gradnja</dt>
         <dd className="text-slate-200">{project.characteristics.isNewBuild === undefined ? "nepoznato" : project.characteristics.isNewBuild ? "da" : "ne"}</dd>
+        <dt>Klasifikacija</dt><dd className="text-slate-200">{project.classification ?? "nepoznato"}</dd>
+        <dt>Visina objekta</dt><dd className="text-slate-200">{project.buildingHeightM !== undefined ? `${project.buildingHeightM} m` : "nepoznato"}</dd>
         <dt>Broj korisnika</dt><dd className="text-slate-200">{project.occupantCount ?? "nepoznato"}</dd>
       </dl>
       {!editing ? (
@@ -158,8 +160,14 @@ function ProjectSummary({ project }: { project: Project }) {
             </select>
           </label>
           <label className="block space-y-1 text-xs text-slate-300">
-            <span>Klasifikacija</span>
-            <input value={draft.classification} maxLength={120} onChange={(e) => setDraft({ ...draft, classification: e.target.value })} className={inputClass} />
+            <span>Klasifikacija objekta</span>
+            <select value={draft.classification} onChange={(e) => setDraft({ ...draft, classification: e.target.value })} className={inputClass}>
+              <option value="">Nepoznato</option>
+              {[...new Set([...(requirements?.classifications ?? []), ...(draft.classification ? [draft.classification] : [])])].map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+            <span className="block text-[10px] text-slate-500">Vrednosti koje koriste pravila u registru; ostavite nepoznato ako nije potvrđeno.</span>
           </label>
           <div className="grid grid-cols-3 gap-2">
             {([["buildingHeightM", "Visina (m)", "0.01"], ["floorCount", "Spratova", "1"], ["occupantCount", "Korisnika", "1"]] as const).map(([key, label, step]) => (

@@ -124,6 +124,28 @@ export const RecheckResponseSchema = z.strictObject({
   after: z.array(RuleEvaluationSchema),
 });
 
+/**
+ * What the rule registry can use, so the UI offers exactly the subtypes, measurements, and
+ * classifications that rules reference instead of hardcoding regulatory strings. Catalogue
+ * information only: listing a rule here does not mean it is active or applies to a project.
+ */
+export const RuleRequirementsSchema = z.strictObject({
+  subtypes: z.array(z.strictObject({
+    elementType: ElementTypeSchema,
+    subtype: z.string().trim().min(1),
+    rules: z.array(z.strictObject({
+      ruleId: IdSchema,
+      ruleVersion: PositiveIntegerSchema,
+      title: z.string().trim().min(1),
+      lifecycle: z.enum(["CANDIDATE", "AI_REVIEWED", "HUMAN_VERIFIED", "ACTIVE"]),
+      metrics: z.array(MetricSchema),
+    })).min(1),
+  })),
+  /** Exact `classification` values rule conditions compare against. */
+  classifications: z.array(z.string().trim().min(1)),
+});
+export type RuleRequirements = z.infer<typeof RuleRequirementsSchema>;
+
 export const CoverageSummarySchema = z.strictObject({
   projectId: IdSchema,
   projectRevision: PositiveIntegerSchema,
@@ -194,6 +216,7 @@ export const apiContracts = {
   correctMeasurement: { method: "PATCH", path: "/api/elements/:id/measurements", request: MeasurementCorrectionRequestSchema, response: MeasurementCorrectionResponseSchema },
   recheck: { method: "POST", path: "/api/projects/:id/rechecks", request: RecheckRequestSchema, response: RecheckResponseSchema },
   coverage: { method: "GET", path: "/api/projects/:id/coverage", response: CoverageSummarySchema },
+  ruleRequirements: { method: "GET", path: "/api/rules/requirements", response: RuleRequirementsSchema },
 } as const;
 
 export type ApiContractName = keyof typeof apiContracts;

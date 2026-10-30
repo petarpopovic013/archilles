@@ -26,8 +26,8 @@ export const sourceLabel: Record<MeasurementSource, string> = {
 export const metricLabel: Record<Metric, string> = {
   CLEAR_WIDTH_M: "Svetla širina",
   HEIGHT_M: "Visina",
-  RISE_M: "Visina gazišta",
-  RUN_M: "Dužina gazišta",
+  RISE_M: "Visina stepenika ili praga",
+  RUN_M: "Dubina (gazište, plato, vetrobran)",
   ROUTE_LENGTH_M: "Dužina puta",
   FLOOR_COUNT: "Broj spratova",
   OCCUPANT_COUNT: "Broj korisnika",
