@@ -214,7 +214,7 @@ export function LeftPanel() {
           <button
             type="button"
             onClick={runAnalysis}
-            disabled={isAnalyzing || isLoading}
+            disabled={isAnalyzing || isLoading || !project || !drawing}
             className={`flex-1 px-2.5 py-1.5 rounded text-xs font-semibold tracking-wide transition-all border ${
               isAnalyzing
                 ? "bg-cyan-900/60 text-cyan-300 border-cyan-700 animate-pulse cursor-wait"

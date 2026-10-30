@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { createClaudeVisionRunner } from "../src/vision/claude";
-import { createPendingRegistry } from "./adapters/pending-registry";
+import { createRegulatoryRegistry } from "./adapters/registry";
 import { createNodePageRenderer } from "../src/geometry/node-renderer";
 import { ClaudeInferenceRunner } from "./ai/inference";
 import { startRuntime } from "./app";
@@ -18,7 +18,7 @@ async function main() {
   const client = new Anthropic({ maxRetries: 0 });
   const app = await startRuntime({
     config,
-    registry: createPendingRegistry(),
+    registry: createRegulatoryRegistry(),
     geometry: {
       renderer: createNodePageRenderer(),
       vision: createClaudeVisionRunner(client, config.visionModel),
@@ -26,7 +26,8 @@ async function main() {
     inferenceRunner: new ClaudeInferenceRunner(client),
   });
   console.log(`[runtime] listening on ${app.url}`);
-  console.warn("[runtime] rule registry not yet integrated: no active rules will be selected or executed");
+  const registry = await app.ctx.registry.snapshot();
+  console.log(`[runtime] registry: ${registry.sources.length} source(s), ${registry.rules.filter(rule => rule.lifecycle === "HUMAN_VERIFIED").length} human-verified rule(s), ${(await app.ctx.registry.getActiveRules(new Date().toISOString().slice(0, 10))).length} active rule(s)`);
 
   let closing = false;
   const shutdown = async (signal: string) => {

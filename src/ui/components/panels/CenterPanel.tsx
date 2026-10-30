@@ -14,7 +14,9 @@ export function CenterPanel() {
     activePlanId,
   } = useWorkspace();
 
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [image, setImage] = useState<{ url: string; drawingId: string; page: number } | null>(null);
+  const [pageError, setPageError] = useState<string | null>(null);
+  const imageUrl = drawing && image?.drawingId === drawing.id && image.page === selectedPage ? image.url : null;
   const [dimensions, setDimensions] = useState<{ width: number; height: number }>({
     width: 1000,
     height: 800,
@@ -22,15 +24,19 @@ export function CenterPanel() {
 
   useEffect(() => {
     let isMounted = true;
+    let objectUrl: string | undefined;
     if (drawing) {
       apiClient.getDrawingPageInfo(drawing.id, selectedPage).then((info) => {
-        if (!isMounted) return;
-        setImageUrl(info.url);
+        if (!isMounted) { if (info.url.startsWith("blob:")) URL.revokeObjectURL(info.url); return; }
+        objectUrl = info.url;
+        setImage({ url: info.url, drawingId: drawing.id, page: selectedPage });
+        setPageError(null);
         setDimensions({ width: info.widthPx, height: info.heightPx });
-      });
+      }).catch(error => { if (isMounted) setPageError(error instanceof Error ? error.message : "Crtež nije dostupan"); });
     }
     return () => {
       isMounted = false;
+      if (objectUrl?.startsWith("blob:")) URL.revokeObjectURL(objectUrl);
     };
   }, [drawing, selectedPage, activePlanId]);
 
@@ -114,7 +120,7 @@ export function CenterPanel() {
             )}
           </div>
         ) : (
-          <div className="text-slate-500 text-xs italic">Učitavanje crteža...</div>
+          <div className="text-slate-500 text-xs italic">{drawing ? pageError ?? "Učitavanje crteža..." : "Otpremite crtež za pregled."}</div>
         )}
 
         {/* 3. Task 3 Groundwork Floating Status Bar */}
