@@ -6,6 +6,7 @@ import { safeInferenceRunner } from "./ai/inference";
 import { applyTelemetryDefaults, type RuntimeConfig } from "./config";
 import type { RuntimeContext } from "./context";
 import { openDatabase, recoverInterruptedWork } from "./db/connection";
+import { insertParticipant } from "./db/repo";
 import { createRouter } from "./http/routes";
 import { createHttpServer } from "./http/server";
 import { ArchillesRuntimeState, initializeRuntime, join } from "./mozaik/runtime";
@@ -64,6 +65,7 @@ export async function startRuntime(options: StartOptions): Promise<RuntimeApp> {
     budget: new Budget(db, config.aiBudgetUsd),
     registry: options.registry,
     geometry: options.geometry,
+    liveParticipantIds: [],
     now,
   };
 
@@ -71,7 +73,12 @@ export async function startRuntime(options: StartOptions): Promise<RuntimeApp> {
   const regulation = createRegulationAgent(ctx, () => geometry.getId());
   const bridge = createEngineBridge(ctx, () => ({ geometry: geometry.getId(), regulation: regulation.getId() }));
   const review = createReviewAgent(ctx, () => bridge.getId());
-  for (const participant of [createObserver(db, hub), api, geometry, regulation, bridge, review]) join(participant);
+  for (const participant of [createObserver(db, hub), api, geometry, regulation, bridge, review]) {
+    const { id, name, role } = participant.getManifest();
+    insertParticipant(db, { id, name, kind: role === "agent" ? "AGENT" : "HUMAN" }, now());
+    ctx.liveParticipantIds.push(id);
+    join(participant);
+  }
 
   const server = createHttpServer(createRouter(ctx));
   await new Promise<void>((resolve, reject) => {

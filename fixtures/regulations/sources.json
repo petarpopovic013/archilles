@@ -1,0 +1,57 @@
+[
+  {
+    "id": "00100000-0000-4000-8000-000000000001",
+    "title": "Правилник о техничким нормативима за заштиту од пожара стамбених и пословних објеката и објеката јавне намене",
+    "jurisdiction": "RS",
+    "category": "FIRE",
+    "publicationReference": "Службени гласник РС, 22/2019-3",
+    "officialUrl": "https://pravno-informacioni-sistem.rs/SlGlasnikPortal/reg/viewAct/ec3c54bc-de4a-433f-afa8-d9eb44b7dab1",
+    "retrievedAt": "2026-10-30T16:42:26.036Z",
+    "amendmentReferences": [],
+    "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+    "status": "CURRENT_CONFIRMED",
+    "originalPublishedAt": "2019-03-28",
+    "effectiveFrom": "2019-04-05",
+    "sha256": "78afee68622bdfb8914e856f6b91c47233a0917c8114a1e9b75c06f872a3af64",
+    "verifiedBy": "Petar Popovic",
+    "verifiedAt": "2026-10-30T16:48:58.509Z"
+  },
+  {
+    "id": "00100000-0000-4000-8000-000000000002",
+    "title": "Правилник о техничким стандардима планирања, пројектовања и изградње објеката, којима се осигурава несметано кретање и приступ особама са инвалидитетом, деци и старим особама",
+    "jurisdiction": "RS",
+    "category": "ACCESSIBILITY",
+    "publicationReference": "Сл. гласник РС, бр. 22/2015 (captured base text only)",
+    "officialUrl": "https://www.mgsi.gov.rs/sites/default/files/Pravilnik%20o%20tehnickim%20standardima%20planiranja,%20projektovanja%20i%20izgradnje%20objekata,%20kojima%20se%20osigurava%20nesmetano%20kretanje%20i%20pristup%20ososbama%20sa%20invaliditetom,%20deci%20i%20starim%20osobama.pdf",
+    "retrievedAt": "2026-10-30T16:31:31.134Z",
+    "amendmentReferences": [
+      "10/2026-89: current consolidated version stored separately; base capture preserved."
+    ],
+    "sourceVersion": "22/2015-base-mgsi",
+    "sha256": "28e18ac577ad485769b5d55116ee8f94b03f32cb04f0e48375b9febf0815eba4",
+    "status": "HISTORICAL",
+    "effectiveFrom": "2015-02-28",
+    "effectiveTo": "2026-02-06",
+    "verifiedBy": "Petar Popovic",
+    "verifiedAt": "2026-10-30T16:48:58.509Z"
+  },
+  {
+    "id": "00100000-0000-4000-8000-000000000003",
+    "title": "Правилник о техничким стандардима планирања, пројектовања и изградње објеката, којима се осигурава несметано кретање и приступ особама са инвалидитетом, деци и старим особама",
+    "jurisdiction": "RS",
+    "category": "ACCESSIBILITY",
+    "publicationReference": "Службени гласник РС, 22/2015-95, 10/2026-89",
+    "officialUrl": "https://pravno-informacioni-sistem.rs/SlGlasnikPortal/reg/viewAct/512f4f2c-4bc4-4c31-a335-409673b7fac5",
+    "retrievedAt": "2026-10-30T16:42:26.036Z",
+    "amendmentReferences": [
+      "10/2026-89"
+    ],
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "sha256": "e794b3b89604419a876968742ca07a3bc51a90c2285d7dc2ade6994178ccfed6",
+    "status": "CURRENT_CONFIRMED",
+    "effectiveFrom": "2026-02-07",
+    "originalPublishedAt": "2015-02-27",
+    "verifiedBy": "Petar Popovic",
+    "verifiedAt": "2026-10-30T16:48:58.509Z"
+  }
+]

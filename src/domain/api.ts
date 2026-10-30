@@ -17,6 +17,7 @@ import {
 import {
   ArchitecturalElementSchema,
   DrawingSchema,
+  EvidenceSchema,
   MeasurementSchema,
   ProjectSchema,
 } from "./project";
@@ -132,6 +133,14 @@ export const CoverageSummarySchema = z.strictObject({
 });
 export type CoverageSummary = z.infer<typeof CoverageSummarySchema>;
 
+/** Display identity of a runtime participant, so activity can name the agent behind `producerId`. */
+export const ParticipantSummarySchema = z.strictObject({
+  id: IdSchema,
+  name: z.string().trim().min(1).max(120),
+  kind: z.enum(["AGENT", "HUMAN"]),
+});
+export type ParticipantSummary = z.infer<typeof ParticipantSummarySchema>;
+
 export const AnalysisSnapshotSchema = z.strictObject({
   session: AnalysisSessionSchema,
   elements: z.array(ArchitecturalElementSchema),
@@ -139,6 +148,8 @@ export const AnalysisSnapshotSchema = z.strictObject({
   evaluations: z.array(RuleEvaluationSchema),
   findings: z.array(ComplianceFindingSchema),
   coverage: CoverageSummarySchema,
+  /** Additive: participants that produced, or can produce, this session's events. */
+  participants: z.array(ParticipantSummarySchema).optional(),
 });
 export type AnalysisSnapshot = z.infer<typeof AnalysisSnapshotSchema>;
 
@@ -160,6 +171,7 @@ export const apiContracts = {
   updateProject: { method: "PATCH", path: "/api/projects/:id", request: UpdateProjectRequestSchema, response: UpdateProjectResponseSchema },
   uploadDrawing: { method: "POST", path: "/api/projects/:id/drawings", request: UploadDrawingMetadataSchema, response: UploadDrawingResponseSchema },
   getDrawingPage: { method: "GET", path: "/api/drawings/:id/pages/:page", responseType: "binary" },
+  getEvidence: { method: "GET", path: "/api/evidence/:id", response: EvidenceSchema },
   startAnalysis: { method: "POST", path: "/api/projects/:id/analyses", request: StartAnalysisRequestSchema, response: StartAnalysisResponseSchema },
   getAnalysis: { method: "GET", path: "/api/analyses/:id", response: AnalysisSnapshotSchema },
   streamEvents: { method: "GET", path: "/api/analyses/:id/events", request: EventStreamQuerySchema, response: EventStreamItemSchema },

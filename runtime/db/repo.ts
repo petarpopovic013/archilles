@@ -11,6 +11,7 @@ import {
   ReviewActionSchema,
   RuleEvaluationSchema,
   type AgentRun,
+  type ParticipantSummary,
   type AnalysisSession,
   type ArchitecturalElement,
   type ComplianceFinding,
@@ -262,4 +263,21 @@ export function insertReviewAction(db: Db, action: ReviewAction): void {
 export function claimPendingInput(db: Db, key: string, sessionId: string, revision: number, data: unknown): boolean {
   return db.prepare("INSERT OR IGNORE INTO pending_inputs (input_key, session_id, project_revision, data) VALUES (?, ?, ?, ?)")
     .run(key, sessionId, revision, json(data)).changes === 1;
+}
+
+// Participants ------------------------------------------------------------------------------
+
+export function insertParticipant(db: Db, participant: ParticipantSummary, joinedAt: string): void {
+  db.prepare("INSERT OR IGNORE INTO participants (id, name, kind, joined_at) VALUES (?, ?, ?, ?)")
+    .run(participant.id, participant.name, participant.kind, joinedAt);
+}
+
+/** Producers of a session's stored events plus the live participants that may still produce some. */
+export function listSessionParticipants(db: Db, sessionId: string, liveIds: readonly string[]): ParticipantSummary[] {
+  return db.prepare(`
+    SELECT id, name, kind FROM participants
+    WHERE id IN (SELECT DISTINCT json_extract(data, '$.producerId') FROM agent_events WHERE session_id = ?)
+       OR id IN (SELECT value FROM json_each(?))
+    ORDER BY joined_at, name
+  `).all(sessionId, JSON.stringify(liveIds)) as ParticipantSummary[];
 }

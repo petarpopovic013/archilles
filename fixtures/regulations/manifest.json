@@ -1,0 +1,102 @@
+{
+  "task": "001",
+  "startingGitRevision": "009fb64071d9cd8fdd3ff7b06ad07a3afb7f0638",
+  "retrievedAt": "2026-10-30T16:31:31.134Z",
+  "artifacts": [
+    {
+      "path": "fixtures/regulations/originals/accessibility-22-2015.pdf",
+      "url": "https://www.mgsi.gov.rs/sites/default/files/Pravilnik%20o%20tehnickim%20standardima%20planiranja,%20projektovanja%20i%20izgradnje%20objekata,%20kojima%20se%20osigurava%20nesmetano%20kretanje%20i%20pristup%20ososbama%20sa%20invaliditetom,%20deci%20i%20starim%20osobama.pdf",
+      "kind": "OFFICIAL_BASE_TEXT",
+      "sha256": "28e18ac577ad485769b5d55116ee8f94b03f32cb04f0e48375b9febf0815eba4",
+      "byteSize": 737112
+    },
+    {
+      "path": "fixtures/regulations/originals/fire-pis-shell.html",
+      "url": "https://pravno-informacioni-sistem.rs/SlGlasnikPortal/reg/viewAct/ec3c54bc-de4a-433f-afa8-d9eb44b7dab1",
+      "kind": "APPLICATION_SHELL_NOT_LEGAL_TEXT",
+      "sha256": "33447cbad948536acd93c88255c1e21e64432af9e10f754d76da3df700dbf76b",
+      "byteSize": 13015
+    },
+    {
+      "path": "fixtures/regulations/originals/accessibility-pis-shell.html",
+      "url": "https://pravno-informacioni-sistem.rs/SlGlasnikPortal/reg/viewAct/512f4f2c-4bc4-4c31-a335-409673b7fac5",
+      "kind": "APPLICATION_SHELL_NOT_LEGAL_TEXT",
+      "sha256": "33447cbad948536acd93c88255c1e21e64432af9e10f754d76da3df700dbf76b",
+      "byteSize": 13015
+    },
+    {
+      "path": "fixtures/regulations/originals/mto-register.html",
+      "url": "https://mto.gov.rs/tekst/sr/176/podzakonski-akti.php",
+      "kind": "OFFICIAL_PUBLICATION_INDEX_NOT_LEGAL_TEXT",
+      "sha256": "309489fea0415fcace03d67a5e90622d55f315b1d2173079394b6b98b8703b78",
+      "byteSize": 60993
+    },
+    {
+      "path": "fixtures/regulations/originals/fire-current.html",
+      "url": "https://reg.pravno-informacioni-sistem.rs/api/viewAct/ec3c54bc-de4a-433f-afa8-d9eb44b7dab1?lawActId=428109",
+      "kind": "OFFICIAL_LEGAL_TEXT",
+      "retrievedAt": "2026-10-30T16:42:26.036Z",
+      "sha256": "78afee68622bdfb8914e856f6b91c47233a0917c8114a1e9b75c06f872a3af64",
+      "byteSize": 152432
+    },
+    {
+      "path": "fixtures/regulations/originals/accessibility-current.html",
+      "url": "https://reg.pravno-informacioni-sistem.rs/api/viewAct/512f4f2c-4bc4-4c31-a335-409673b7fac5?lawActId=439676",
+      "kind": "OFFICIAL_CONSOLIDATED_TEXT",
+      "retrievedAt": "2026-10-30T16:42:26.036Z",
+      "sha256": "e794b3b89604419a876968742ca07a3bc51a90c2285d7dc2ade6994178ccfed6",
+      "byteSize": 119461
+    },
+    {
+      "path": "fixtures/regulations/originals/accessibility-amendment-10-2026.html",
+      "url": "https://slgl.pravno-informacioni-sistem.rs/api/prins/viewdoc?uuid=05f7b1f1-d3c2-4d84-bd4f-457cd97aba55",
+      "kind": "OFFICIAL_AMENDMENT_TEXT",
+      "retrievedAt": "2026-10-30T16:42:26.036Z",
+      "sha256": "60ae6bd01e6cbdbf496625588978b53beb163dd928ef743bd4bb208dc4d6c868",
+      "byteSize": 37080
+    },
+    {
+      "path": "fixtures/regulations/originals/fire-metadata.json",
+      "url": "https://reg.pravno-informacioni-sistem.rs/api/GetLawActViewByGuid?guid=ec3c54bc-de4a-433f-afa8-d9eb44b7dab1",
+      "kind": "OFFICIAL_METADATA",
+      "retrievedAt": "2026-10-30T16:42:26.036Z",
+      "sha256": "99ee35c29ce3e3bdf53f21c9b49ee19a2955c00b1918d9c2a418f85eb8afe32e",
+      "byteSize": 2009
+    },
+    {
+      "path": "fixtures/regulations/originals/fire-timeline.json",
+      "url": "https://reg.pravno-informacioni-sistem.rs/api/GetLawActTimeline?guid=ec3c54bc-de4a-433f-afa8-d9eb44b7dab1",
+      "kind": "OFFICIAL_VERSION_TIMELINE",
+      "retrievedAt": "2026-10-30T16:42:26.036Z",
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "byteSize": 2
+    },
+    {
+      "path": "fixtures/regulations/originals/accessibility-metadata.json",
+      "url": "https://reg.pravno-informacioni-sistem.rs/api/GetLawActViewByGuid?guid=512f4f2c-4bc4-4c31-a335-409673b7fac5",
+      "kind": "OFFICIAL_METADATA",
+      "retrievedAt": "2026-10-30T16:42:26.036Z",
+      "sha256": "9b8d23f75e91f6deb97f0874279bc411dc8d714e080b210e7afb2dd69ec473b1",
+      "byteSize": 3497
+    },
+    {
+      "path": "fixtures/regulations/originals/accessibility-timeline.json",
+      "url": "https://reg.pravno-informacioni-sistem.rs/api/GetLawActTimeline?guid=512f4f2c-4bc4-4c31-a335-409673b7fac5",
+      "kind": "OFFICIAL_VERSION_TIMELINE",
+      "retrievedAt": "2026-10-30T16:42:26.036Z",
+      "sha256": "f3762549539e546c1d894ab6eb88942189e2fecf728a1834ce8e682df63f8b0a",
+      "byteSize": 108
+    }
+  ],
+  "blockers": [
+    "GEOMETRY_SUBTYPE_AGREEMENT_PENDING: FIXED_FURNITURE_PASSAGE must be confirmed by Geometry owner.",
+    "ACTIVATION_OUT_OF_SCOPE: Runtime owner must verify evaluator and numeric fixtures before separate activation."
+  ],
+  "followupRetrievedAt": "2026-10-30T16:42:26.036Z",
+  "resolvedBlockers": [
+    "FIRE_TEXT_UNAVAILABLE: resolved through official public REG API.",
+    "ACCESSIBILITY_AMENDMENT_UNVERIFIED: official original amendment and consolidated text captured and compared; human approval still pending.",
+    "HUMAN_REVIEW_PENDING: resolved by explicit user confirmation; see human-review.json."
+  ],
+  "humanReviewReference": "fixtures/regulations/human-review.json"
+}

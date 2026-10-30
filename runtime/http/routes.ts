@@ -9,7 +9,7 @@ import {
   UploadDrawingMetadataSchema,
 } from "../../src/domain";
 import type { RuntimeContext } from "../context";
-import { findSession } from "../db/repo";
+import { findEvidence, findSession } from "../db/repo";
 import { computeCoverage, getAnalysisSnapshot, startAnalysis } from "../services/analyses";
 import { readPageRaster, uploadDrawing } from "../services/drawings";
 import { correctElementMeasurement, recheckProposal } from "../services/measurements";
@@ -72,6 +72,12 @@ export function createRouter(ctx: RuntimeContext): Router {
         "x-source-height": String(raster.sourceHeight),
       });
       res.end(raster.bytes);
+    })
+
+    .add("GET", "/api/evidence/:id", (req) => {
+      const [evidence] = findEvidence(ctx.db, [idParam(req.params.id, "Evidence")]);
+      if (!evidence) throw notFound("Evidence");
+      return evidence;
     })
 
     .add("POST", "/api/projects/:id/analyses", async (req) =>
