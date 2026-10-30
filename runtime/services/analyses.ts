@@ -21,6 +21,7 @@ import {
   findFloor,
   floorView,
   insertSession,
+  latestSessionForPage,
   latestSessionForProject,
   listSessionEvaluations,
   listSessionFindings,
@@ -28,7 +29,7 @@ import {
   retireRunKey,
 } from "../db/repo";
 import { notFound, revisionConflict } from "../http/errors";
-import { createAppEvent, emitAppEvent } from "../mozaik/app-events";
+import { createAppEvent, emitAppEvent, type EventScope } from "../mozaik/app-events";
 import { resolveRuntime } from "../mozaik/runtime";
 import { ensureFloor } from "./drawings";
 import { getProject, saveProject } from "./projects";
@@ -109,6 +110,27 @@ export async function startAnalysis(
     projectId, projectRevision: project.revision, correlationId: session.id, sessionId: session.id,
   }, { drawingId: drawing.id, page: request.page, ruleSetVersion }));
   return { sessionId: session.id, status: "RUNNING" };
+}
+
+/**
+ * After a confirmed correction: announce the new revision and, if this page was analysed before,
+ * start a follow-up session for it. Stored geometry is reused (no Vision call) and unchanged
+ * outcomes reuse earlier explanations. `events` receive the follow-up session ID, if any.
+ */
+export async function reanalyseAfterRevision(
+  ctx: RuntimeContext,
+  scope: EventScope,
+  location: { drawingId: string; page: number },
+  events: (sessionId?: string) => AppEvent[],
+): Promise<void> {
+  const prior = latestSessionForPage(ctx.db, scope.projectId, location.drawingId, location.page);
+  if (!prior) {
+    for (const event of events()) emitAppEvent(ctx.api, event);
+    return;
+  }
+  await startAnalysis(ctx, scope.projectId, {
+    projectRevision: scope.projectRevision, drawingId: location.drawingId, page: location.page,
+  }, { precedingEvents: events });
 }
 
 export async function getAnalysisSnapshot(ctx: RuntimeContext, sessionId: string): Promise<AnalysisSnapshot> {

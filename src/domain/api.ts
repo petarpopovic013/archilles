@@ -94,6 +94,21 @@ export const MeasurementCorrectionResponseSchema = z.strictObject({
   measurement: MeasurementSchema,
 });
 
+/**
+ * Human confirmation or correction of an element's classification. An empty body confirms the
+ * element as suggested; `subtype: null` clears it. Creates a new revision like any correction.
+ */
+export const ElementUpdateRequestSchema = z.strictObject({
+  baseRevision: PositiveIntegerSchema,
+  type: ElementTypeSchema.optional(),
+  subtype: z.string().trim().min(1).max(100).nullable().optional(),
+});
+export const ElementUpdateResponseSchema = z.strictObject({
+  revision: ProjectRevisionSchema,
+  element: ArchitecturalElementSchema,
+});
+export type ElementUpdateRequest = z.input<typeof ElementUpdateRequestSchema>;
+
 export const RecheckRequestSchema = z.strictObject({
   baseRevision: PositiveIntegerSchema,
   elementId: IdSchema,
@@ -175,6 +190,7 @@ export const apiContracts = {
   startAnalysis: { method: "POST", path: "/api/projects/:id/analyses", request: StartAnalysisRequestSchema, response: StartAnalysisResponseSchema },
   getAnalysis: { method: "GET", path: "/api/analyses/:id", response: AnalysisSnapshotSchema },
   streamEvents: { method: "GET", path: "/api/analyses/:id/events", request: EventStreamQuerySchema, response: EventStreamItemSchema },
+  updateElement: { method: "PATCH", path: "/api/elements/:id", request: ElementUpdateRequestSchema, response: ElementUpdateResponseSchema },
   correctMeasurement: { method: "PATCH", path: "/api/elements/:id/measurements", request: MeasurementCorrectionRequestSchema, response: MeasurementCorrectionResponseSchema },
   recheck: { method: "POST", path: "/api/projects/:id/rechecks", request: RecheckRequestSchema, response: RecheckResponseSchema },
   coverage: { method: "GET", path: "/api/projects/:id/coverage", response: CoverageSummarySchema },
