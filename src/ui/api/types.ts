@@ -207,6 +207,7 @@ export { contractFixture } from "../../domain/fixtures";
 
 /** Information for rendering a drawing page in the viewer */
 export interface DrawingPageInfo {
+  /** widthPx/heightPx are source-page coordinates; raster natural size can be smaller. */
   blob: Blob;
   url: string;
   widthPx: number;

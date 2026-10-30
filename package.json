@@ -12,11 +12,13 @@
     "lint": "eslint",
     "test": "node --import tsx --test",
     "postinstall": "next typegen",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "smoke:geometry": "node --env-file-if-exists=.env --import tsx tests/runtime/live-smoke.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
     "@mozaik-ai/core": "^4.2.0",
+    "@napi-rs/canvas": "1.1.0",
     "better-sqlite3": "^13.0.3",
     "konva": "^10.9.0",
     "next": "16.4.3",
@@ -24,6 +26,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-konva": "^19.3.2",
+    "sharp": "0.35.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {

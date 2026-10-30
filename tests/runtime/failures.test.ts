@@ -89,6 +89,9 @@ test("duplicate event IDs are ignored and a newer revision supersedes a running 
   assert.equal(snapshot.session.status, "PARTIAL");
   assert.equal(snapshot.session.errorCode, "REVISION_SUPERSEDED");
   assert.equal(snapshot.evaluations.length, 0, "late work for revision 2 is not evaluated against revision 3");
+  assert.equal(snapshot.elements.length, 0, "late geometry is discarded before persistence");
+  const late = listSessionRuns(app.ctx.db, sessionId).find(run => run.role === "GEOMETRY")!;
+  assert.ok((late.estimatedCostUsd ?? 0) > 0, "discarded results still account for actual model usage");
 });
 
 test("the budget cap blocks new AI calls before they are made", async () => {

@@ -43,7 +43,7 @@ initializeRuntime({ state: new ArchillesRuntimeState() });
 // Create and join participants before sending application events.
 ```
 
-This snippet is an interface illustration, not a complete server. No image bytes live in shared state. SQLite owns durable project geometry, source registry, runs, event summaries, and findings. Runtime state caches only coordination and current session snapshots. A session owns a fixed `projectRevision` and selected rule-set version; agents discard late results for older revisions.
+This snippet is an interface illustration, not a complete server. No image bytes live in shared state. The runtime prepares trusted private rasters under Tech ADR-08 before Geometry runs; browser-provided geometry or raster dimensions are not accepted as verified source data. SQLite owns durable project geometry, source registry, runs, event summaries, and findings. Runtime state caches only coordination and current session snapshots. A session owns a fixed `projectRevision` and selected rule-set version; agents discard late results for older revisions.
 
 ### 2. Agent responsibilities and permissions
 

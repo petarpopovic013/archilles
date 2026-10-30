@@ -77,8 +77,13 @@ export async function analyzeDrawing(input:AnalyzeInput):Promise<GeometryExtract
       await input.reserveBudget();
       const response=await input.vision.run(await input.readPrivateRaster(p.rasterReference),p.rasterWidth,p.rasterHeight);
       const parsed=VisionOutputSchema.safeParse(response.output);
-      if(!parsed.success) throw new GeometryError('VISION_SCHEMA_INVALID');
-      const result=materialize(parsed.data,input,{model:input.vision.model,inputTokens:response.inputTokens,outputTokens:response.outputTokens,estimatedCostUsd:response.estimatedCostUsd,cacheHit:false});
+      const responseUsage={model:input.vision.model,inputTokens:response.inputTokens,outputTokens:response.outputTokens,estimatedCostUsd:response.estimatedCostUsd,cacheHit:false};
+      if(!parsed.success) throw new GeometryError('VISION_SCHEMA_INVALID',false,responseUsage);
+      let result: GeometryExtraction;
+      try { result=materialize(parsed.data,input,responseUsage); } catch(error) {
+        if(error instanceof GeometryError) throw new GeometryError(error.code,error.retryable,responseUsage);
+        throw new GeometryError('VISION_SCHEMA_INVALID',false,responseUsage);
+      }
       await input.cache.set(key,structuredClone(result)); return result;
     })();
     pending.set(key,task);

@@ -228,3 +228,49 @@ test("Global singleton apiClient works out of the box", async () => {
   const project = await apiClient.getProject(contractFixture.project.id);
   assert.equal(project.id, contractFixture.project.id);
 });
+
+test("Mock client supports loading Plan 1 and Plan 2 with data-dependent differing outcomes", async () => {
+  const client = createApiClient({ mode: "mock" });
+
+  // Load Plan 1: Baseline Corridor with UNKNOWN outcome
+  const plan1 = client.loadPlanFixture("plan-1");
+  assert.equal(plan1.id, "plan-1");
+  assert.equal(plan1.elements.length, 1);
+  assert.equal(plan1.elements[0].type, "CORRIDOR");
+  assert.equal(plan1.findings[0].status, "UNKNOWN");
+
+  const snapshot1 = await client.getAnalysis(plan1.session.id);
+  assert.doesNotThrow(() => AnalysisSnapshotSchema.parse(snapshot1));
+  assert.equal(snapshot1.coverage.blockedUnknown, 1);
+
+  // Load Plan 2: Multi-element floor plan with FAIL, NEEDS_REVIEW, PASS
+  const plan2 = client.loadPlanFixture("plan-2");
+  assert.equal(plan2.id, "plan-2");
+  assert.equal(plan2.elements.length, 3);
+  assert.ok(plan2.elements.some((e) => e.type === "RAMP"));
+  assert.ok(plan2.elements.some((e) => e.type === "DOOR"));
+  assert.ok(plan2.elements.some((e) => e.type === "CORRIDOR"));
+
+  // Check different statuses
+  const statuses = plan2.findings.map((f) => f.status);
+  assert.ok(statuses.includes("FAIL"));
+  assert.ok(statuses.includes("NEEDS_REVIEW"));
+  assert.ok(statuses.includes("PASS"));
+
+  // Check uncertainty provenance: AI_ESTIMATE is UNVERIFIED
+  const rampSlope = plan2.measurements.find((m) => m.metric === "SLOPE_RATIO");
+  assert.ok(rampSlope);
+  assert.equal(rampSlope.source, "AI_ESTIMATE");
+  assert.equal(rampSlope.verification, "UNVERIFIED");
+
+  const snapshot2 = await client.getAnalysis(plan2.session.id);
+  assert.doesNotThrow(() => AnalysisSnapshotSchema.parse(snapshot2));
+  assert.equal(snapshot2.coverage.evaluationStatusCounts?.FAIL, 1);
+  assert.equal(snapshot2.coverage.evaluationStatusCounts?.NEEDS_REVIEW, 1);
+  assert.equal(snapshot2.coverage.evaluationStatusCounts?.PASS, 1);
+
+  // Check page info dimensions for Plan 2
+  const pageInfo2 = await client.getDrawingPageInfo(plan2.drawing.id, 1);
+  assert.equal(pageInfo2.widthPx, 1200);
+  assert.equal(pageInfo2.heightPx, 900);
+});

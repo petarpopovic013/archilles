@@ -1,0 +1,41 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import type Anthropic from '@anthropic-ai/sdk';
+import { createClaudeVisionRunner } from '../../src/vision/claude';
+import { providerFailure } from '../../src/vision/provider-errors';
+
+test('provider error classification works across SDK module boundaries without exposing messages', () => {
+  assert.deepEqual(providerFailure({ status: 503, message: 'private' }), { code: 'PROVIDER_UNAVAILABLE', retryable: true });
+  assert.equal(providerFailure({ status: 401 }).code, 'PROVIDER_AUTH');
+  assert.equal(providerFailure({ status: 404 }).code, 'PROVIDER_MODEL_OR_ENDPOINT_NOT_FOUND');
+  assert.equal(providerFailure({ status: 429 }).retryable, true);
+  assert.equal(providerFailure({ status: '503' }).retryable, false);
+});
+
+test('gateway 503 gets one retry; authentication and model errors do not', async () => {
+  for (const [status, expectedCalls, code] of [[503, 2, 'VISION_UNAVAILABLE'], [401, 1, 'PROVIDER_AUTH'], [404, 1, 'PROVIDER_MODEL_OR_ENDPOINT_NOT_FOUND']] as const) {
+    let calls = 0;
+    const client = { messages: { create: async () => { calls++; throw Object.assign(new Error('private gateway response'), { status }); } } } as unknown as Anthropic;
+    await assert.rejects(createClaudeVisionRunner(client, 'configured-model').run(new Uint8Array(), 800, 600), error => error instanceof Error && error.message === code);
+    assert.equal(calls, expectedCalls);
+  }
+});
+
+test('truncation and refusal have explicit codes without blind retries', async () => {
+  for (const [reason, code] of [['max_tokens', 'VISION_OUTPUT_TRUNCATED'], ['refusal', 'VISION_REFUSED']] as const) {
+    let calls = 0;
+    const client = { messages: { create: async () => { calls++; return { stop_reason: reason, usage: { input_tokens: 10, output_tokens: 20 } }; } } } as unknown as Anthropic;
+    await assert.rejects(createClaudeVisionRunner(client, 'configured-model').run(new Uint8Array(), 800, 600), new RegExp(code));
+    assert.equal(calls, 1);
+  }
+});
+
+test('billable schema-invalid answers retain token usage and are never retried', async () => {
+  let calls = 0;
+  const client = { messages: { create: async () => { calls++; return { stop_reason: 'end_turn', usage: { input_tokens: 100, output_tokens: 50 }, content: [{ type: 'text', text: '{invalid' }] }; } } } as unknown as Anthropic;
+  await assert.rejects(createClaudeVisionRunner(client, 'configured-model').run(new Uint8Array(), 800, 600), error => {
+    const value = error as { code?: string; usage?: { inputTokens: number; outputTokens: number } };
+    return value.code === 'VISION_SCHEMA_INVALID' && value.usage?.inputTokens === 100 && value.usage.outputTokens === 50;
+  });
+  assert.equal(calls, 1);
+});

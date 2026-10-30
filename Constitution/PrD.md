@@ -38,7 +38,7 @@ Each ID is stable. P0 is required for a credible demo, P1 is a stretch addition,
 | ID | Priority | Requirement | Objective acceptance criterion |
 |---|---|---|---|
 | PR-01 | P0 | Create and revise an office project with jurisdiction, purpose, phase, and progressive metadata | A user can create a project without knowing every field; missing later inputs are requested at the relevant check; revisions increase on confirmed edits. |
-| PR-02 | P0 | Accept PDF, PNG, and JPG plans and select one PDF page | Supported files render in the workspace; corrupt, encrypted, oversized, or unsupported files produce clear errors; selected page is recorded. |
+| PR-02 | P0 | Accept PDF, PNG, and JPG plans and select one PDF page | Supported files are normalized privately in the runtime (Tech ADR-08) and render in the workspace; corrupt, encrypted, oversized, or unsupported files produce clear errors; selected page is recorded. |
 | PR-03 | P0 | Display a navigable 2D plan with selectable geometry and issue overlays | Zoom/pan preserve marker alignment; selecting a marker focuses the affected element and opens its finding. |
 | PR-04 | P0 | Produce canonical elements and evidence from a plan | Rooms, corridors, doors, exits, stairs, or ramps relevant to active checks get stable IDs, page coordinates, type, and extraction state; uncertain outputs are visible. |
 | PR-05 | P0 | Preserve measurement provenance and allow human correction | Each value shows source and verification state; no raw pixel or AI-estimated distance alone yields a physical PASS/FAIL; correction creates a new revision. |
