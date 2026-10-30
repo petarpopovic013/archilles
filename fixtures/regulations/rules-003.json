@@ -11,7 +11,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Дубина газишта појединачног приступачног степеника",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "STAIR",
     "applicability": {
       "op": "ALL",
@@ -76,11 +76,13 @@
       "00300000-0000-4000-8000-000000003009"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "RUN_M is the horizontal tread depth of one step, not flight run or step rise.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000031",
@@ -94,7 +96,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Чиста ширина једносмерне једнокраке приступачне рампе",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "RAMP",
     "applicability": {
       "op": "ALL",
@@ -159,11 +161,13 @@
       "00300000-0000-4000-8000-000000003109"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "Only a reviewed one-way, non-switchback ramp; do not apply 0.9 m to a two-flight ramp.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000032",
@@ -177,7 +181,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Чиста ширина двокраке приступачне рампе",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "RAMP",
     "applicability": {
       "op": "ALL",
@@ -242,11 +246,13 @@
       "00300000-0000-4000-8000-000000003209"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "Only the clear ramp width dimension; landing dimensions and all other ramp conditions remain separate.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000033",
@@ -260,7 +266,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Ширина кратког једносмерног приступачног пролаза",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "CORRIDOR",
     "applicability": {
       "op": "ALL",
@@ -325,11 +331,13 @@
       "00300000-0000-4000-8000-000000003309"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "Human must confirm short-distance, one-way movement and designated accessible route. Article 14 paragraph 2 permits an alternative designated route; do not apply this rule to every corridor.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000034",
@@ -343,7 +351,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Светла ширина унутрашњих приступачних врата по члану 22",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "DOOR",
     "applicability": {
       "op": "ALL",
@@ -408,11 +416,13 @@
       "00300000-0000-4000-8000-000000003409"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "Article 22 dimension only; articles 17 and 20 can impose different or stronger contextual requirements. Do not resolve precedence by choosing the smaller threshold.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000035",
@@ -426,7 +436,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Светла ширина улазних приступачних врата по члану 22",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "DOOR",
     "applicability": {
       "op": "ALL",
@@ -491,11 +501,13 @@
       "00300000-0000-4000-8000-000000003509"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "Article 22 entrance dimension only; article 13 and public-building conditions require separate review.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000036",
@@ -509,7 +521,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Светла ширина врата приступачног WC",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "DOOR",
     "applicability": {
       "op": "ALL",
@@ -574,11 +586,13 @@
       "00300000-0000-4000-8000-000000003609"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "Only a door of the designated accessible WC. Outward opening, safety hardware and number of accessible cabins are not checked.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000037",
@@ -592,7 +606,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Чист отвор врата означеног приступачног лифта",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "DOOR",
     "applicability": {
       "op": "ALL",
@@ -657,11 +671,13 @@
       "00300000-0000-4000-8000-000000003709"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "Door of a human-designated accessible lift only; not all lift doors. Article 9 permits at least one qualifying lift where multiple lifts serve the rise.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000038",
@@ -675,7 +691,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Слободна ширина платоа испред приступачног улаза",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "ENTRANCE",
     "applicability": {
       "op": "ALL",
@@ -740,11 +756,13 @@
       "00300000-0000-4000-8000-000000003809"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "One axis of the required 1.5 x 1.5 m level platform. Does not prove its depth or level surface. Multiple-entrance selection must be confirmed by a human.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000039",
@@ -758,7 +776,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Слободна дубина платоа испред приступачног улаза",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "ENTRANCE",
     "applicability": {
       "op": "ALL",
@@ -823,11 +841,13 @@
       "00300000-0000-4000-8000-000000003909"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "Other independent horizontal axis of the required platform. RUN_M is clear platform depth, not route length or width.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000040",
@@ -841,7 +861,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Дубина ветробрана са вратима која се отварају у истом смеру",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "ENTRANCE",
     "applicability": {
       "op": "ALL",
@@ -906,11 +926,13 @@
       "00300000-0000-4000-8000-000000004009"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "Only a vestibule that exists and has confirmed same-direction external and internal doors. RUN_M is clear vestibule depth.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000041",
@@ -924,7 +946,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Дубина ветробрана када се оба врата отварају ка ветробрану",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "HUMAN_VERIFIED",
     "elementType": "ENTRANCE",
     "applicability": {
       "op": "ALL",
@@ -989,11 +1011,13 @@
       "00300000-0000-4000-8000-000000004109"
     ],
     "interpretationNotes": [
-      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
       "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
       "Only confirmed external and internal doors both opening into the vestibule; do not assume the same-direction case.",
       "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00300000-0000-4000-8000-000000000042",

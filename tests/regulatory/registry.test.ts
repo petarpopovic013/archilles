@@ -30,14 +30,14 @@ test("captures match manifest and PDF identity; no shell is represented as a leg
   }
 });
 
-test("all domain records validate, references resolve and one human-verified inactive rule exists", () => {
+test("all domain records validate, references resolve and 26 human-verified inactive rules exist", () => {
   regulationSources.forEach((s) => RegulationSourceSchema.parse(s));
   regulationProvisions.forEach((p) => {
     RegulationProvisionSchema.parse(p);
     assert.ok(regulationSources.some((s) => s.id === p.sourceId && s.sourceVersion === p.sourceVersion));
     for (const id of p.crossReferenceIds) assert.ok(regulationProvisions.some((other) => other.id === id));
   });
-  assert.equal(complianceRules.filter((rule) => rule.lifecycle === "HUMAN_VERIFIED").length, 1);
+  assert.equal(complianceRules.filter((rule) => rule.lifecycle === "HUMAN_VERIFIED").length, 26);
   const rule = ComplianceRuleSchema.parse(complianceRules[0]);
   assert.equal(rule.lifecycle, "HUMAN_VERIFIED");
   assert.equal(rule.approvedBy, humanReview.reviewer);

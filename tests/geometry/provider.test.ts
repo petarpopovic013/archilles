@@ -39,3 +39,15 @@ test('billable schema-invalid answers retain token usage and are never retried',
   });
   assert.equal(calls, 1);
 });
+
+test('Mozaik unsupported-model 503 is actionable and is not treated as a transient outage', async () => {
+  const error = Object.assign(new Error('private gateway response'), {
+    status: 503,
+    error: { error: { type: 'api_error', message: "claude-opus-5-5 isn't available on Mozaik Cloud yet — pick another model" } },
+  });
+  assert.deepEqual(providerFailure(error), { code: 'PROVIDER_MODEL_UNAVAILABLE', retryable: false });
+  let calls = 0;
+  const client = { messages: { create: async () => { calls++; throw error; } } } as unknown as Anthropic;
+  await assert.rejects(createClaudeVisionRunner(client, 'unsupported-model').run(new Uint8Array(), 800, 600), /PROVIDER_MODEL_UNAVAILABLE/);
+  assert.equal(calls, 1);
+});

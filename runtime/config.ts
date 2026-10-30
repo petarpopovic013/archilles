@@ -6,8 +6,8 @@ const EnvSchema = z.object({
   ARCHILLES_RUNTIME_URL: z.url().default("http://127.0.0.1:4317"),
   ARCHILLES_DATA_DIR: z.string().trim().min(1).default("./data"),
   ARCHILLES_AI_BUDGET_USD: z.coerce.number().nonnegative().default(20),
-  ARCHILLES_REVIEW_MODEL: z.string().trim().min(1).default("claude-opus-5-5"),
-  ARCHILLES_VISION_MODEL: z.string().trim().min(1).default("claude-opus-5-5"),
+  ARCHILLES_REVIEW_MODEL: z.string().trim().min(1).default("claude-sonnet-4-6"),
+  ARCHILLES_VISION_MODEL: z.string().trim().min(1).default("claude-sonnet-4-6"),
 });
 
 export interface RuntimeConfig {
