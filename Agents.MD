@@ -100,7 +100,7 @@ The MVP implements Geometry, Regulation, and Review as live participants plus AP
 
 ## B. Development coding-agent constitution
 
-1. Read `Constitution/PrD.md`, `Constitution/Tech.MD`, `Agents.MD`, and `Constitution/DB.md` before a cross-cutting change. Read the relevant local Next.js guide under `node_modules/next/dist/docs/` before Next code; the preserved Next.js rule above requires it. Check installed Mozaik version and examples before runtime code.
+1. Read `Constitution/PrD.md`, `Constitution/Tech.MD`, `Agents.MD`, `Constitution/DB.md`, and `TEAM.md` before a cross-cutting change. Follow the file ownership and handoff contracts in `TEAM.md`. Read the relevant local Next.js guide under `node_modules/next/dist/docs/` before Next code; the preserved Next.js rule above requires it. Check installed Mozaik version and examples before runtime code.
 2. Treat P0 as the delivery gate. Finish a verified geometry -> rule -> engine -> event -> finding -> recheck slice before adding breadth. Keep P1/P2 out of P0 acceptance unless the team explicitly changes priority.
 3. Use strict TypeScript, shared Zod schemas at all external/AI boundaries, explicit error codes, and pure functions for applicability, units, and evaluation. Keep source registry, candidate rules, active rules, and findings separate.
 4. Never fabricate regulatory text, article numbers, effective dates, exceptions, measurements, test results, or agent activity. If a source or dimension is unverified, encode the uncertainty and expose `UNKNOWN` or `NEEDS_REVIEW` as appropriate.

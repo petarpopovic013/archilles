@@ -1,50 +1,51 @@
-# Archilles: three-person implementation agreement
+# Archilles: four-person implementation agreement
 
-This file is the handoff for the October 30–31 hackathon. Read `Agents.MD` and the documents in `Constitution/` first. All three feature branches start from the same foundation commit on `main`. Each developer uses one branch and one AI coding agent. Assign people to branches in your team chat; branch names describe work, not a person's identity.
+This is the handoff for the October 30–31 hackathon. Each person takes one branch and uses one coding agent on that branch. Read `Agents.MD` and `Constitution/` first. Branch names identify responsibilities; assign actual names in your team chat. The P0 target remains 3–5 human-verified checks across Serbian fire and accessibility sources, using a real 2D drawing, real Mozaik events, deterministic evaluation, visible findings, and hypothetical Fix & Recheck.
 
-## Shared delivery target
+## Exact ownership
 
-One office project and one selected floor-plan page produce a source-backed, element-linked finding through real concurrent Mozaik agents and a deterministic rule engine. A proposed dimension change produces a hypothetical before/after result without another model call. Target 3–5 human-verified rules across fire and accessibility. The demo must disclose unverified geometry and uncovered provisions.
-
-## Ownership: no overlapping edits
-
-| Branch / developer | Owns | Deliverable | Must not edit |
-|---|---|---|---|
-| `feat/workspace-ui` / Developer 1 | `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, `src/ui/**`, `public/**`, `tests/ui/**` | Three-panel workspace; project/upload flow; selected-page viewer with zoom/pan, element/finding overlays; source and measurement panels; Fix & Recheck form; real SSE activity and coverage states. | `app/api/**`, `src/domain/**`, `src/geometry/**`, `src/rules/**`, `runtime/**`, package manifests. |
-| `feat/geometry-vision` / Developer 2 | `src/geometry/**`, `src/vision/**`, `tests/geometry/**`, `fixtures/plans/**` | File/page normalization helper; source-pixel coordinate model; Claude Vision adapter with strict output validation; element/measurement/evidence extraction; cache key; user-confirmation-aware geometry; at least two distinct plan fixtures. | `app/**`, `src/domain/**`, `src/rules/**`, `runtime/**`, package manifests. |
-| `feat/rules-runtime` / Developer 3 | `src/domain/**`, `src/rules/**`, `runtime/**`, `app/api/**`, `tests/rules/**`, `tests/runtime/**`, `package.json`, `package-lock.json`, root tool config | Shared Zod/types first; official-source rule registry and 3–5 checked rules; deterministic applicability/evaluation; persistent Mozaik runtime, project/revision storage, API/SSE, and integration tests. | `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, `src/ui/**`, `src/geometry/**`, `src/vision/**`, `public/**`. |
-
-`app/api/**` is the explicit exception to Developer 1's `app/**` ownership. Do not use a broad formatter that rewrites other owners' files. Developer 3 owns dependency changes; Developers 1 and 2 request new packages in a PR comment or team chat with exact package/version and reason. Developer 3 adds them in one lockfile change, merged early. Do not independently run `npm install --save` on three branches.
-
-## Contract freeze and handoffs
-
-**First integration checkpoint (within the first work block):** Developer 3 publishes `src/domain` Zod schemas and TypeScript exports matching `Constitution/DB.md`, plus typed endpoint/event names matching `Constitution/Tech.MD` and `Agents.MD`. Merge this small contract PR into `main` before substantial integration. Developers 1 and 2 can build against documented fixture objects meanwhile; then rebase on the contract commit. Do not invent a second `Project`, `Measurement`, `ComplianceRule`, `RuleEvaluation`, or status enum.
-
-Developer 2 exports one server-only geometry entry point, `analyzeDrawing(input): Promise<GeometryExtraction>`, and pure normalization helpers. `input` contains drawing storage reference/page, image dimensions, project metadata, existing confirmed corrections, and an extraction cache key. `GeometryExtraction` returns validated `ArchitecturalElement[]`, `Measurement[]`, `Evidence[]`, warnings/missing input requests, and model usage. It never returns a compliance decision. Developer 3 calls this entry point from the Geometry participant and persists the output. A missing/ambiguous scale remains missing.
-
-Developer 3 implements the API table in `Constitution/Tech.MD`; all browser requests go through `app/api/**`. Developer 1 consumes those routes with a single typed client in `src/ui/api/`, with fixtures only for local component work. SSE entries use the persisted `AgentEvent` envelope and ordered sequence; the UI never synthesizes progress. `POST /api/projects/:id/rechecks` is hypothetical, tied to `baseRevision`, and returns before/after evaluations. A real correction uses the measurement PATCH endpoint and creates a revision.
-
-Developer 3's pure engine is the only producer of `PASS`, `FAIL`, `UNKNOWN`, `NOT_APPLICABLE`, and `NEEDS_REVIEW`. Developer 2 supplies evidence; Developer 1 displays status and provenance. Only `ACTIVE` rules with source/version/reviewer/test evidence may yield `PASS` or `FAIL`. Rule lifecycle uses exactly `CANDIDATE`, `AI_REVIEWED`, `HUMAN_VERIFIED`, `ACTIVE`, `REJECTED`, `SUPERSEDED`.
-
-Any contract change goes through a small PR to `main` with the reason, changed schema/API/event, and fixture migration. Tell the other two developers before merging it. Prefer additive optional fields until the next integration checkpoint. Never quietly edit someone else's owned module to make your branch compile; create a focused integration PR or ask that owner to change it.
-
-## Git and agent synchronization
-
-1. Work only on your named feature branch. Push early and open a **draft PR to `main`** so the other two can see the interface and progress. A branch is not a shared live workspace: agent coordination comes from the frozen contracts, draft PRs, and frequent rebases.
-2. Before each coding block and after a PR merges: `git fetch origin`, then `git rebase origin/main` on your own branch. Push your own rebased branch with `--force-with-lease` only if you alone use it; never force-push `main` or another person's branch. If your own branch is shared, merge `origin/main` into it instead of rebasing.
-3. Keep PRs small: contract, then vertical feature, then polish. Merge the contract PR first; merge geometry/runtime integration before UI polish. Do not wait until the last hour to combine three large branches.
-4. Each PR states owned paths, contract changes, real tests run, API/model cost where relevant, and a screenshot or event trace for UI/runtime behavior. Require one other teammate to review. Resolve CI failures before merge. A screenshot does not prove a regulation is correct; attach the official provision and reviewer record for a new active rule.
-5. Do not commit `.env`, uploaded drawings from clients, `data/`, `.next/`, or agent logs with secrets. Use the ignored local `.env`; share only `.env.example`. The fixture plans must be licensed/public or team-created and stripped of client information.
-6. If two agents need the same file, stop both edits, assign one owner, and have the second send a precise requested change. Use a tiny follow-up PR after the owner's change rather than resolving a large textual conflict at the end.
-
-## Integration checkpoints
-
-| Checkpoint | Done when | Owner leading |
+| Person and branch | Files owned exclusively | Deliverable and acceptance |
 |---|---|---|
-| C0 — shared contract | Schemas compile; example project/geometry/evaluation fixtures validate; package dependencies and local commands are agreed. | Developer 3 |
-| C1 — vertical slice | One confirmed fixture measurement flows through Mozaik events, active rule, pure engine, API, UI marker, and deterministic recheck. | Developer 3 + Developer 1 |
-| C2 — real drawing | PNG/JPG and selected PDF page show aligned overlays; Vision suggestion can be inspected/corrected; two fixtures differ. | Developer 2 + Developer 1 |
-| C3 — legal breadth | 3–5 verified/tested rules span both source families; missing inputs and coverage gaps are visible. | Developer 3 |
-| C4 — demo | Fresh clone runs locally; live and disclosed fallback flows rehearse; no fabricated events/findings; cost stays within budget. | All three |
+| **1 — Workspace** `feat/workspace-ui` | `app/page.tsx`, `app/layout.tsx`, `app/globals.css`, `src/ui/**`, `public/**`, `tests/ui/**` | Three-panel project workspace. Upload and page selection; zoom/pan plan viewer with stable overlays; element/finding/source panels; confirmation and Fix & Recheck controls; coverage and real SSE activity. Two fixture projects render correctly. No hardcoded finding status or fake agent timeline. |
+| **2 — Geometry + Vision** `feat/geometry-vision` | `src/geometry/**`, `src/vision/**`, `fixtures/plans/**`, `tests/geometry/**` | Validate and normalize PDF/PNG/JPG pages; source-pixel coordinates and scale evidence; Claude Vision suggestions; stable element IDs, measurements, and evidence; clear uncertainty and user-correction handling. Provide two different safe plan fixtures. Pure coordinate/unit tests pass; uncertain pixels never become verified metres. |
+| **3 — Runtime + integration** `feat/rules-runtime` | `src/domain/**`, `src/rules/engine/**`, `runtime/**`, `app/api/**`, `tests/engine/**`, `tests/runtime/**`, `package.json`, `package-lock.json`, root build/config files | Shared Zod/types first; persistent Mozaik process; Geometry, Regulation, and Review participants with real events/shared state; SQLite/upload storage; HTTP/SSE API; pure deterministic rule evaluation and revision-aware recheck. Integration test proves overlapping agents and data-dependent outcomes. |
+| **4 — Regulatory intelligence** `feat/regulatory-intelligence` | `src/rules/registry/**`, `src/rules/applicability/**`, `src/rules/sources/**`, `fixtures/regulations/**`, `tests/regulatory/**`, `docs/regulations/**` | Verify official Serbian source versions, exact provisions, scope, exceptions, and measurements. Deliver versioned rule registry, pure rule selection/applicability, 3–5 human-reviewed rule fixtures across both source families, source dossier, and pass/fail/boundary/missing/non-applicable tests. Candidates never become active by AI consensus. |
 
-If time becomes tight, drop broad rule ingestion, export, accounts, cloud deployment, multi-floor analysis, and visual polish beyond usable overlays. Keep C1 and the source verification gate. Merge completed PRs to `main` at each checkpoint; the final demo runs from `main`, not a developer's unmerged branch.
+`app/api/**` belongs to Person 3 even though it sits under `app/`. Within `src/rules/**`, Person 3 owns only `engine/**`; Person 4 owns only `registry/**`, `applicability/**`, and `sources/**`. Do not create or edit a shared `src/rules/index.ts`; import the owned modules directly. Do not run a repository-wide formatter or change another person's files to make your branch compile. `Constitution/**`, `Agents.MD`, `TEAM.md`, and `.github/**` are shared governance files: change them only in a small separate PR agreed by the team.
+
+Person 3 is the only owner of dependency and lockfile edits. Persons 1, 2, and 4 send package requests with exact names and reasons; Person 3 adds dependencies in the first contract PR. Do not run `npm install --save` independently on feature branches. Local experiments may use uncommitted installations, but submitted code must build from the committed lockfile.
+
+## Frozen handoff contracts
+
+**C0: contract PR first.** Person 3 publishes `src/domain/**` with the `DB.md` types and Zod schemas, typed endpoint request/response shapes from `Constitution/Tech.MD`, and typed application event envelopes from `Agents.MD`. This PR contains no large feature. Merge it to `main` immediately after review; all four people then update their branches. Until C0 merges, the other three work with fixture data shaped exactly like `DB.md`. Never invent duplicate status enums or entity interfaces.
+
+**Person 2 -> Person 3:** export `prepareDrawingPage(input): Promise<PreparedPage>` and `analyzeDrawing(input): Promise<GeometryExtraction>` from `src/geometry/`. `PreparedPage` carries drawing/page identity, normalized dimensions, raster reference, and coordinate transform. `GeometryExtraction` carries validated `ArchitecturalElement[]`, `Measurement[]`, `Evidence[]`, missing-input requests, warnings, and model usage. It does not contain legal or compliance conclusions. Person 3 invokes it from the Mozaik Geometry participant and persists its output.
+
+**Person 4 -> Person 3:** export `getActiveRules(sourceVersionDate)` and `selectApplicableRules(project, elements, rules)` from `src/rules/registry/` and `src/rules/applicability/`. Selection returns rule IDs, explanations, and missing context; it does not return `PASS`/`FAIL`. Each active rule carries official source/provision/version, human reviewer record, bounded evaluator definition, and test fixtures. Person 3's engine independently verifies applicability and inputs before evaluation. If source or interpretation is unresolved, the rule remains inactive or produces `NEEDS_REVIEW` through a reviewed path.
+
+**Person 3 -> Person 1:** implement the endpoints in `Constitution/Tech.MD`, including project/drawing creation, analysis state, private page retrieval, measurement correction, hypothetical recheck, coverage, and ordered SSE events. Person 1 uses one typed client in `src/ui/api/` and may mock responses locally until the API PR merges. The UI reads finding statuses from the engine response and displays stored agent events; it never computes legal outcomes or manufactures progress.
+
+Only the engine produces `PASS`, `FAIL`, `UNKNOWN`, `NOT_APPLICABLE`, `NEEDS_REVIEW`. Rule lifecycle is `CANDIDATE`, `AI_REVIEWED`, `HUMAN_VERIFIED`, `ACTIVE`, `REJECTED`, `SUPERSEDED`. A confirmed correction creates a project revision; a proposed Fix & Recheck does not edit the drawing or create a confirmed measurement. Contract changes require a tiny PR to `main`, advance notice to all owners, and updated fixtures. Prefer additive optional fields while integration is in progress.
+
+## Work order and merge checkpoints
+
+| When | Person 1 | Person 2 | Person 3 | Person 4 | Merge gate |
+|---|---|---|---|---|---|
+| **Day 1, first work block** | Three-panel static workspace and typed mock client | Page normalization and two plan fixtures | C0 shared schemas, package additions, API/event types | Official source dossier and candidate check matrix | Merge C0 before coupling modules. |
+| **Day 1, remaining work** | Viewer, overlays, findings, recheck form | Vision adapter, evidence extraction, correction helpers | Runtime shell, SQLite, API/SSE, pure engine | First verified fire and accessibility rules, applicability and tests | Merge small PRs independently when owned tests pass. |
+| **Day 2, first half** | Replace mocks with live API; handle loading/error/unknown states | Integrate real drawing output and confirm alignment | Wire agents to geometry and registry; complete recheck | Reach 3–5 verified checks; coverage counts and legal review | One end-to-end project/drawing/recheck flow on `main`. |
+| **Day 2, final block** | Demo UI polish and accessibility | Second drawing and failure-path rehearsal | Cost cap, event trace, restart/error tests | Source citations and uncertainty audit | Fresh-clone demo, CI green, no unmerged critical feature. |
+
+**C1 vertical slice:** one confirmed fixture measurement -> Mozaik Geometry/Regulation activity -> selected active rule -> deterministic evaluation -> API -> visible element finding -> hypothetical recheck. **C2 real drawing:** PNG/JPG and selected PDF page align with overlays; uncertain Vision output can be corrected. **C3 breadth:** 3–5 active checks span both regulations with tests and coverage gaps. **C4 demo:** two plans give different outcomes; the live path and disclosed confirmed-fixture fallback both work. Merge C1 early; do not wait for all agents to finish their entire branches.
+
+If time is tight, drop broad extraction UI, PDF export, accounts, cloud hosting, multi-floor analysis, and additional visual polish before dropping C1, source verification, or real Mozaik collaboration.
+
+## Git and coding-agent synchronization
+
+1. Each person checks out only their assigned branch, pushes an early **draft PR to `main`**, and records current exports/API shape there. AI coding agents should be told their branch, owned paths, forbidden paths, and handoff contract from this file.
+2. Before a new work block and after any merge, run `git fetch origin` and integrate `origin/main` into your branch. Rebase only if you alone use that branch, then push with `--force-with-lease`; otherwise merge `origin/main`. Never force-push `main` or another person's branch.
+3. Merge C0 first. After that, keep PRs small and merge owned modules as soon as contracts and tests pass. Person 3 integrates, but does not edit Persons 1, 2, or 4's modules. Cross-module fixes go to the owner in a separate PR.
+4. Each PR lists files owned, changed contracts, real tests run, and a screenshot or event trace where relevant. One other person reviews it; CI must pass. New active rules require a link to the official provision, recorded human review, and pass/fail/boundary/missing/applicability tests.
+5. If agents propose edits to the same file, stop and assign one owner. Exchange a requested interface change through the draft PR or team chat. Do not let two agents independently repair the same conflict. Never commit `.env`, confidential plans, `data/`, `.next/`, or raw AI logs.
+
+The final demo runs from `main`, with all four owned parts merged. Four branches reduce file conflicts; stable contracts and frequent integration reduce semantic conflicts.

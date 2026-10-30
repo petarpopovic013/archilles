@@ -7,4 +7,4 @@ These documents define the product and engineering contract for the hackathon MV
 - [DB.md](DB.md): canonical entities, status enums, provenance, and persistence.
 - [Agents.MD](../Agents.MD): Mozaik runtime and coding-agent rules.
 
-The active three-person implementation split, file ownership, and merge procedure are in [TEAM.md](../TEAM.md). Change a shared contract in a small reviewed PR before dependent work diverges.
+The active four-person implementation split, file ownership, and merge procedure are in [TEAM.md](../TEAM.md). Change a shared contract in a small reviewed PR before dependent work diverges.
