@@ -1,5 +1,9 @@
 # 001 — Predaja timu Runtime + integration
 
+> Najnoviji zbirni katalog je `003-runtime-handoff.md` (25 pravila). Ovaj dokument zadržava opis ranijeg paketa; njegovi brojači nisu brojači celog aktuelnog registra.
+
+> Ovaj dokument opisuje snapshot paketa 001. Proširenje na pet pravila, novi podtipovi i aktuelni broj odredaba opisani su u `002-runtime-handoff.md`. Odobrenje 001 ne obuhvata automatski pravila dodata u 002.
+
 ## Isporučeno i odobreno
 
 Regulatory intelligence paket sadrži zvanične tekstove požarnog propisa 22/2019 i pristupačnosti 22/2015 sa izmenom 10/2026, hash-eve i metapodatke, 53 izdvojene odredbe, registar, selektor, fixture očekivanja i izvršiv primer poziva.

@@ -1,0 +1,392 @@
+[
+  {
+    "id": "00200000-0000-4000-8000-000000000011",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000001",
+    "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+    "provisionIds": [
+      "00200000-0000-4000-8000-000000000101",
+      "00100000-0000-4000-8000-000000000501",
+      "00100000-0000-4000-8000-000000000502",
+      "00100000-0000-4000-8000-000000000503",
+      "00100000-0000-4000-8000-000000000504",
+      "00100000-0000-4000-8000-000000000507",
+      "00100000-0000-4000-8000-000000000530"
+    ],
+    "title": "Апсолутни минимум ширине надземног евакуационог ходника",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "CORRIDOR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "IN",
+          "field": "classification",
+          "value": [
+            "ИП1",
+            "НП1"
+          ]
+        },
+        {
+          "op": "GTE",
+          "field": "buildingHeightM",
+          "value": 0
+        },
+        {
+          "op": "LTE",
+          "field": "buildingHeightM",
+          "value": 10
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "CORRIDOR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ABOVE_GROUND_EVACUATION_CORRIDOR"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 1.2,
+      "unit": "m"
+    },
+    "effectiveFrom": "2019-04-05",
+    "testFixtureIds": [
+      "00200000-0000-4000-8000-000000001100",
+      "00200000-0000-4000-8000-000000001101",
+      "00200000-0000-4000-8000-000000001102",
+      "00200000-0000-4000-8000-000000001103",
+      "00200000-0000-4000-8000-000000001104",
+      "00200000-0000-4000-8000-000000001105",
+      "00200000-0000-4000-8000-000000001106",
+      "00200000-0000-4000-8000-000000001107",
+      "00200000-0000-4000-8000-000000001108",
+      "00200000-0000-4000-8000-000000001109",
+      "00200000-0000-4000-8000-000000001110",
+      "00200000-0000-4000-8000-000000001111",
+      "00200000-0000-4000-8000-000000001112"
+    ],
+    "interpretationNotes": [
+      "AI_REVIEWED only. New interpretation requires its own human approval; task 001 approval does not cover this rule.",
+      "Bounded subset: new RS office projects at CONCEPT/DESIGN; above-ground elements only. Reconstruction and excluded source categories are not modeled.",
+      "Element type/subtype and relevant project context must be confirmed by a human; never infer scope from filename, threshold or default project values.",
+      "Absolute minimum only. Article 29 also requires capacity-based sizing, and obstacles reduce effective width. PASS means this minimum only, not evacuation-capacity compliance.",
+      "classification must be the reviewed fire classification ИП1 or НП1 under articles 4 and 7; both are business classes up to 10 m. Do not infer from OFFICE.",
+      "Human scope confirmation must exclude high-rise, floating, hospitality-for-food/drink and underground categories under article 3. ABOVE_GROUND subtypes cannot be auto-assigned to uncertain geometry.",
+      "CLEAR_WIDTH_M is the actual clear usable width after obstacles, not overall bbox width or raw pixel length."
+    ]
+  },
+  {
+    "id": "00200000-0000-4000-8000-000000000012",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000001",
+    "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+    "provisionIds": [
+      "00200000-0000-4000-8000-000000000101",
+      "00100000-0000-4000-8000-000000000501",
+      "00100000-0000-4000-8000-000000000502",
+      "00100000-0000-4000-8000-000000000503",
+      "00100000-0000-4000-8000-000000000504",
+      "00100000-0000-4000-8000-000000000507",
+      "00100000-0000-4000-8000-000000000530"
+    ],
+    "title": "Апсолутни минимум ширине надземног евакуационог степенишног крака",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "STAIR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "IN",
+          "field": "classification",
+          "value": [
+            "ИП1",
+            "НП1"
+          ]
+        },
+        {
+          "op": "GTE",
+          "field": "buildingHeightM",
+          "value": 0
+        },
+        {
+          "op": "LTE",
+          "field": "buildingHeightM",
+          "value": 10
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "STAIR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ABOVE_GROUND_STAIR_FLIGHT"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 1.0,
+      "unit": "m"
+    },
+    "effectiveFrom": "2019-04-05",
+    "testFixtureIds": [
+      "00200000-0000-4000-8000-000000001200",
+      "00200000-0000-4000-8000-000000001201",
+      "00200000-0000-4000-8000-000000001202",
+      "00200000-0000-4000-8000-000000001203",
+      "00200000-0000-4000-8000-000000001204",
+      "00200000-0000-4000-8000-000000001205",
+      "00200000-0000-4000-8000-000000001206",
+      "00200000-0000-4000-8000-000000001207",
+      "00200000-0000-4000-8000-000000001208",
+      "00200000-0000-4000-8000-000000001209",
+      "00200000-0000-4000-8000-000000001210",
+      "00200000-0000-4000-8000-000000001211",
+      "00200000-0000-4000-8000-000000001212"
+    ],
+    "interpretationNotes": [
+      "AI_REVIEWED only. New interpretation requires its own human approval; task 001 approval does not cover this rule.",
+      "Bounded subset: new RS office projects at CONCEPT/DESIGN; above-ground elements only. Reconstruction and excluded source categories are not modeled.",
+      "Element type/subtype and relevant project context must be confirmed by a human; never infer scope from filename, threshold or default project values.",
+      "Absolute minimum only. Article 29 also requires capacity-based sizing, and obstacles reduce effective width. PASS means this minimum only, not evacuation-capacity compliance.",
+      "classification must be the reviewed fire classification ИП1 or НП1 under articles 4 and 7; both are business classes up to 10 m. Do not infer from OFFICE.",
+      "Human scope confirmation must exclude high-rise, floating, hospitality-for-food/drink and underground categories under article 3. ABOVE_GROUND subtypes cannot be auto-assigned to uncertain geometry.",
+      "CLEAR_WIDTH_M is the actual clear usable width after obstacles, not overall bbox width or raw pixel length."
+    ]
+  },
+  {
+    "id": "00200000-0000-4000-8000-000000000013",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00200000-0000-4000-8000-000000000102",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305",
+      "00100000-0000-4000-8000-000000000308",
+      "00100000-0000-4000-8000-000000000315"
+    ],
+    "title": "Минимална ширина приступачног надземног степенишног крака",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "STAIR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "STAIR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ABOVE_GROUND_STAIR_FLIGHT"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 1.2,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00200000-0000-4000-8000-000000001300",
+      "00200000-0000-4000-8000-000000001301",
+      "00200000-0000-4000-8000-000000001302",
+      "00200000-0000-4000-8000-000000001303",
+      "00200000-0000-4000-8000-000000001304",
+      "00200000-0000-4000-8000-000000001305",
+      "00200000-0000-4000-8000-000000001306",
+      "00200000-0000-4000-8000-000000001307",
+      "00200000-0000-4000-8000-000000001308"
+    ],
+    "interpretationNotes": [
+      "AI_REVIEWED only. New interpretation requires its own human approval; task 001 approval does not cover this rule.",
+      "Bounded subset: new RS office projects at CONCEPT/DESIGN; above-ground elements only. Reconstruction and excluded source categories are not modeled.",
+      "Element type/subtype and relevant project context must be confirmed by a human; never infer scope from filename, threshold or default project values.",
+      "Article 8 accessibility is linked to internal stairs by article 15. Passing one dimension does not satisfy all accessibility, tread, handrail, surface or contrast conditions.",
+      "CLEAR_WIDTH_M is the actual clear usable width after obstacles, not overall bbox width or raw pixel length."
+    ]
+  },
+  {
+    "id": "00200000-0000-4000-8000-000000000014",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00200000-0000-4000-8000-000000000103",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305",
+      "00100000-0000-4000-8000-000000000308",
+      "00100000-0000-4000-8000-000000000315"
+    ],
+    "title": "Максимална висина појединачног степеника",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "STAIR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "STAIR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ABOVE_GROUND_STAIR_STEP"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "RISE_M"
+    ],
+    "evaluation": {
+      "kind": "MAX",
+      "metric": "RISE_M",
+      "threshold": 0.15,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00200000-0000-4000-8000-000000001400",
+      "00200000-0000-4000-8000-000000001401",
+      "00200000-0000-4000-8000-000000001402",
+      "00200000-0000-4000-8000-000000001403",
+      "00200000-0000-4000-8000-000000001404",
+      "00200000-0000-4000-8000-000000001405",
+      "00200000-0000-4000-8000-000000001406",
+      "00200000-0000-4000-8000-000000001407",
+      "00200000-0000-4000-8000-000000001408"
+    ],
+    "interpretationNotes": [
+      "AI_REVIEWED only. New interpretation requires its own human approval; task 001 approval does not cover this rule.",
+      "Bounded subset: new RS office projects at CONCEPT/DESIGN; above-ground elements only. Reconstruction and excluded source categories are not modeled.",
+      "Element type/subtype and relevant project context must be confirmed by a human; never infer scope from filename, threshold or default project values.",
+      "Article 8 accessibility is linked to internal stairs by article 15. Passing one dimension does not satisfy all accessibility, tread, handrail, surface or contrast conditions.",
+      "One STAIR element represents one confirmed individual step linked to its parent flight by relationIds. RISE_M is that step riser height, never the entire flight rise or an averaged value. Missing per-step evidence must remain UNKNOWN."
+    ]
+  }
+]

@@ -1,0 +1,40 @@
+[
+  {
+    "id": "00200000-0000-4000-8000-000000000101",
+    "sourceId": "00100000-0000-4000-8000-000000000001",
+    "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+    "article": "29",
+    "paragraph": "3",
+    "text": "Ширина ходника не сме бити мања од 1,2 m, а ширина степенишног крака не мања од 1 m. Потребна ширина ходника и степеништа зависи од броја лица која треба да се евакуишу.",
+    "location": "originals/fire-current.html; Члан 29., paragraph 3",
+    "crossReferenceIds": [],
+    "externalStandardRefs": [],
+    "verification": "UNVERIFIED"
+  },
+  {
+    "id": "00200000-0000-4000-8000-000000000102",
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "article": "8",
+    "paragraph": "1",
+    "text": "1) најмања ширина степенишног крака буде 120 cm;",
+    "location": "originals/accessibility-current.html; Члан 8., paragraph 1, item 1",
+    "crossReferenceIds": [],
+    "externalStandardRefs": [],
+    "verification": "UNVERIFIED",
+    "item": "1"
+  },
+  {
+    "id": "00200000-0000-4000-8000-000000000103",
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "article": "8",
+    "paragraph": "1",
+    "text": "2) најмања ширина газишта буде 33 cm, а највећа дозвољена висина степеника буде 15 cm;",
+    "location": "originals/accessibility-current.html; Члан 8., paragraph 1, item 2",
+    "crossReferenceIds": [],
+    "externalStandardRefs": [],
+    "verification": "UNVERIFIED",
+    "item": "2"
+  }
+]
