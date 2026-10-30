@@ -14,6 +14,7 @@ import ruleData from "../../fixtures/regulations/rules-003.json";
 import caseData from "../../fixtures/regulations/rule-cases-003.json";
 import catalogue from "../../fixtures/regulations/rule-catalogue-003.json";
 import sourceCheck from "../../fixtures/regulations/003-source-check.json";
+import { assertProvisionApproval, assertRuleApproval } from "./approval-fixtures";
 
 const rules = ruleData.map((rule) => ComplianceRuleSchema.parse(rule));
 const now = "2026-10-30T18:00:00Z";
@@ -64,15 +65,14 @@ function context(rule: ComplianceRule, bundle: Bundle, item: Bundle["cases"][num
 
 test("003 adds twenty distinct rules: fifteen bounded checks and five explicitly blocked evaluators", () => {
   assert.equal(rules.length, 20);
-  assert.equal(complianceRules.length, 25);
-  assert.equal(rules.filter((r) => r.lifecycle === "AI_REVIEWED").length, 15);
+  assert.equal(complianceRules.filter((r) => !r.id.startsWith("00400000")).length, 25);
+  assert.equal(rules.filter((r) => r.evaluation.kind !== "REVIEWED_EVALUATOR").length, 15);
   assert.equal(rules.filter((r) => r.lifecycle === "CANDIDATE").length, 5);
   assert.deepEqual(getActiveRules("2026-10-30"), []);
   const signatures = rules.map((r) => JSON.stringify([r.sourceId, r.provisionIds, r.applicability, r.evaluation]));
   assert.equal(new Set(signatures).size, 20);
   for (const rule of rules) {
-    assert.equal(rule.approvedBy, undefined);
-    assert.equal(rule.approvedAt, undefined);
+    assertRuleApproval(rule, rule.evaluation.kind === "REVIEWED_EVALUATOR" ? "CANDIDATE" : "AI_REVIEWED");
     assert.equal(rule.exceptionConditions.length, 0);
     for (const id of rule.provisionIds) {
       const provision = regulationProvisions.find((p) => p.id === id)!;
@@ -98,7 +98,7 @@ test("003 clauses are exact source text and persistence keys are unique across a
   for (const p of regulationProvisions.filter((p) => p.id.startsWith("00300000"))) {
     const name = p.sourceId.endsWith("000000000001") ? "fire" : "accessibility";
     assert.ok(readFileSync(`fixtures/regulations/${name}-current.txt`, "utf8").includes(p.text));
-    assert.equal(p.verification, "UNVERIFIED");
+    assertProvisionApproval(p);
   }
   for (const check of sourceCheck.sources) {
     const name = check.sourceId.endsWith("000000000001") ? "fire" : "accessibility";
@@ -148,7 +148,7 @@ test("003 one door supports width and threshold checks independently", () => {
 test("003 Runtime RegistryPort adapter returns isolated snapshots and preserves lifecycle gates", async () => {
   const registry = createRegulatoryRegistry();
   const first = await registry.snapshot();
-  assert.equal(first.rules.length, 25);
+  assert.equal(first.rules.length, complianceRules.length);
   assert.equal(first.provisionCount, regulationProvisions.length);
   first.rules[0].title = "caller mutation";
   first.sources[0].title = "caller mutation";

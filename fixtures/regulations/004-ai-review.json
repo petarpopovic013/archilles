@@ -1,0 +1,28 @@
+{
+  "task": "004",
+  "startingGitRevision": "13e6b442958a4f90350c654c79805e62f436406e",
+  "reviewedAt": "2026-10-30T18:25:02.933Z",
+  "humanApproved": false,
+  "scope": "Only horizontal requirements measurable on a 2D floor plan with confirmed scale/labels and context. No height, threshold rise, ramp slope or building-level capacity inference.",
+  "ruleIds": [
+    "00400000-0000-4000-8000-000000000060",
+    "00400000-0000-4000-8000-000000000061",
+    "00400000-0000-4000-8000-000000000062",
+    "00400000-0000-4000-8000-000000000063",
+    "00400000-0000-4000-8000-000000000064",
+    "00400000-0000-4000-8000-000000000065",
+    "00400000-0000-4000-8000-000000000066",
+    "00400000-0000-4000-8000-000000000067",
+    "00400000-0000-4000-8000-000000000068",
+    "00400000-0000-4000-8000-000000000069"
+  ],
+  "engineSupported": 4,
+  "needsGeometryEvaluator": 6,
+  "newClauseCount": 10,
+  "openItems": [
+    "Human interpretation review",
+    "Geometry contracts and subtype agreement",
+    "Six reviewed geometric evaluators",
+    "No activation or publication authorized by this task"
+  ]
+}
