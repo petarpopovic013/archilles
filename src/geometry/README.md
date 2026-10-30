@@ -36,3 +36,14 @@ Optional asset regeneration uses `fixtures/plans/generate.mjs`. It uses the pinn
 - Earlier HTTP 503 responses were diagnosed as Mozaik Cloud rejecting the previous default model `claude-opus-5-5`, not a confirmed service outage. Runtime/example defaults now use the gateway-verified Sonnet model. A known unsupported-model response reports `PROVIDER_MODEL_UNAVAILABLE` without retrying; unknown 503 responses still receive the bounded transient retry. Model-list HTTP 404 alone is not an availability check.
 - Browser visual rehearsal remains unverified because no browser connection was available. Native raster pixel alignment is tested, but UI zoom/pan and hit testing still require Team 1's viewer.
 - Production uses Team 4’s source/registry/applicability modules through `runtime/adapters/registry.ts`. No delivered rule is ACTIVE, so production still executes zero legal checks; reviewed rules retain their lifecycle gates. Coverage exposes the source and review counts; no test threshold is installed in the application.
+
+
+## Mozaik tool-loop integration
+
+Geometry now starts `runLoop` with a private batch context and the registered `extract_drawing_page` tool. The tool calls `analyzeDrawing` and the existing server-side Vision adapter; only validated extraction records can be persisted. The controller receives counts/types, not pixels or storage paths. Cached observations bypass both controller and Vision calls.
+
+Regulation uses `runLoop` with `read_applicable_rules`. Its read-only tool supplies the registry's deterministic applicability proposal plus active rule metadata. Model explanations must reference the exact proposed IDs. The pure engine still checks inputs/applicability and alone assigns evaluation status. Selection caches are scoped to project, controller version, rule-set, classification facts and element confirmation/type/subtype; changing only a dimension reuses selection.
+
+Both controllers allow one tool call and two inferences, use isolated contexts, validate tool batch IDs, and reserve budget before inference. Per-request provider timeouts/retries remain bounded. SQLite stores native loop IDs and state names in `agent_loop_events`, with no raw context or answers. The application activity stream continues to use persisted domain transitions. Stale Geometry/Regulation results are rejected; late Review output cannot revive stale findings. The SDK wrapper now accepts legitimate tool-call-only inference responses and rejects multiple calls or tool calls from tool-less tasks.
+
+Run `npm run smoke:geometry -- --synthetic-rule` to exercise all three live loops with an invented test-only threshold in isolated temporary storage. This never changes the production registry. Verified live result: COMPLETE; Geometry 1 loop, Regulation 2 loops, Review 1 loop; 5 elements and 2 UNVERIFIED measurements; aggregate estimated USD 0.022815. The default smoke still uses an empty registry and claims no legal coverage.

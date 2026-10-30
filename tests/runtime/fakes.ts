@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import {
+  FunctionCallItem,
+  FunctionCallOutputItem,
   InputTokenDetails,
   ModelMessageItem,
   OutputTokenDetails,
@@ -65,15 +67,31 @@ export function fakeGeometry(vision: VisionRunner): GeometryPort {
   return { renderer: createPngPassthroughRenderer(), vision };
 }
 
-/** Mozaik InferenceRunner fake: answers the Review batch with schema-valid explanations. */
-export function fakeInference(mode: { fail?: boolean } = {}): InferenceRunner & { calls: number } {
+/** Drives real Mozaik tool transitions for Geometry/Regulation and answers Review. `fail` affects Review only. */
+export function fakeInference(mode: { fail?: boolean } = {}): InferenceRunner & { calls: number; roleCalls: Record<"GEOMETRY" | "REGULATION" | "REVIEW", number>; contexts: { task: string; contextId: string; batchId?: string }[] } {
   const runner = {
     calls: 0,
+    roleCalls: { GEOMETRY: 0, REGULATION: 0, REVIEW: 0 },
+    contexts: [] as { task: string; contextId: string; batchId?: string }[],
     async run(input: InferenceInput): Promise<InferenceOutput> {
       runner.calls += 1;
-      if (mode.fail) throw new Error("PROVIDER_UNAVAILABLE");
       const user = input.context.getItems().filter((item): item is UserMessageItem => item instanceof UserMessageItem).at(-1);
-      const { findings } = JSON.parse(user?.content.text ?? "{}") as { findings: { findingId: string; status: string }[] };
+      const data = JSON.parse(user?.content.text ?? "{}") as { task?: "GEOMETRY" | "REGULATION"; batchId?: string; findings: { findingId: string; status: string }[] };
+      const role = data.task ?? "REVIEW";
+      runner.roleCalls[role]++;
+      runner.contexts.push({ task: role, contextId: input.context.id, batchId: data.batchId });
+      if (role !== "REVIEW") {
+        const result = input.context.getItems().filter((item): item is FunctionCallOutputItem => item instanceof FunctionCallOutputItem).at(-1);
+        const items = !result
+          ? [FunctionCallItem.rehydrate({ callId: crypto.randomUUID(), name: input.tools![0].name, args: JSON.stringify({ batchId: data.batchId }) })]
+          : [ModelMessageItem.rehydrate({ text: role === "GEOMETRY" ? '{"completed":true}' : JSON.stringify((() => {
+              const { selection } = JSON.parse(result.output.text) as { selection: { ruleIds: string[]; explanations: Record<string, string> } };
+              return { ruleIds: selection.ruleIds, explanations: selection.ruleIds.map(ruleId => ({ ruleId, reason: selection.explanations[ruleId] ?? "Synthetic applicability explanation" })) };
+            })()) })];
+        return { items, tokenUsage: new TokenUsage(100, 30, 130, new InputTokenDetails(0), new OutputTokenDetails(0)), rowResponse: {} };
+      }
+      if (mode.fail) throw new Error("PROVIDER_UNAVAILABLE");
+      const { findings } = data;
       const explanations = findings.map((finding) => ({
         findingId: finding.findingId,
         explanation: `Reviewed explanation for a ${finding.status} outcome.`,
