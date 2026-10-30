@@ -146,4 +146,13 @@ export const migrations: readonly string[] = [
   ALTER TABLE evaluations ADD COLUMN measurement_ids TEXT NOT NULL DEFAULT '[]';
   CREATE INDEX elements_floor ON elements (floor_id, revision);
   `,
+  `
+  -- Mozaik participant IDs change on every boot; keep their names so stored events stay labelled.
+  CREATE TABLE participants (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    kind TEXT NOT NULL CHECK (kind IN ('AGENT', 'HUMAN')),
+    joined_at TEXT NOT NULL
+  );
+  `,
 ];

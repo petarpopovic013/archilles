@@ -24,6 +24,7 @@ import {
   latestSessionForProject,
   listSessionEvaluations,
   listSessionFindings,
+  listSessionParticipants,
   retireRunKey,
 } from "../db/repo";
 import { notFound, revisionConflict } from "../http/errors";
@@ -123,6 +124,7 @@ export async function getAnalysisSnapshot(ctx: RuntimeContext, sessionId: string
     evaluations: listSessionEvaluations(ctx.db, sessionId).map(({ evaluation }) => evaluation),
     findings: listSessionFindings(ctx.db, sessionId),
     coverage: await computeCoverage(ctx, session.projectId, session),
+    participants: listSessionParticipants(ctx.db, sessionId, ctx.liveParticipantIds),
   });
 }
 

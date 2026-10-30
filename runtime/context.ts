@@ -16,6 +16,8 @@ export interface RuntimeContext {
   budget: Budget;
   registry: RegistryPort;
   geometry: GeometryPort;
+  /** Joined Mozaik participant IDs of this process, filled in at boot. */
+  liveParticipantIds: string[];
   now(): string;
 }
 

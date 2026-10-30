@@ -4,7 +4,9 @@ import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
 import {
   AnalysisSnapshotSchema,
+  ApiErrorSchema,
   CoverageSummarySchema,
+  EvidenceSchema,
   MeasurementCorrectionResponseSchema,
   ProjectSchema,
   RecheckResponseSchema,
@@ -114,6 +116,24 @@ test("Geometry and Regulation overlap, refine selection, and Review consumes the
   assert.equal(vision.calls, 1);
 
   first = { projectId, drawingId, sessionId, corridorId: corridor.id };
+});
+
+test("every activity event names its source agent, and cited evidence is retrievable", async () => {
+  const snapshot = AnalysisSnapshotSchema.parse((await call(app.url, "GET", `/api/analyses/${first.sessionId}`)).body);
+  const names = new Map(snapshot.participants!.map((participant) => [participant.id, participant]));
+  for (const event of listSessionEvents(app.ctx.db, first.sessionId, 0)) assert.ok(names.has(event.producerId), event.type);
+  assert.deepEqual(names.get(app.participants.geometry), { id: app.participants.geometry, name: "Geometry Agent", kind: "AGENT" });
+  assert.equal(names.get(app.participants.bridge)?.kind, "HUMAN", "the engine bridge is deterministic, not an AI agent");
+
+  const corridor = snapshot.elements.find((element) => element.id === first.corridorId)!;
+  const found = await call(app.url, "GET", `/api/evidence/${corridor.evidenceIds[0]}`);
+  assert.equal(found.status, 200);
+  const evidence = EvidenceSchema.parse(found.body);
+  assert.equal(evidence.source, "DRAWING");
+  assert.equal(evidence.page, 1);
+  const missing = await call(app.url, "GET", `/api/evidence/${first.corridorId}`);
+  assert.equal(missing.status, 404);
+  assert.equal(ApiErrorSchema.parse(missing.body).code, "NOT_FOUND");
 });
 
 test("a confirmed correction creates a revision and re-evaluates from stored geometry", async () => {
