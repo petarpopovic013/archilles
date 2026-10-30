@@ -12,6 +12,7 @@ import type {
   Drawing,
   ArchitecturalElement,
   Measurement,
+  Evidence,
   RuleEvaluation,
   ComplianceFinding,
   CoverageSummary,
@@ -34,6 +35,7 @@ export interface WorkspaceContextValue {
 
   elements: ArchitecturalElement[];
   measurements: Measurement[];
+  evidence: Evidence[];
   evaluations: RuleEvaluation[];
   findings: ComplianceFinding[];
   coverage: CoverageSummary | null;
@@ -72,6 +74,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   const [elements, setElements] = useState<ArchitecturalElement[]>(() => plan1Fixture.elements);
   const [measurements, setMeasurements] = useState<Measurement[]>(() => plan1Fixture.measurements);
+  const [evidence, setEvidence] = useState<Evidence[]>(() => plan1Fixture.evidence);
   const [evaluations, setEvaluations] = useState<RuleEvaluation[]>(() => plan1Fixture.evaluations);
   const [findings, setFindings] = useState<ComplianceFinding[]>(() => plan1Fixture.findings);
   const [coverage, setCoverage] = useState<CoverageSummary | null>(() => plan1Fixture.coverage);
@@ -127,6 +130,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         setPageCount(fixture.drawing.pageCount);
         setElements(fixture.elements);
         setMeasurements(fixture.measurements);
+        setEvidence(fixture.evidence);
         setEvaluations(fixture.evaluations);
         setFindings(fixture.findings);
         setCoverage(fixture.coverage);
@@ -150,6 +154,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setPageCount(fixture.drawing.pageCount);
       setElements(fixture.elements);
       setMeasurements(fixture.measurements);
+      setEvidence(fixture.evidence);
       setEvaluations(fixture.evaluations);
       setFindings(fixture.findings);
       setCoverage(fixture.coverage);
@@ -252,6 +257,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setDrawing(fixture.drawing);
       setElements(fixture.elements);
       setMeasurements(fixture.measurements);
+      setEvidence(fixture.evidence);
       setEvaluations(fixture.evaluations);
       setFindings(fixture.findings);
       setCoverage(fixture.coverage);
@@ -295,6 +301,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       pageCount,
       elements,
       measurements,
+      evidence,
       evaluations,
       findings,
       coverage,
@@ -325,6 +332,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       pageCount,
       elements,
       measurements,
+      evidence,
       evaluations,
       findings,
       coverage,
