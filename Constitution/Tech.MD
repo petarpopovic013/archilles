@@ -1,6 +1,6 @@
 # Archilles technical constitution
 
-Version: 1.0, 30 October 2026. This is an implementation target, not a description of completed features. The repository currently contains a Next.js 16.4.3 App Router starter, React 19.3, Tailwind 4, strict TypeScript, and locally installed `@mozaik-ai/core` 4.2.0; it has no application backend, viewer, or domain models. Follow the preserved Next.js rule in `../Agents.MD` and read the relevant installed `node_modules/next/dist/docs/` guide before writing Next.js code. `DB.md` owns domain types, `Agents.MD` owns Mozaik contracts, and `PrD.md` owns requirements.
+Version: 1.1, 30 October 2026. This is an implementation target, not a description of completed features. The repository contains a Next.js 16.4.3 App Router starter and the shared C0 domain/API/event contracts in `src/domain/`; it has no application backend or viewer yet. Follow the preserved Next.js rule in `../Agents.MD` and read the relevant installed `node_modules/next/dist/docs/` guide before writing Next.js code. `DB.md` owns domain types, `Agents.MD` owns Mozaik contracts, and `PrD.md` owns requirements.
 
 ## 1. Architecture and decisions
 
@@ -34,11 +34,11 @@ Do not add Kubernetes, cloud storage, a vector database, or hosted authenticatio
 
 ## 2. Repository and development environment
 
-Target layout after implementation: `../app` for routes and UI; `src/domain/` for `DB.md` types and Zod schemas; `src/rules/` for registry, applicability, pure engine, and fixtures; `src/geometry/` for normalization and evidence; `runtime/` for the persistent HTTP server, Mozaik participants, Claude adapter, persistence, and event stream; `data/` for ignored local state; `tests/` for pure, agent, and integration tests. Keep product code out of root constitution documents.
+Repository-root layout after implementation: `app/` for routes and UI; `src/domain/` for `DB.md` types and Zod schemas; `src/rules/` for registry, applicability, pure engine, and fixtures; `src/geometry/` for normalization and evidence; `runtime/` for the persistent HTTP server, Mozaik participants, Claude adapter, persistence, and event stream; `data/` for ignored local state; `tests/` for pure, agent, and integration tests. Keep product code out of constitution documents.
 
 Pin Node 24 for the local demo and record exact package versions in the lockfile when coding begins. Required direct dependencies are `@mozaik-ai/core`, `@anthropic-ai/sdk`, Zod, `better-sqlite3`, `pdfjs-dist`, and `react-konva`/`konva`. Keep PDF rendering and overlay transforms in browser-only components; perform a small bundling and coordinate-alignment smoke test before building the full viewer. Tailwind already exists. Use the existing project's icon system if one emerges; otherwise create one shared SVG arrow component. Never render UI arrows as Unicode, HTML entities, icon fonts, or CSS `content`.
 
-Define `.env.example` without real secrets: `ANTHROPIC_API_KEY`, `ARCHILLES_RUNTIME_URL=http://127.0.0.1:4317`, `ARCHILLES_DATA_DIR=./data`, `ARCHILLES_AI_BUDGET_USD=20`, and explicit model IDs verified against the installed Mozaik model list and Anthropic availability. Do not hardcode an assumed model name. Add `npm run dev:runtime` for the persistent process, `npm run dev:web` for Next, and `npm run dev` to start both. Run `npm ci`, `npm run lint`, `npx tsc --noEmit`, `npm test`, then `npm run build` as the minimum check sequence. The current package has no test script; add one during implementation, not during this constitution task.
+`.env.example` contains only server-side variable names and local defaults. Confirm model IDs against installed Mozaik support and Anthropic availability before adding them. Add `npm run dev:runtime` for the persistent process, `npm run dev:web` for Next, and `npm run dev` to start both when the runtime exists. Run `npm ci`, `npm run lint`, `npx tsc --noEmit`, `npm test`, then `npm run build` as the minimum check sequence. The C0 package already has a contract test script; future owners add their own tests to the command.
 
 ## 3. End-to-end data flow
 
@@ -105,4 +105,4 @@ Test pure rule functions for applicability, exceptions, thresholds, boundary pre
 | M3: breadth | 3–5 active checks across both regulations; coverage counts; two-plan tests | 8–12 stretch checks |
 | M4: demo hardening | Recorded real events, fallback fixture, cost cap, error states, repeatable rehearsal | PDF export, accounts, cloud deployment |
 
-Four workstreams can proceed after M0: frontend consumes shared schemas/API; geometry produces `ArchitecturalElement`/`Measurement`/`Evidence`; regulatory work owns source registry and pure rules; runtime owns Mozaik/events/persistence. Merge at M1, then integrate each feature vertically. The recommended first coding task is to define `src/domain` schemas and one source-verified active rule fixture plus evaluator test, before UI or Vision work expands.
+The shared C0 schemas/API/events are complete. Four workstreams can proceed now: frontend consumes shared schemas/API; geometry produces `ArchitecturalElement`/`Measurement`/`Evidence`; regulatory work owns source registry and applicability; runtime owns Mozaik/events/persistence and the pure evaluator. Merge at M1, then integrate each feature vertically. The next regulatory coding task is one source-verified active rule fixture plus evaluator test; other branches can build against `src/domain/fixtures.ts` meanwhile. See `TEAM.md` for exact file ownership.

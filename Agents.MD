@@ -59,7 +59,7 @@ Agents never receive API keys as text in prompts. The runtime injects credential
 
 ### 3. Event envelope and contract
 
-Application event names below are Archilles contracts carried by Mozaik `SemanticEvent`, not claims of built-in Mozaik event types. Validate each payload with Zod before publication and on receipt. Every payload contains `eventId`, `sessionId` where analysis-scoped, `projectId`, `projectRevision`, and `correlationId`; the persistence observer adds a monotonic per-session `sequence` for SSE. `producerId` is the joined Mozaik participant; never trust a client-supplied producer ID.
+Application event names below are Archilles contracts carried by Mozaik `SemanticEvent`, not claims of built-in Mozaik event types. Validate each payload with Zod before publication and on receipt. The application envelope contains `eventId`, `sessionId` where analysis-scoped, `projectId`, `projectRevision`, and `correlationId`; the persistence observer adds a monotonic per-session `sequence` for SSE. `producerId` is the joined Mozaik participant; never trust a client-supplied producer ID. `src/domain/events.ts` owns the exact wire schemas.
 
 | Event | Producer -> consumers | Required payload fields | State effect / idempotency |
 |---|---|---|---|

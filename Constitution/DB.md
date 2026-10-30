@@ -1,6 +1,6 @@
 # Archilles data constitution
 
-Version: 1.0, 30 October 2026. This document owns the canonical domain contract. `PrD.md` owns product behavior, `Tech.MD` owns implementation and transport, and `Agents.MD` owns runtime behavior. Types below are target contracts, not a claim that tables or code already exist.
+Version: 1.1, 30 October 2026. This document owns the canonical domain contract. `PrD.md` owns product behavior, `Tech.MD` owns implementation and transport, and `Agents.MD` owns runtime behavior. The C0 types and Zod validators now exist in `src/domain/`; the database tables and product features remain future work.
 
 ## 1. Invariants and persistence
 
@@ -13,7 +13,7 @@ Version: 1.0, 30 October 2026. This document owns the canonical domain contract.
 
 ## 2. Canonical TypeScript contract
 
-The shared package exports these discriminants unchanged to UI, API, rule engine, and runtime. `ISODateTime`, `Id`, and `Decimal` below are aliases, validated at input boundaries rather than nominal runtime types. `JsonValue` means a Zod-validated, serializable value. All optional fields represent genuinely unknown information; `null` is used only where a known empty value is meaningful.
+The shared package exports these discriminants unchanged to UI, API, rule engine, and runtime. `Id` and UTC timestamps are validated at input boundaries rather than nominal runtime types. All optional fields represent genuinely unknown information; `null` is used only where a known empty value is meaningful.
 
 ```ts
 type Id = string;
@@ -127,8 +127,8 @@ Conditions are a bounded DSL. Unknown fields yield `UNKNOWN` applicability, not 
 ```ts
 interface RuleEvaluation {
   id: Id; projectId: Id; projectRevision: number; ruleId: Id; ruleVersion: number;
-  elementId?: Id; status: EvaluationStatus; required?: number | string;
-  observed?: number | string; unit?: string; evidenceIds: Id[];
+  elementId?: Id; status: EvaluationStatus; required?: number | string | boolean;
+  observed?: number | string | boolean; unit?: string; evidenceIds: Id[];
   missingInputs: Metric[]; reasonCode: string; evaluatedAt: ISODateTime;
 }
 interface ComplianceFinding {
