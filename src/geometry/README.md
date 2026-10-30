@@ -6,7 +6,7 @@ Import `prepareDrawingPage`, `analyzeDrawing`, `loadConfirmedFixture`, and corre
 
 The runtime injects private byte reads/writes. Never expose storage references to the browser. Validate the original upload with `prepareDrawingPage` before analysis. Limits: 20 MiB original, 20 pages, 40 million decoded pixels, 2048-pixel maximum analysis edge. The source frame is the orientation-normalized image, or PDF crop rendered at 144 DPI with intrinsic rotation applied. PDF.js uses 72-point page units; the renderer uses scale 2. Images retain their oriented native dimensions. The transform maps source pixels to analysis raster pixels; its inverse maps model geometry back. UI zoom/pan is a separate transform.
 
-`createBrowserPageRenderer` in `browser-renderer.ts` implements the constitution's browser rendering requirement using PDF.js and browser canvas. Team 1 must configure `GlobalWorkerOptions.workerSrc` to a bundled worker of the same installed PDF.js version. EXIF orientation is applied by `createImageBitmap`. Metadata checks bound JPEG/PNG allocation before decoding. PDF passwords/corruption are rejected, and PDF document tasks are destroyed after each operation.
+`createBrowserPageRenderer` in `browser-renderer.ts` implements the constitution's browser rendering requirement using PDF.js and browser canvas. Team 1 must configure `GlobalWorkerOptions.workerSrc` to a bundled worker of the same installed PDF.js version. EXIF orientation is applied by `createImageBitmap`. Header-only inspection validates PNG/JPEG dimensions and EXIF orientation before decoding; all eight TIFF orientations use the oriented source frame. Image DPI is omitted because it is not physical scale evidence. PDF passwords/corruption are rejected with distinct sanitized errors; password rejection settles promptly, and loading tasks are destroyed on success and failure. The optional `loadPdf` seam supports parser testing without browser canvas.
 
 **Integration gate:** persistent runtime preparation requires an injected `PageRenderer` running in an agreed rendering environment. There is no server renderer in this delivery. Do not silently move confidential uploads to browser-supplied geometry or trust a client-generated raster without server validation. Team 3 must agree the rendering architecture/governance change before enabling server PDF rasterization. A future Node renderer would require direct dependencies added by Team 3, not transitive imports.
 
@@ -29,3 +29,10 @@ Optional asset regeneration uses `fixtures/plans/generate.mjs`. It requires a di
 ## Verification limits
 
 Unit tests use injected rendering and inference adapters. A real browser render/alignment rehearsal, live Claude smoke test with configured credentials/model/budget, and Team 3's stale-result/event/engine integration are required before demo acceptance. These checks cannot be claimed from mocked tests.
+
+
+## Follow-up verification after integrating main
+
+- Added header/renderer tests for actual PNG/JPG assets, all eight EXIF orientations, malformed frames/EXIF, pre-allocation limits, selected PDF page rotation/crop metadata, password failures, and cleanup.
+- The actual two-page PDF is parsed using PDF.js's Node-compatible legacy build in tests. This verifies the committed PDF and page metadata, not visual rendering. The standard PDF.js build uses a newer typed-array API absent in the current Node 24 host; keep the browser build in browser code and the legacy build in Node-only parser tests.
+- Browser alignment rehearsal could not run because no browser connection was available. Configured provider model discovery returned HTTP 404; no live inference or model availability has been confirmed. No confidential drawings were submitted.

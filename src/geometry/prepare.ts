@@ -19,6 +19,9 @@ export async function prepareDrawingPage(input: {
   try { meta=await input.renderer.inspect(bytes,d.mimeType,input.page); }
   catch(e) { if(e instanceof GeometryError) throw e; throw new GeometryError('UNRENDERABLE_PAGE'); }
   if(!Number.isInteger(meta.pageCount)||meta.pageCount<1||meta.pageCount>20) throw new GeometryError('PAGE_LIMIT');
+  if(d.mimeType!=='application/pdf' && meta.pageCount!==1) throw new GeometryError('INVALID_PAGE');
+  if(!Number.isFinite(meta.rotation)||meta.rotation%90!==0) throw new GeometryError('INVALID_ROTATION');
+  if(meta.cropBox && (meta.cropBox.length!==4 || !meta.cropBox.every(Number.isFinite) || meta.cropBox[2]<=meta.cropBox[0] || meta.cropBox[3]<=meta.cropBox[1])) throw new GeometryError('INVALID_CROP_BOX');
   if(meta.pageCount!==d.pageCount || input.page>meta.pageCount) throw new GeometryError('INVALID_PAGE');
   if(!Number.isSafeInteger(meta.width)||!Number.isSafeInteger(meta.height)||meta.width<=0||meta.height<=0||meta.width*meta.height>40_000_000) throw new GeometryError('PIXEL_LIMIT');
   const scale=Math.min(1,2048/Math.max(meta.width,meta.height));
@@ -26,12 +29,12 @@ export async function prepareDrawingPage(input: {
   const sourceToRaster: Affine=[rasterWidth/meta.width,0,0,rasterHeight/meta.height,0,0];
   let raster: Uint8Array;
   try { raster=await input.renderer.render(bytes,d.mimeType,input.page,rasterWidth,rasterHeight); }
-  catch { throw new GeometryError('UNRENDERABLE_PAGE'); }
+  catch(e) { if(e instanceof GeometryError) throw e; throw new GeometryError('UNRENDERABLE_PAGE'); }
   if(raster.length<24||Buffer.from(raster.subarray(0,8)).toString('hex')!=='89504e470d0a1a0a') throw new GeometryError('INVALID_RASTER');
   const rasterHeader=new DataView(raster.buffer,raster.byteOffset,raster.byteLength);
   if(rasterHeader.getUint32(16)!==rasterWidth||rasterHeader.getUint32(20)!==rasterHeight) throw new GeometryError('RASTER_DIMENSION_MISMATCH');
   return {projectId:d.projectId,drawingId:d.id,revision:d.revision,page:input.page,sha256:d.sha256,
     sourceWidth:meta.width,sourceHeight:meta.height,rasterWidth,rasterHeight,
     rasterReference:await input.writePrivateRaster(raster),sourceToRaster,rasterToSource:invertTransform(sourceToRaster),
-    rotation:meta.rotation,dpi:144,cropBox:meta.cropBox,preprocessingVersion:PREPROCESSING_VERSION};
+    rotation:meta.rotation,dpi:d.mimeType==='application/pdf'?144:undefined,cropBox:meta.cropBox,preprocessingVersion:PREPROCESSING_VERSION};
 }

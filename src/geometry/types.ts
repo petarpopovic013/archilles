@@ -8,7 +8,7 @@ export interface PreparedPage {
   projectId: string; drawingId: string; revision: number; page: number; sha256: string;
   sourceWidth: number; sourceHeight: number; rasterWidth: number; rasterHeight: number;
   rasterReference: string; sourceToRaster: Affine; rasterToSource: Affine;
-  rotation: number; dpi: number; cropBox?: readonly number[]; preprocessingVersion: string;
+  rotation: number; dpi?: number; cropBox?: readonly number[]; preprocessingVersion: string;
 }
 export interface PageRenderer {
   /** Inspect metadata without allocating the decoded image. Must reject encrypted/corrupt PDFs. */
