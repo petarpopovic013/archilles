@@ -1,0 +1,172 @@
+import { randomUUID } from "node:crypto";
+import type { z } from "zod";
+import {
+  AnalysisSnapshotSchema,
+  type AnalysisSession,
+  type AnalysisSnapshot,
+  type AppEvent,
+  type CoverageSummary,
+  type EvaluationStatus,
+  type StartAnalysisRequestSchema,
+} from "../../src/domain";
+import { PREPROCESSING_VERSION } from "../../src/geometry";
+import { fingerprint } from "../../src/rules/engine";
+import { PROMPT_VERSION } from "../../src/vision/claude";
+import { asOfDate, type RuntimeContext } from "../context";
+import {
+  findDrawing,
+  findSession,
+  findSessionByRunKey,
+  findSessionLocation,
+  findFloor,
+  floorView,
+  insertSession,
+  latestSessionForProject,
+  listSessionEvaluations,
+  listSessionFindings,
+  listSessionParticipants,
+  retireRunKey,
+} from "../db/repo";
+import { notFound, revisionConflict } from "../http/errors";
+import { createAppEvent, emitAppEvent } from "../mozaik/app-events";
+import { resolveRuntime } from "../mozaik/runtime";
+import { ensureFloor } from "./drawings";
+import { getProject, saveProject } from "./projects";
+
+type StartAnalysisInput = z.output<typeof StartAnalysisRequestSchema>;
+
+export interface StartOptions {
+  /** Events published (with the new session ID) before `analysis.started`, e.g. a correction. */
+  precedingEvents?(sessionId: string): AppEvent[];
+}
+
+/**
+ * Starts one analysis session for a revision/drawing page/rule set/extraction version.
+ * Repeating the same request returns the existing session instead of new AI work.
+ */
+export async function startAnalysis(
+  ctx: RuntimeContext,
+  projectId: string,
+  request: StartAnalysisInput,
+  options: StartOptions = {},
+): Promise<{ sessionId: string; status: "RUNNING" }> {
+  const project = getProject(ctx.db, projectId);
+  if (project.revision !== request.projectRevision) throw revisionConflict(project.revision, request.projectRevision);
+  const drawing = findDrawing(ctx.db, request.drawingId);
+  if (!drawing || drawing.projectId !== projectId) throw notFound("Drawing");
+  const { floor } = await ensureFloor(ctx, drawing, request.page);
+
+  const asOf = asOfDate(ctx);
+  const rules = await ctx.registry.getActiveRules(asOf);
+  const ruleSetVersion = fingerprint(rules.map((rule) => [rule.id, rule.version]).sort()).slice(0, 16);
+  const runKey = fingerprint({
+    projectId,
+    projectRevision: project.revision,
+    sha256: drawing.sha256,
+    page: request.page,
+    ruleSetVersion,
+    extraction: [PREPROCESSING_VERSION, PROMPT_VERSION, ctx.geometry.vision?.model ?? "none"],
+  });
+
+  const existing = findSessionByRunKey(ctx.db, runKey);
+  // The start contract only carries RUNNING; clients read the real status from the snapshot.
+  if (existing && existing.status !== "FAILED") return { sessionId: existing.id, status: "RUNNING" };
+
+  const current = getProject(ctx.db, projectId);
+  if (current.revision !== project.revision) throw revisionConflict(current.revision, project.revision);
+  const session: AnalysisSession = {
+    id: randomUUID(),
+    projectId,
+    projectRevision: project.revision,
+    status: "RUNNING",
+    selectedRuleIds: [],
+    agentRunIds: [],
+    startedAt: ctx.now(),
+  };
+  ctx.db.transaction(() => {
+    if (existing) retireRunKey(ctx.db, existing.id);
+    insertSession(ctx.db, session, runKey, { drawingId: drawing.id, page: request.page });
+    saveProject(ctx.db, { ...current, analysisStatus: "RUNNING" });
+  })();
+
+  resolveRuntime().state.sessions.set(session.id, {
+    projectId,
+    projectRevision: project.revision,
+    drawingId: drawing.id,
+    floorId: floor.id,
+    page: request.page,
+    ruleSetVersion,
+    asOf,
+    geometry: "PENDING",
+    rules: "PENDING",
+    selectedRuleIds: [],
+    fingerprints: new Set(),
+    failed: false,
+  });
+
+  for (const event of options.precedingEvents?.(session.id) ?? []) emitAppEvent(ctx.api, event);
+  emitAppEvent(ctx.api, createAppEvent("analysis.started", {
+    projectId, projectRevision: project.revision, correlationId: session.id, sessionId: session.id,
+  }, { drawingId: drawing.id, page: request.page, ruleSetVersion }));
+  return { sessionId: session.id, status: "RUNNING" };
+}
+
+export async function getAnalysisSnapshot(ctx: RuntimeContext, sessionId: string): Promise<AnalysisSnapshot> {
+  const session = findSession(ctx.db, sessionId);
+  const location = findSessionLocation(ctx.db, sessionId);
+  if (!session || !location) throw notFound("Analysis");
+  const floor = findFloor(ctx.db, location.drawingId, location.page);
+  const view = floor ? floorView(ctx.db, floor.floor.id, session.projectRevision) : { elements: [], measurements: [] };
+  return AnalysisSnapshotSchema.parse({
+    session,
+    elements: view.elements,
+    measurements: view.measurements,
+    evaluations: listSessionEvaluations(ctx.db, sessionId).map(({ evaluation }) => evaluation),
+    findings: listSessionFindings(ctx.db, sessionId),
+    coverage: await computeCoverage(ctx, session.projectId, session),
+    participants: listSessionParticipants(ctx.db, sessionId, ctx.liveParticipantIds),
+  });
+}
+
+/**
+ * Coverage with named denominators and no global score (PrD PR-12/PR-15). Rule and source counts
+ * come from the registry; check counts from the given session, or the project's latest one.
+ */
+export async function computeCoverage(ctx: RuntimeContext, projectId: string, session?: AnalysisSession): Promise<CoverageSummary> {
+  const project = getProject(ctx.db, projectId);
+  const snapshot = await ctx.registry.snapshot();
+  const evaluated = session ?? latestSessionForProject(ctx.db, projectId);
+  const evaluations = evaluated ? listSessionEvaluations(ctx.db, evaluated.id).map(({ evaluation }) => evaluation) : [];
+
+  const count = (lifecycle: string) => snapshot.rules.filter((rule) => rule.lifecycle === lifecycle).length;
+  const statusCounts: Partial<Record<EvaluationStatus, number>> = {};
+  for (const evaluation of evaluations) statusCounts[evaluation.status] = (statusCounts[evaluation.status] ?? 0) + 1;
+  const active = snapshot.rules.filter((rule) => rule.lifecycle === "ACTIVE");
+  const automatedProvisions = new Set(active.flatMap((rule) => rule.provisionIds));
+  const activeSources = new Set(active.map((rule) => rule.sourceId));
+
+  return {
+    projectId,
+    projectRevision: project.revision,
+    indexedProvisions: snapshot.provisionCount,
+    candidateRules: count("CANDIDATE") + count("AI_REVIEWED"),
+    humanVerifiedRules: count("HUMAN_VERIFIED"),
+    activeRules: active.length,
+    applicableRules: new Set(evaluations.filter((e) => e.status !== "NOT_APPLICABLE").map((e) => e.ruleId)).size,
+    executedChecks: evaluations.filter((e) => e.status === "PASS" || e.status === "FAIL").length,
+    blockedUnknown: statusCounts.UNKNOWN ?? 0,
+    needsReview: statusCounts.NEEDS_REVIEW ?? 0,
+    outsideAutomatedCoverage: Math.max(0, snapshot.provisionCount - automatedProvisions.size),
+    evaluationStatusCounts: statusCounts,
+    sources: snapshot.sources.map((source) => ({
+      sourceId: source.id,
+      title: source.title,
+      sourceVersion: source.sourceVersion,
+      verificationStatus: source.status,
+      considered: activeSources.has(source.id),
+      reason: activeSources.has(source.id)
+        ? "Has active, human-verified rules"
+        : "No active rule from this source yet",
+    })),
+  };
+}

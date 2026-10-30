@@ -1,0 +1,54 @@
+{
+  "name": "office-a",
+  "width": 800,
+  "height": 600,
+  "provenance": "Synthetic reference dimensions authored with this fixture; not a regulatory example.",
+  "elements": [
+    {
+      "type": "CORRIDOR",
+      "label": "Corridor",
+      "geometry": {
+        "kind": "BBOX",
+        "x": 40,
+        "y": 240,
+        "width": 720,
+        "height": 100
+      },
+      "width": 1.05
+    },
+    {
+      "type": "DOOR",
+      "label": "Door",
+      "geometry": {
+        "kind": "BBOX",
+        "x": 375,
+        "y": 230,
+        "width": 50,
+        "height": 20
+      },
+      "width": 0.8
+    },
+    {
+      "type": "ENTRANCE",
+      "label": "Entrance",
+      "geometry": {
+        "kind": "BBOX",
+        "x": 40,
+        "y": 480,
+        "width": 60,
+        "height": 60
+      }
+    },
+    {
+      "type": "ROOM",
+      "label": "Office",
+      "geometry": {
+        "kind": "BBOX",
+        "x": 40,
+        "y": 40,
+        "width": 300,
+        "height": 200
+      }
+    }
+  ]
+}
