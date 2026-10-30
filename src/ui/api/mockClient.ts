@@ -49,6 +49,7 @@ import {
   contractFixture,
 } from "./types";
 import { ArchillesApiError } from "./errors";
+import { plan1Fixture, plan2Fixture, type PlanFixtureData } from "./mockData";
 
 /** Helper to generate compliant UTC timestamps */
 function nowUtc(): string {
@@ -66,6 +67,7 @@ export class MockArchillesApiClient implements ArchillesApiClient {
   private _mode: ApiClientMode = "mock";
 
   // In-memory mock state initialized from canonical contractFixture
+  private currentPlanId: "plan-1" | "plan-2" = "plan-1";
   private project!: Project;
   private drawing!: Drawing;
   private floor!: Floor;
@@ -86,82 +88,32 @@ export class MockArchillesApiClient implements ArchillesApiClient {
     this._mode = mode;
   }
 
-  /** Reset mock state to clean contractFixture baseline */
-  reset(): void {
-    this.project = { ...contractFixture.project };
-    this.drawing = { ...contractFixture.drawing };
-    this.floor = { ...contractFixture.floor };
-    this.elements = [{ ...contractFixture.element }];
-    this.evidence = [{ ...contractFixture.evidence }];
-    this.measurements = [{ ...contractFixture.measurement }];
-    this.evaluations = [{ ...contractFixture.evaluation }];
-
-    this.findings = [
-      {
-        id: mockUuid(30),
-        evaluationId: contractFixture.evaluation.id,
-        projectId: contractFixture.project.id,
-        projectRevision: 1,
-        ruleId: contractFixture.evaluation.ruleId,
-        ruleVersion: 1,
-        sourceId: mockUuid(9),
-        sourceVersion: "22/2019-3",
-        provisionIds: [mockUuid(10)],
-        elementId: contractFixture.element.id,
-        status: "UNKNOWN",
-        priority: "MEDIUM",
-        title: "Svetla širina evakuacionog koridora",
-        explanation:
-          "Minimalna širina koridora za evakuaciju prema Pravilniku 22/2019-3 zavisi od predviđenog broja korisnika.",
-        suggestedAction:
-          "Potrebno uneti broj korisnika (OCCUPANT_COUNT) u parametre projekta.",
-        evidenceIds: [contractFixture.evidence.id],
-        requiresHumanReview: true,
-        stale: false,
-        createdAt: "2026-10-30T12:00:00.000Z",
-      },
-    ];
-
-    this.coverage = {
-      projectId: contractFixture.project.id,
-      projectRevision: 1,
-      indexedProvisions: 12,
-      candidateRules: 4,
-      humanVerifiedRules: 3,
-      activeRules: 3,
-      applicableRules: 1,
-      executedChecks: 1,
-      blockedUnknown: 1,
-      needsReview: 0,
-      outsideAutomatedCoverage: 8,
-      evaluationStatusCounts: {
-        UNKNOWN: 1,
-      },
-      sources: [
-        {
-          sourceId: mockUuid(9),
-          title:
-            "Pravilnik o tehničkim normativima za zaštitu poslovnih objekata od požara (Sl. glasnik RS 22/2019-3)",
-          sourceVersion: "22/2019-3",
-          verificationStatus: "CURRENT_CONFIRMED",
-          considered: true,
-          reason: "Primenjivo na poslovne zgrade",
-        },
-      ],
-    };
-
-    this.session = {
-      id: mockUuid(100),
-      projectId: contractFixture.project.id,
-      projectRevision: 1,
-      status: "COMPLETE",
-      selectedRuleIds: [contractFixture.evaluation.ruleId],
-      agentRunIds: [mockUuid(200)],
-      startedAt: "2026-10-30T12:00:00.000Z",
-      finishedAt: "2026-10-30T12:00:05.000Z",
-    };
-
+  /** Load a specific test plan fixture ("plan-1" or "plan-2") */
+  loadPlanFixture(planId: "plan-1" | "plan-2"): PlanFixtureData {
+    this.currentPlanId = planId;
+    const fixture = planId === "plan-2" ? plan2Fixture : plan1Fixture;
+    this.project = { ...fixture.project };
+    this.drawing = { ...fixture.drawing };
+    this.floor = { ...fixture.floor };
+    this.elements = fixture.elements.map((e) => ({ ...e }));
+    this.evidence = fixture.evidence.map((ev) => ({ ...ev }));
+    this.measurements = fixture.measurements.map((m) => ({ ...m }));
+    this.evaluations = fixture.evaluations.map((ev) => ({ ...ev }));
+    this.findings = fixture.findings.map((f) => ({ ...f }));
+    this.coverage = { ...fixture.coverage };
+    this.session = { ...fixture.session };
     this.nextEventSequence = 1;
+    return fixture;
+  }
+
+  /** Get active mock plan ID */
+  get activePlanId(): "plan-1" | "plan-2" {
+    return this.currentPlanId;
+  }
+
+  /** Reset mock state to clean contractFixture baseline (Plan 1) */
+  reset(): void {
+    this.loadPlanFixture("plan-1");
   }
 
   async createProject(request: CreateProjectRequest): Promise<Project> {
@@ -190,8 +142,11 @@ export class MockArchillesApiClient implements ArchillesApiClient {
   }
 
   async getProject(projectId: string): Promise<Project> {
-    if (this.project.id !== projectId && projectId !== contractFixture.project.id) {
-      // In mock mode, if any project requested, return current state with that ID
+    if (projectId === plan2Fixture.project.id && this.currentPlanId !== "plan-2") {
+      this.loadPlanFixture("plan-2");
+    } else if (projectId === plan1Fixture.project.id && this.currentPlanId !== "plan-1") {
+      this.loadPlanFixture("plan-1");
+    } else if (this.project.id !== projectId && projectId !== contractFixture.project.id) {
       this.project = { ...this.project, id: projectId };
     }
     return ProjectSchema.parse(this.project);
@@ -296,12 +251,39 @@ export class MockArchillesApiClient implements ArchillesApiClient {
   async getDrawingPageBlob(drawingId: string, page: number): Promise<Blob> {
     void drawingId;
     void page;
-    const svg = `
+    const svg =
+      this.currentPlanId === "plan-2"
+        ? `
       <svg xmlns="http://www.w3.org/2000/svg" width="${this.floor.imageWidthPx}" height="${this.floor.imageHeightPx}" viewBox="0 0 ${this.floor.imageWidthPx} ${this.floor.imageHeightPx}">
-        <rect width="100%" height="100%" fill="#f8fafc" />
-        <rect x="80" y="100" width="340" height="120" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2" />
-        <rect x="100" y="120" width="300" height="80" fill="#cbd5e1" stroke="#64748b" stroke-width="2" />
-        <text x="120" y="165" font-family="sans-serif" font-size="16" fill="#334155">Evakuacioni koridor (1.05m)</text>
+        <rect width="100%" height="100%" fill="#0f172a" />
+        <defs>
+          <pattern id="grid2" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="1" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid2)" />
+        <!-- R1: Pristupna rampa (FAIL) -->
+        <rect x="120" y="350" width="380" height="110" fill="#ef444425" stroke="#ef4444" stroke-width="2" rx="4" />
+        <text x="140" y="415" font-family="sans-serif" font-size="14" font-weight="bold" fill="#f87171">R1: Pristupna rampa (nagib 9.0% - FAIL)</text>
+        <!-- V-01: Ulazna vrata (NEEDS_REVIEW) -->
+        <rect x="550" y="350" width="100" height="50" fill="#f59e0b25" stroke="#f59e0b" stroke-width="2" rx="4" />
+        <text x="555" y="380" font-family="sans-serif" font-size="11" font-weight="bold" fill="#fbbf24">V-01 (0.85m)</text>
+        <!-- K-01: Glavni koridor (PASS) -->
+        <rect x="680" y="200" width="400" height="180" fill="#10b98125" stroke="#10b981" stroke-width="2" rx="4" />
+        <text x="700" y="295" font-family="sans-serif" font-size="14" font-weight="bold" fill="#34d399">K-01: Evakuacioni koridor (1.40m - PASS)</text>
+      </svg>
+    `.trim()
+        : `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${this.floor.imageWidthPx}" height="${this.floor.imageHeightPx}" viewBox="0 0 ${this.floor.imageWidthPx} ${this.floor.imageHeightPx}">
+        <rect width="100%" height="100%" fill="#0f172a" />
+        <defs>
+          <pattern id="grid1" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="1" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid1)" />
+        <rect x="100" y="120" width="300" height="80" fill="#eab30825" stroke="#eab308" stroke-width="2" rx="4" />
+        <text x="120" y="165" font-family="sans-serif" font-size="14" font-weight="bold" fill="#facc15">Evakuacioni koridor (1.05m - UNKNOWN)</text>
       </svg>
     `.trim();
 

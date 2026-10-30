@@ -57,6 +57,15 @@ export class SwitchableArchillesApiClient implements ArchillesApiClient {
     return this._mode === "live" ? this.httpClient : this.mockClient;
   }
 
+  /** Load a mock plan fixture ("plan-1" or "plan-2") */
+  loadPlanFixture(planId: "plan-1" | "plan-2") {
+    return this.mockClient.loadPlanFixture(planId);
+  }
+
+  get activePlanId(): "plan-1" | "plan-2" {
+    return this.mockClient.activePlanId;
+  }
+
   createProject(request: CreateProjectRequest): Promise<Project> {
     return this.active.createProject(request);
   }
