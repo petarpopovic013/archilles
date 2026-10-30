@@ -1,18 +1,35 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useWorkspace } from "../../context/WorkspaceContext";
 import { apiClient } from "../../api";
-import { SvgArrow } from "../common/SvgArrow";
+import {
+  type ViewportTransform,
+  calculateFitToBounds,
+  calculateFocusOnRect,
+  getGeometryBounds,
+  zoomAtScreenPoint,
+  MIN_SCALE,
+  MAX_SCALE,
+} from "./viewerTransforms";
+import { PlanToolbar, type LayerVisibility } from "./PlanToolbar";
+import { PlanCanvas } from "./PlanCanvas";
 
 export function CenterPanel() {
   const {
     drawing,
     selectedPage,
+    elements,
+    findings,
+    measurements,
+    evidence,
+    selectedElementId,
+    setSelectedElementId,
     selectedElement,
-    selectedFinding,
     activePlanId,
   } = useWorkspace();
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [image, setImage] = useState<{ url: string; drawingId: string; page: number } | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
@@ -22,6 +39,20 @@ export function CenterPanel() {
     height: 800,
   });
 
+  const [transform, setTransform] = useState<ViewportTransform>({
+    scale: 1,
+    translateX: 0,
+    translateY: 0,
+  });
+
+  const [layers, setLayers] = useState<LayerVisibility>({
+    elements: true,
+    labels: true,
+    findings: true,
+    evidence: true,
+  });
+
+  // Fetch plan raster / SVG when drawing or active plan changes
   useEffect(() => {
     let isMounted = true;
     let objectUrl: string | undefined;
@@ -40,116 +71,97 @@ export function CenterPanel() {
     };
   }, [drawing, selectedPage, activePlanId]);
 
+  // Zoom In centered on viewport
+  const handleZoomIn = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerPoint = { x: rect.width / 2, y: rect.height / 2 };
+    setTransform((prev) =>
+      zoomAtScreenPoint(prev, centerPoint, 1.25, MIN_SCALE, MAX_SCALE),
+    );
+  }, []);
+
+  // Zoom Out centered on viewport
+  const handleZoomOut = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerPoint = { x: rect.width / 2, y: rect.height / 2 };
+    setTransform((prev) =>
+      zoomAtScreenPoint(prev, centerPoint, 0.8, MIN_SCALE, MAX_SCALE),
+    );
+  }, []);
+
+  // Fit to screen bounds
+  const handleFitScreen = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const fit = calculateFitToBounds(
+      rect.width,
+      rect.height,
+      dimensions.width,
+      dimensions.height,
+    );
+    setTransform(fit);
+  }, [dimensions.width, dimensions.height]);
+
+  // Focus and center on selected element
+  const handleFocusSelected = useCallback(() => {
+    if (!containerRef.current || !selectedElement) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const bounds = getGeometryBounds(selectedElement.geometry);
+    const focused = calculateFocusOnRect(rect.width, rect.height, bounds);
+    setTransform(focused);
+  }, [selectedElement]);
+
+  const handleToggleLayer = useCallback((layer: keyof LayerVisibility) => {
+    setLayers((prev) => ({
+      ...prev,
+      [layer]: !prev[layer],
+    }));
+  }, []);
+
   return (
-    <main className="flex-1 flex flex-col h-full bg-slate-950 text-slate-200 overflow-hidden relative">
-      {/* 1. Top Viewport Toolbar */}
-      <div className="h-11 px-4 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between select-none z-10">
-        <div className="flex items-center gap-3 text-xs">
-          <span className="font-semibold text-slate-100 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            2D Pregledač Plana
-          </span>
-          <span className="text-slate-600">|</span>
-          <span className="font-mono text-slate-400">
-            {dimensions.width} × {dimensions.height} px
-          </span>
-          {drawing && (
-            <span className="font-mono text-[11px] text-slate-500 bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700/50">
-              Str. {selectedPage} ({drawing.mimeType.split("/")[1]?.toUpperCase()})
-            </span>
-          )}
+    <main
+      ref={containerRef}
+      className="flex-1 flex flex-col h-full bg-slate-950 text-slate-200 overflow-hidden relative select-none"
+    >
+      {/* 1. Viewport Toolbar */}
+      <PlanToolbar
+        scale={transform.scale}
+        drawingWidth={dimensions.width}
+        drawingHeight={dimensions.height}
+        selectedPage={selectedPage}
+        hasSelectedElement={Boolean(selectedElement)}
+        layers={layers}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onFitScreen={handleFitScreen}
+        onFocusSelected={handleFocusSelected}
+        onToggleLayer={handleToggleLayer}
+      />
+
+      {/* 2. Interactive 2D Plan Canvas */}
+      {imageUrl ? (
+      <PlanCanvas
+        imageUrl={imageUrl}
+        drawingWidth={dimensions.width}
+        drawingHeight={dimensions.height}
+        elements={elements}
+        findings={findings}
+        measurements={measurements}
+        evidence={evidence}
+        selectedElementId={selectedElementId}
+        layers={layers}
+        transform={transform}
+        onTransformChange={setTransform}
+        onSelectElement={setSelectedElementId}
+      />
+      ) : (
+        <div className="flex-1 flex items-center justify-center text-slate-400 text-sm">
+          {drawing ? pageError ?? "Učitavanje crteža..." : "Otpremite crtež za pregled."}
         </div>
+      )}
 
-        {/* View Controls & Zoom Placeholders (Task 3 groundwork) */}
-        <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-1 rounded border border-slate-800 text-xs">
-          <button
-            type="button"
-            className="px-2 py-0.5 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
-            title="Uvećaj prikaz"
-          >
-            +
-          </button>
-          <span className="font-mono text-[11px] px-1 text-slate-300">100%</span>
-          <button
-            type="button"
-            className="px-2 py-0.5 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
-            title="Umanji prikaz"
-          >
-            -
-          </button>
-          <span className="text-slate-700 mx-1">|</span>
-          <button
-            type="button"
-            className="text-[11px] px-1.5 py-0.5 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors"
-            title="Resetuj poziciju"
-          >
-            Fit
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Main Viewport Container */}
-      <div className="flex-1 overflow-auto p-6 flex flex-col items-center justify-center bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] relative">
-        {imageUrl ? (
-          <div className="relative shadow-2xl rounded border border-slate-800 bg-slate-900 transition-all">
-            {/* Drawing Preview Render */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={imageUrl}
-              alt="Plan"
-              width={dimensions.width}
-              height={dimensions.height}
-              className="max-h-[70vh] w-auto object-contain select-none pointer-events-none rounded"
-            />
-
-            {/* Selected Element Focus Box Overlay */}
-            {selectedElement && selectedElement.geometry.kind === "BBOX" && (
-              <div
-                className="absolute border-2 border-cyan-400 bg-cyan-400/15 pointer-events-none transition-all rounded shadow-[0_0_15px_rgba(34,211,238,0.4)]"
-                style={{
-                  left: `${(selectedElement.geometry.x / dimensions.width) * 100}%`,
-                  top: `${(selectedElement.geometry.y / dimensions.height) * 100}%`,
-                  width: `${(selectedElement.geometry.width / dimensions.width) * 100}%`,
-                  height: `${(selectedElement.geometry.height / dimensions.height) * 100}%`,
-                }}
-              >
-                <div className="absolute -top-6 left-0 bg-cyan-600 text-white text-[10px] font-bold font-mono px-1.5 py-0.5 rounded shadow whitespace-nowrap">
-                  {selectedElement.label ?? selectedElement.type}
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-slate-500 text-xs italic">{drawing ? pageError ?? "Učitavanje crteža..." : "Otpremite crtež za pregled."}</div>
-        )}
-
-        {/* 3. Task 3 Groundwork Floating Status Bar */}
-        <div className="absolute bottom-4 left-6 right-6 bg-slate-900/90 backdrop-blur border border-slate-800 px-4 py-2.5 rounded-lg shadow-xl flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-cyan-400 font-semibold">Aktivna Selekcija:</span>
-            {selectedElement ? (
-              <span className="font-mono text-slate-200">
-                {selectedElement.label ?? selectedElement.type} (ID: {selectedElement.id.slice(0, 8)}...)
-              </span>
-            ) : (
-              <span className="text-slate-500 italic">Nijedan element nije odabran (kliknite u levom panelu)</span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 text-[11px] text-slate-400">
-            {selectedFinding && (
-              <span className="bg-slate-800 px-2 py-0.5 rounded border border-slate-700 text-slate-300">
-                Povezan nalaz: {selectedFinding.title.slice(0, 35)}...
-              </span>
-            )}
-            <span className="text-slate-600">|</span>
-            <span className="text-slate-500 flex items-center gap-1">
-              <span>Task 3: Full Canvas Viewer</span>
-              <SvgArrow direction="right" size={12} className="text-slate-500" />
-            </span>
-          </div>
-        </div>
-      </div>
     </main>
   );
 }

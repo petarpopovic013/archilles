@@ -14,6 +14,7 @@ import type {
   Drawing,
   ArchitecturalElement,
   Measurement,
+  Evidence,
   RuleEvaluation,
   ComplianceFinding,
   CoverageSummary,
@@ -36,6 +37,7 @@ export interface WorkspaceContextValue {
 
   elements: ArchitecturalElement[];
   measurements: Measurement[];
+  evidence: Evidence[];
   evaluations: RuleEvaluation[];
   findings: ComplianceFinding[];
   coverage: CoverageSummary | null;
@@ -75,6 +77,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   const [elements, setElements] = useState<ArchitecturalElement[]>(() => initial?.elements ?? []);
   const [measurements, setMeasurements] = useState<Measurement[]>(() => initial?.measurements ?? []);
+  const [evidence, setEvidence] = useState<Evidence[]>(() => initial?.evidence ?? []);
   const [evaluations, setEvaluations] = useState<RuleEvaluation[]>(() => initial?.evaluations ?? []);
   const [findings, setFindings] = useState<ComplianceFinding[]>(() => initial?.findings ?? []);
   const [coverage, setCoverage] = useState<CoverageSummary | null>(() => initial?.coverage ?? null);
@@ -108,7 +111,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       if (newMode === "live") {
         setProject(null); setDrawing(null); setSelectedPage(1); setPageCount(0);
-        setSession(null); setElements([]); setMeasurements([]); setEvaluations([]);
+        setSession(null); setElements([]); setMeasurements([]); setEvidence([]); setEvaluations([]);
         setFindings([]); setCoverage(null); setSelectedElementIdState(null); setSelectedFindingIdState(null);
       } else {
         const fixture = activePlanId === "plan-2" ? plan2Fixture : plan1Fixture;
@@ -118,6 +121,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         setPageCount(fixture.drawing.pageCount);
         setElements(fixture.elements);
         setMeasurements(fixture.measurements);
+        setEvidence(fixture.evidence);
         setEvaluations(fixture.evaluations);
         setFindings(fixture.findings);
         setCoverage(fixture.coverage);
@@ -141,6 +145,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setPageCount(fixture.drawing.pageCount);
       setElements(fixture.elements);
       setMeasurements(fixture.measurements);
+      setEvidence(fixture.evidence);
       setEvaluations(fixture.evaluations);
       setFindings(fixture.findings);
       setCoverage(fixture.coverage);
@@ -240,7 +245,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         const currentCoverage = await client.getCoverage(target.id);
         if (operation.current !== epoch) return;
         setProject(updated);
-        setSession(null); setElements([]); setMeasurements([]); setEvaluations([]); setFindings([]);
+        setSession(null); setElements([]); setMeasurements([]); setEvidence([]); setEvaluations([]); setFindings([]);
         setSelectedElementIdState(null); setSelectedFindingIdState(null); setCoverage(currentCoverage);
         setDrawing(res.drawing);
         setPageCount(res.pageCount);
@@ -261,6 +266,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setDrawing(fixture.drawing);
       setElements(fixture.elements);
       setMeasurements(fixture.measurements);
+      setEvidence(fixture.evidence);
       setEvaluations(fixture.evaluations);
       setFindings(fixture.findings);
       setCoverage(fixture.coverage);
@@ -306,6 +312,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       pageCount,
       elements,
       measurements,
+      evidence,
       evaluations,
       findings,
       coverage,
@@ -336,6 +343,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       pageCount,
       elements,
       measurements,
+      evidence,
       evaluations,
       findings,
       coverage,
