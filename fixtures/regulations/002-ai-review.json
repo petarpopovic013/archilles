@@ -1,0 +1,26 @@
+{
+  "task": "002",
+  "reviewerKind": "AI",
+  "reviewedAt": "2026-10-30T16:55:16.259Z",
+  "humanApproved": false,
+  "ruleIds": [
+    "00200000-0000-4000-8000-000000000011",
+    "00200000-0000-4000-8000-000000000012",
+    "00200000-0000-4000-8000-000000000013",
+    "00200000-0000-4000-8000-000000000014"
+  ],
+  "checks": [
+    "Official content bytes and PIS version identifiers rechecked, unchanged from the captured source versions.",
+    "Thresholds traced to article 29 paragraph 3 of fire source and article 8 paragraph 1 items 1–2 of accessibility source.",
+    "Current accessibility amendment does not directly change article 8; internal-stair reference preserved in article 15.",
+    "Fire minimums deliberately do not claim occupancy-capacity sufficiency.",
+    "Above-ground, new-office subset, fire classifications and exact metric semantics documented.",
+    "No new source, rule, clause or fixture is represented as human approved."
+  ],
+  "openItems": [
+    "Human approval of the four new rules and exact extracted clauses.",
+    "Geometry agreement on subtype conventions and evidence for scope/individual-step height.",
+    "Runtime verification of representative project classification and separate activation."
+  ],
+  "sourceCheck": "fixtures/regulations/002-source-check.json"
+}

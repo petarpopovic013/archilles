@@ -1,0 +1,21 @@
+{
+  "task": "003",
+  "startedFromGitRevision": "1bcebf0acae0146cb6be723f86609a4604ebbbfb",
+  "integratedMainRevision": "22820896c156b52751cef59e8d8272474e4415e4",
+  "preservedUncommittedTask": "002 rules and tests were retained without promotion or activation.",
+  "checkedAt": "2026-10-30T17:04:57.775Z",
+  "sources": [
+    {
+      "sourceId": "00100000-0000-4000-8000-000000000001",
+      "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+      "sha256": "78afee68622bdfb8914e856f6b91c47233a0917c8114a1e9b75c06f872a3af64",
+      "matchesCapturedOfficialBytes": true
+    },
+    {
+      "sourceId": "00100000-0000-4000-8000-000000000003",
+      "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+      "sha256": "e794b3b89604419a876968742ca07a3bc51a90c2285d7dc2ade6994178ccfed6",
+      "matchesCapturedOfficialBytes": true
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "task": "002",
+  "startingGitRevision": "1bcebf0acae0146cb6be723f86609a4604ebbbfb",
+  "checkedAt": "2026-10-30T16:55:16.259Z",
+  "checks": [
+    {
+      "sourceId": "00100000-0000-4000-8000-000000000001",
+      "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+      "officialUrl": "https://pravno-informacioni-sistem.rs/SlGlasnikPortal/reg/viewAct/ec3c54bc-de4a-433f-afa8-d9eb44b7dab1",
+      "contentUrl": "https://reg.pravno-informacioni-sistem.rs/api/viewAct/ec3c54bc-de4a-433f-afa8-d9eb44b7dab1?lawActId=428109",
+      "sha256": "78afee68622bdfb8914e856f6b91c47233a0917c8114a1e9b75c06f872a3af64",
+      "versionGuid": "1D42C1D4-D2CB-4F20-88C7-8FBD193B2527",
+      "freshContentMatchesCapturedBytes": true,
+      "metadataVersionMatches": true
+    },
+    {
+      "sourceId": "00100000-0000-4000-8000-000000000003",
+      "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+      "officialUrl": "https://pravno-informacioni-sistem.rs/SlGlasnikPortal/reg/viewAct/512f4f2c-4bc4-4c31-a335-409673b7fac5",
+      "contentUrl": "https://reg.pravno-informacioni-sistem.rs/api/viewAct/512f4f2c-4bc4-4c31-a335-409673b7fac5?lawActId=439676",
+      "sha256": "e794b3b89604419a876968742ca07a3bc51a90c2285d7dc2ade6994178ccfed6",
+      "versionGuid": "af678b61-8cda-4138-a62d-d26e110dd49f",
+      "freshContentMatchesCapturedBytes": true,
+      "metadataVersionMatches": true
+    }
+  ]
+}

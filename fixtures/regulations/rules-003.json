@@ -1,0 +1,1755 @@
+[
+  {
+    "id": "00300000-0000-4000-8000-000000000030",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00200000-0000-4000-8000-000000000103",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Дубина газишта појединачног приступачног степеника",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "STAIR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "STAIR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ABOVE_GROUND_STAIR_STEP"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "RUN_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "RUN_M",
+      "threshold": 0.33,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000003000",
+      "00300000-0000-4000-8000-000000003001",
+      "00300000-0000-4000-8000-000000003002",
+      "00300000-0000-4000-8000-000000003003",
+      "00300000-0000-4000-8000-000000003004",
+      "00300000-0000-4000-8000-000000003005",
+      "00300000-0000-4000-8000-000000003006",
+      "00300000-0000-4000-8000-000000003007",
+      "00300000-0000-4000-8000-000000003008",
+      "00300000-0000-4000-8000-000000003009"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "RUN_M is the horizontal tread depth of one step, not flight run or step rise.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000031",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000101",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Чиста ширина једносмерне једнокраке приступачне рампе",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "RAMP",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "RAMP"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ACCESSIBLE_ONE_WAY_SINGLE_FLIGHT_RAMP"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 0.9,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000003100",
+      "00300000-0000-4000-8000-000000003101",
+      "00300000-0000-4000-8000-000000003102",
+      "00300000-0000-4000-8000-000000003103",
+      "00300000-0000-4000-8000-000000003104",
+      "00300000-0000-4000-8000-000000003105",
+      "00300000-0000-4000-8000-000000003106",
+      "00300000-0000-4000-8000-000000003107",
+      "00300000-0000-4000-8000-000000003108",
+      "00300000-0000-4000-8000-000000003109"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Only a reviewed one-way, non-switchback ramp; do not apply 0.9 m to a two-flight ramp.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000032",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000101",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Чиста ширина двокраке приступачне рампе",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "RAMP",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "RAMP"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ACCESSIBLE_TWO_FLIGHT_RAMP"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 1.5,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000003200",
+      "00300000-0000-4000-8000-000000003201",
+      "00300000-0000-4000-8000-000000003202",
+      "00300000-0000-4000-8000-000000003203",
+      "00300000-0000-4000-8000-000000003204",
+      "00300000-0000-4000-8000-000000003205",
+      "00300000-0000-4000-8000-000000003206",
+      "00300000-0000-4000-8000-000000003207",
+      "00300000-0000-4000-8000-000000003208",
+      "00300000-0000-4000-8000-000000003209"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Only the clear ramp width dimension; landing dimensions and all other ramp conditions remain separate.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000033",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000102",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Ширина кратког једносмерног приступачног пролаза",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "CORRIDOR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "CORRIDOR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ACCESSIBLE_DESIGNATED_SHORT_ONE_WAY_PASSAGE"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 0.9,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000003300",
+      "00300000-0000-4000-8000-000000003301",
+      "00300000-0000-4000-8000-000000003302",
+      "00300000-0000-4000-8000-000000003303",
+      "00300000-0000-4000-8000-000000003304",
+      "00300000-0000-4000-8000-000000003305",
+      "00300000-0000-4000-8000-000000003306",
+      "00300000-0000-4000-8000-000000003307",
+      "00300000-0000-4000-8000-000000003308",
+      "00300000-0000-4000-8000-000000003309"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Human must confirm short-distance, one-way movement and designated accessible route. Article 14 paragraph 2 permits an alternative designated route; do not apply this rule to every corridor.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000034",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000103",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Светла ширина унутрашњих приступачних врата по члану 22",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "DOOR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "DOOR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ACCESSIBLE_INTERNAL_DOOR_ART22"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 0.81,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000003400",
+      "00300000-0000-4000-8000-000000003401",
+      "00300000-0000-4000-8000-000000003402",
+      "00300000-0000-4000-8000-000000003403",
+      "00300000-0000-4000-8000-000000003404",
+      "00300000-0000-4000-8000-000000003405",
+      "00300000-0000-4000-8000-000000003406",
+      "00300000-0000-4000-8000-000000003407",
+      "00300000-0000-4000-8000-000000003408",
+      "00300000-0000-4000-8000-000000003409"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Article 22 dimension only; articles 17 and 20 can impose different or stronger contextual requirements. Do not resolve precedence by choosing the smaller threshold.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000035",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000103",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Светла ширина улазних приступачних врата по члану 22",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "DOOR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "DOOR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ACCESSIBLE_ENTRANCE_DOOR_ART22"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 0.91,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000003500",
+      "00300000-0000-4000-8000-000000003501",
+      "00300000-0000-4000-8000-000000003502",
+      "00300000-0000-4000-8000-000000003503",
+      "00300000-0000-4000-8000-000000003504",
+      "00300000-0000-4000-8000-000000003505",
+      "00300000-0000-4000-8000-000000003506",
+      "00300000-0000-4000-8000-000000003507",
+      "00300000-0000-4000-8000-000000003508",
+      "00300000-0000-4000-8000-000000003509"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Article 22 entrance dimension only; article 13 and public-building conditions require separate review.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000036",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000104",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Светла ширина врата приступачног WC",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "DOOR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "DOOR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "DESIGNATED_ACCESSIBLE_WC_DOOR"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 0.9,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000003600",
+      "00300000-0000-4000-8000-000000003601",
+      "00300000-0000-4000-8000-000000003602",
+      "00300000-0000-4000-8000-000000003603",
+      "00300000-0000-4000-8000-000000003604",
+      "00300000-0000-4000-8000-000000003605",
+      "00300000-0000-4000-8000-000000003606",
+      "00300000-0000-4000-8000-000000003607",
+      "00300000-0000-4000-8000-000000003608",
+      "00300000-0000-4000-8000-000000003609"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Only a door of the designated accessible WC. Outward opening, safety hardware and number of accessible cabins are not checked.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000037",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000105",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Чист отвор врата означеног приступачног лифта",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "DOOR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "DOOR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "DESIGNATED_ACCESSIBLE_LIFT_CABIN_DOOR"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 0.8,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000003700",
+      "00300000-0000-4000-8000-000000003701",
+      "00300000-0000-4000-8000-000000003702",
+      "00300000-0000-4000-8000-000000003703",
+      "00300000-0000-4000-8000-000000003704",
+      "00300000-0000-4000-8000-000000003705",
+      "00300000-0000-4000-8000-000000003706",
+      "00300000-0000-4000-8000-000000003707",
+      "00300000-0000-4000-8000-000000003708",
+      "00300000-0000-4000-8000-000000003709"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Door of a human-designated accessible lift only; not all lift doors. Article 9 permits at least one qualifying lift where multiple lifts serve the rise.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000038",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000106",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Слободна ширина платоа испред приступачног улаза",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "ENTRANCE",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "ENTRANCE"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "DESIGNATED_ACCESSIBLE_ENTRANCE_LANDING"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "CLEAR_WIDTH_M",
+      "threshold": 1.5,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000003800",
+      "00300000-0000-4000-8000-000000003801",
+      "00300000-0000-4000-8000-000000003802",
+      "00300000-0000-4000-8000-000000003803",
+      "00300000-0000-4000-8000-000000003804",
+      "00300000-0000-4000-8000-000000003805",
+      "00300000-0000-4000-8000-000000003806",
+      "00300000-0000-4000-8000-000000003807",
+      "00300000-0000-4000-8000-000000003808",
+      "00300000-0000-4000-8000-000000003809"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "One axis of the required 1.5 x 1.5 m level platform. Does not prove its depth or level surface. Multiple-entrance selection must be confirmed by a human.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000039",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000106",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Слободна дубина платоа испред приступачног улаза",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "ENTRANCE",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "ENTRANCE"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "DESIGNATED_ACCESSIBLE_ENTRANCE_LANDING"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "RUN_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "RUN_M",
+      "threshold": 1.5,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000003900",
+      "00300000-0000-4000-8000-000000003901",
+      "00300000-0000-4000-8000-000000003902",
+      "00300000-0000-4000-8000-000000003903",
+      "00300000-0000-4000-8000-000000003904",
+      "00300000-0000-4000-8000-000000003905",
+      "00300000-0000-4000-8000-000000003906",
+      "00300000-0000-4000-8000-000000003907",
+      "00300000-0000-4000-8000-000000003908",
+      "00300000-0000-4000-8000-000000003909"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Other independent horizontal axis of the required platform. RUN_M is clear platform depth, not route length or width.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000040",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000107",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Дубина ветробрана са вратима која се отварају у истом смеру",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "ENTRANCE",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "ENTRANCE"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ACCESSIBLE_VESTIBULE_SAME_DIRECTION"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "RUN_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "RUN_M",
+      "threshold": 2.4,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000004000",
+      "00300000-0000-4000-8000-000000004001",
+      "00300000-0000-4000-8000-000000004002",
+      "00300000-0000-4000-8000-000000004003",
+      "00300000-0000-4000-8000-000000004004",
+      "00300000-0000-4000-8000-000000004005",
+      "00300000-0000-4000-8000-000000004006",
+      "00300000-0000-4000-8000-000000004007",
+      "00300000-0000-4000-8000-000000004008",
+      "00300000-0000-4000-8000-000000004009"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Only a vestibule that exists and has confirmed same-direction external and internal doors. RUN_M is clear vestibule depth.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000041",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000107",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Дубина ветробрана када се оба врата отварају ка ветробрану",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "ENTRANCE",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "ENTRANCE"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ACCESSIBLE_VESTIBULE_BOTH_INWARD"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "RUN_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "RUN_M",
+      "threshold": 3,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000004100",
+      "00300000-0000-4000-8000-000000004101",
+      "00300000-0000-4000-8000-000000004102",
+      "00300000-0000-4000-8000-000000004103",
+      "00300000-0000-4000-8000-000000004104",
+      "00300000-0000-4000-8000-000000004105",
+      "00300000-0000-4000-8000-000000004106",
+      "00300000-0000-4000-8000-000000004107",
+      "00300000-0000-4000-8000-000000004108",
+      "00300000-0000-4000-8000-000000004109"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Only confirmed external and internal doors both opening into the vestibule; do not assume the same-direction case.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000042",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000108",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Висина прага унутрашњих приступачних врата",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "DOOR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "DOOR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ACCESSIBLE_INTERNAL_DOOR_ART22"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "RISE_M"
+    ],
+    "evaluation": {
+      "kind": "MAX",
+      "metric": "RISE_M",
+      "threshold": 0.02,
+      "unit": "m"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000004200",
+      "00300000-0000-4000-8000-000000004201",
+      "00300000-0000-4000-8000-000000004202",
+      "00300000-0000-4000-8000-000000004203",
+      "00300000-0000-4000-8000-000000004204",
+      "00300000-0000-4000-8000-000000004205",
+      "00300000-0000-4000-8000-000000004206",
+      "00300000-0000-4000-8000-000000004207",
+      "00300000-0000-4000-8000-000000004208",
+      "00300000-0000-4000-8000-000000004209"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "RISE_M is the actual threshold height above adjacent finished floor, not total door height. A confirmed absent threshold is zero; missing evidence is not zero.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000043",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000109",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Нагиб стандардне приступачне рампе од 5 процената",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "RAMP",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "RAMP"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "CONFIRMED_STANDARD_FIVE_PERCENT_RAMP"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "SLOPE_RATIO"
+    ],
+    "evaluation": {
+      "kind": "MAX",
+      "metric": "SLOPE_RATIO",
+      "threshold": 0.05,
+      "unit": "ratio"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000004300",
+      "00300000-0000-4000-8000-000000004301",
+      "00300000-0000-4000-8000-000000004302",
+      "00300000-0000-4000-8000-000000004303",
+      "00300000-0000-4000-8000-000000004304",
+      "00300000-0000-4000-8000-000000004305",
+      "00300000-0000-4000-8000-000000004306",
+      "00300000-0000-4000-8000-000000004307",
+      "00300000-0000-4000-8000-000000004308",
+      "00300000-0000-4000-8000-000000004309"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Standard branch only, explicitly confirmed by a human; not a universal cap for exceptional ramps. SLOPE_RATIO is rise/run: 5 percent is 0.05, not 5 or degrees. Exception branch remains a separate blocked evaluator.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000044",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000001",
+    "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000110",
+      "00100000-0000-4000-8000-000000000501",
+      "00100000-0000-4000-8000-000000000502",
+      "00100000-0000-4000-8000-000000000503",
+      "00100000-0000-4000-8000-000000000504",
+      "00100000-0000-4000-8000-000000000507"
+    ],
+    "title": "Минимална висина евакуационих врата пословног објекта",
+    "lifecycle": "AI_REVIEWED",
+    "elementType": "DOOR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "IN",
+          "field": "classification",
+          "value": [
+            "ИП1",
+            "НП1"
+          ]
+        },
+        {
+          "op": "GTE",
+          "field": "buildingHeightM",
+          "value": 0
+        },
+        {
+          "op": "LTE",
+          "field": "buildingHeightM",
+          "value": 10
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "DOOR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ABOVE_GROUND_OFFICE_EVACUATION_DOOR"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "HEIGHT_M"
+    ],
+    "evaluation": {
+      "kind": "MIN",
+      "metric": "HEIGHT_M",
+      "threshold": 2,
+      "unit": "m"
+    },
+    "effectiveFrom": "2019-04-05",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000004400",
+      "00300000-0000-4000-8000-000000004401",
+      "00300000-0000-4000-8000-000000004402",
+      "00300000-0000-4000-8000-000000004403",
+      "00300000-0000-4000-8000-000000004404",
+      "00300000-0000-4000-8000-000000004405",
+      "00300000-0000-4000-8000-000000004406",
+      "00300000-0000-4000-8000-000000004407",
+      "00300000-0000-4000-8000-000000004408",
+      "00300000-0000-4000-8000-000000004409",
+      "00300000-0000-4000-8000-000000004410"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "Business-class door only; not a public-building door (which has a different minimum in the same paragraph). Door width and opening direction remain separate checks.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance."
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000045",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000001",
+    "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+    "provisionIds": [
+      "00100000-0000-4000-8000-000000000531",
+      "00100000-0000-4000-8000-000000000501",
+      "00100000-0000-4000-8000-000000000502",
+      "00100000-0000-4000-8000-000000000503",
+      "00100000-0000-4000-8000-000000000504",
+      "00100000-0000-4000-8000-000000000507"
+    ],
+    "title": "Број првих излаза просторије према броју лица",
+    "lifecycle": "CANDIDATE",
+    "elementType": "ROOM",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "IN",
+          "field": "classification",
+          "value": [
+            "ИП1",
+            "НП1"
+          ]
+        },
+        {
+          "op": "GTE",
+          "field": "buildingHeightM",
+          "value": 0
+        },
+        {
+          "op": "LTE",
+          "field": "buildingHeightM",
+          "value": 10
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "ROOM"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ABOVE_GROUND_OFFICE_ROOM"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "OCCUPANT_COUNT"
+    ],
+    "evaluation": {
+      "kind": "REVIEWED_EVALUATOR",
+      "evaluatorId": "rs.fire.room-first-exit-count",
+      "version": "1"
+    },
+    "effectiveFrom": "2019-04-05",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000004500",
+      "00300000-0000-4000-8000-000000004501",
+      "00300000-0000-4000-8000-000000004502",
+      "00300000-0000-4000-8000-000000004503",
+      "00300000-0000-4000-8000-000000004504"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "CANDIDATE BLOCKED: missing reviewed evaluator and/or validated inputs. Never simplify into a generic unconditional threshold.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance.",
+      "Verified occupants of this room, not project total",
+      "Distinct confirmed FIRST_EXIT elements belonging to this room through validated relations",
+      "A reviewed per-room counting evaluator; global COUNT_MIN is insufficient"
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000046",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000001",
+    "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+    "provisionIds": [
+      "00100000-0000-4000-8000-000000000534",
+      "00100000-0000-4000-8000-000000000501",
+      "00100000-0000-4000-8000-000000000502",
+      "00100000-0000-4000-8000-000000000503",
+      "00100000-0000-4000-8000-000000000504",
+      "00100000-0000-4000-8000-000000000507"
+    ],
+    "title": "Ширина врата просторије према њеном броју лица",
+    "lifecycle": "CANDIDATE",
+    "elementType": "DOOR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "IN",
+          "field": "classification",
+          "value": [
+            "ИП1",
+            "НП1"
+          ]
+        },
+        {
+          "op": "GTE",
+          "field": "buildingHeightM",
+          "value": 0
+        },
+        {
+          "op": "LTE",
+          "field": "buildingHeightM",
+          "value": 10
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "DOOR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ABOVE_GROUND_OFFICE_EVACUATION_DOOR"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M",
+      "OCCUPANT_COUNT"
+    ],
+    "evaluation": {
+      "kind": "REVIEWED_EVALUATOR",
+      "evaluatorId": "rs.fire.room-door-width",
+      "version": "1"
+    },
+    "effectiveFrom": "2019-04-05",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000004600",
+      "00300000-0000-4000-8000-000000004601",
+      "00300000-0000-4000-8000-000000004602",
+      "00300000-0000-4000-8000-000000004603",
+      "00300000-0000-4000-8000-000000004604"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "CANDIDATE BLOCKED: missing reviewed evaluator and/or validated inputs. Never simplify into a generic unconditional threshold.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance.",
+      "Door-to-room relationship and room-level occupant count, never Project.occupantCount",
+      "Reviewed handling of source intervals and the uncovered exact boundary of 50 occupants",
+      "Room purpose and applicability confirmed"
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000047",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000001",
+    "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+    "provisionIds": [
+      "00100000-0000-4000-8000-000000000532",
+      "00100000-0000-4000-8000-000000000501",
+      "00100000-0000-4000-8000-000000000502",
+      "00100000-0000-4000-8000-000000000503",
+      "00100000-0000-4000-8000-000000000504",
+      "00100000-0000-4000-8000-000000000507"
+    ],
+    "title": "Дужина пута до првог излаза зависно од броја излаза",
+    "lifecycle": "CANDIDATE",
+    "elementType": "ROOM",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "IN",
+          "field": "classification",
+          "value": [
+            "ИП1",
+            "НП1"
+          ]
+        },
+        {
+          "op": "GTE",
+          "field": "buildingHeightM",
+          "value": 0
+        },
+        {
+          "op": "LTE",
+          "field": "buildingHeightM",
+          "value": 10
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "ROOM"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ABOVE_GROUND_OFFICE_ROOM"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "ROUTE_LENGTH_M",
+      "COUNT"
+    ],
+    "evaluation": {
+      "kind": "REVIEWED_EVALUATOR",
+      "evaluatorId": "rs.fire.first-exit-route-length",
+      "version": "1"
+    },
+    "effectiveFrom": "2019-04-05",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000004700",
+      "00300000-0000-4000-8000-000000004701",
+      "00300000-0000-4000-8000-000000004702",
+      "00300000-0000-4000-8000-000000004703",
+      "00300000-0000-4000-8000-000000004704"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "CANDIDATE BLOCKED: missing reviewed evaluator and/or validated inputs. Never simplify into a generic unconditional threshold.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance.",
+      "Validated traversability graph with wall/door connectivity",
+      "Confirmed room FIRST_EXIT count and exact route start/end",
+      "No straight-line path through walls; reviewed 20/45 m branch selection"
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000048",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000001",
+    "sourceVersion": "22/2019-pis-1d42c1d4-d2cb-4f20-88c7-8fbd193b2527",
+    "provisionIds": [
+      "00300000-0000-4000-8000-000000000114",
+      "00100000-0000-4000-8000-000000000501",
+      "00100000-0000-4000-8000-000000000502",
+      "00100000-0000-4000-8000-000000000503",
+      "00100000-0000-4000-8000-000000000504",
+      "00100000-0000-4000-8000-000000000507"
+    ],
+    "title": "Капацитет степеништа према броју лица и повезаних етажа",
+    "lifecycle": "CANDIDATE",
+    "elementType": "STAIR",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "IN",
+          "field": "classification",
+          "value": [
+            "ИП1",
+            "НП1"
+          ]
+        },
+        {
+          "op": "GTE",
+          "field": "buildingHeightM",
+          "value": 0
+        },
+        {
+          "op": "LTE",
+          "field": "buildingHeightM",
+          "value": 10
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "STAIR"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ABOVE_GROUND_STAIR_FLIGHT"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "CLEAR_WIDTH_M",
+      "OCCUPANT_COUNT",
+      "FLOOR_COUNT"
+    ],
+    "evaluation": {
+      "kind": "REVIEWED_EVALUATOR",
+      "evaluatorId": "rs.fire.stair-capacity-table5",
+      "version": "1"
+    },
+    "effectiveFrom": "2019-04-05",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000004800",
+      "00300000-0000-4000-8000-000000004801",
+      "00300000-0000-4000-8000-000000004802",
+      "00300000-0000-4000-8000-000000004803",
+      "00300000-0000-4000-8000-000000004804"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "CANDIDATE BLOCKED: missing reviewed evaluator and/or validated inputs. Never simplify into a generic unconditional threshold.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance.",
+      "Original HTML table 5 cell-wise review (flattened text is insufficient)",
+      "Occupants assigned to this stair and floors served by this stair, not whole-project totals",
+      "Reviewed table lookup and boundary/unsupported-value policy; no invented interpolation"
+    ]
+  },
+  {
+    "id": "00300000-0000-4000-8000-000000000049",
+    "version": 1,
+    "sourceId": "00100000-0000-4000-8000-000000000003",
+    "sourceVersion": "22/2015+10/2026-pis-af678b61-8cda-4138-a62d-d26e110dd49f",
+    "provisionIds": [
+      "00100000-0000-4000-8000-000000000307",
+      "00100000-0000-4000-8000-000000000301",
+      "00100000-0000-4000-8000-000000000302",
+      "00100000-0000-4000-8000-000000000305"
+    ],
+    "title": "Условни нагиб рампе са изузетком кратке стрме рампе",
+    "lifecycle": "CANDIDATE",
+    "elementType": "RAMP",
+    "applicability": {
+      "op": "ALL",
+      "children": [
+        {
+          "op": "EQ",
+          "field": "jurisdiction",
+          "value": "RS"
+        },
+        {
+          "op": "EQ",
+          "field": "purpose",
+          "value": "OFFICE"
+        },
+        {
+          "op": "IN",
+          "field": "phase",
+          "value": [
+            "CONCEPT",
+            "DESIGN"
+          ]
+        },
+        {
+          "op": "EQ",
+          "field": "characteristic",
+          "key": "isNewBuild",
+          "value": true
+        },
+        {
+          "op": "EQ",
+          "field": "element.type",
+          "value": "RAMP"
+        },
+        {
+          "op": "EQ",
+          "field": "element.subtype",
+          "value": "ACCESSIBLE_RAMP_CONDITIONAL_SLOPE"
+        }
+      ]
+    },
+    "exceptionConditions": [],
+    "requiredInputs": [
+      "SLOPE_RATIO",
+      "RISE_M",
+      "RUN_M",
+      "ROUTE_LENGTH_M"
+    ],
+    "evaluation": {
+      "kind": "REVIEWED_EVALUATOR",
+      "evaluatorId": "rs.accessibility.conditional-ramp-slope",
+      "version": "1"
+    },
+    "effectiveFrom": "2026-02-07",
+    "testFixtureIds": [
+      "00300000-0000-4000-8000-000000004900",
+      "00300000-0000-4000-8000-000000004901",
+      "00300000-0000-4000-8000-000000004902",
+      "00300000-0000-4000-8000-000000004903",
+      "00300000-0000-4000-8000-000000004904"
+    ],
+    "interpretationNotes": [
+      "New task 003 interpretation: no human approval or activation has been recorded.",
+      "Bounded new-office RS subset; confirmed semantic subtype and metric evidence are mandatory. No filename, pixel-only scale or default metadata may establish applicability.",
+      "CANDIDATE BLOCKED: missing reviewed evaluator and/or validated inputs. Never simplify into a generic unconditional threshold.",
+      "PASS is only this named condition, not whole-building, full-element or comprehensive legal compliance.",
+      "Explicit reviewed evidence that 5-percent ramp is not feasible; no shared allowlisted field currently exists",
+      "Confirmed route length up to 6 m for the exceptional 8.3-percent branch",
+      "Reviewed relation between verified rise/run, total rise, ramp layout and source exceptions"
+    ]
+  }
+]

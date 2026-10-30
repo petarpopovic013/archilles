@@ -1,0 +1,225 @@
+{
+  "task": "003",
+  "entries": [
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000030",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "8",
+      "paragraph": "1",
+      "item": "2",
+      "subtype": "ABOVE_GROUND_STAIR_STEP",
+      "metricMeaning": "RUN_M is the horizontal tread depth of one step, not flight run or step rise.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000031",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "7",
+      "paragraph": "1",
+      "item": "4",
+      "subtype": "ACCESSIBLE_ONE_WAY_SINGLE_FLIGHT_RAMP",
+      "metricMeaning": "Only a reviewed one-way, non-switchback ramp; do not apply 0.9 m to a two-flight ramp.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000032",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "7",
+      "paragraph": "1",
+      "item": "4",
+      "subtype": "ACCESSIBLE_TWO_FLIGHT_RAMP",
+      "metricMeaning": "Only the clear ramp width dimension; landing dimensions and all other ramp conditions remain separate.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000033",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "14",
+      "paragraph": "1",
+      "item": null,
+      "subtype": "ACCESSIBLE_DESIGNATED_SHORT_ONE_WAY_PASSAGE",
+      "metricMeaning": "Human must confirm short-distance, one-way movement and designated accessible route. Article 14 paragraph 2 permits an alternative designated route; do not apply this rule to every corridor.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000034",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "22",
+      "paragraph": "1",
+      "item": "1",
+      "subtype": "ACCESSIBLE_INTERNAL_DOOR_ART22",
+      "metricMeaning": "Article 22 dimension only; articles 17 and 20 can impose different or stronger contextual requirements. Do not resolve precedence by choosing the smaller threshold.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000035",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "22",
+      "paragraph": "1",
+      "item": "1",
+      "subtype": "ACCESSIBLE_ENTRANCE_DOOR_ART22",
+      "metricMeaning": "Article 22 entrance dimension only; article 13 and public-building conditions require separate review.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000036",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "20",
+      "paragraph": "1",
+      "item": "1",
+      "subtype": "DESIGNATED_ACCESSIBLE_WC_DOOR",
+      "metricMeaning": "Only a door of the designated accessible WC. Outward opening, safety hardware and number of accessible cabins are not checked.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000037",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "9",
+      "paragraph": "1",
+      "item": "3",
+      "subtype": "DESIGNATED_ACCESSIBLE_LIFT_CABIN_DOOR",
+      "metricMeaning": "Door of a human-designated accessible lift only; not all lift doors. Article 9 permits at least one qualifying lift where multiple lifts serve the rise.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000038",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "13",
+      "paragraph": "2",
+      "item": "1",
+      "subtype": "DESIGNATED_ACCESSIBLE_ENTRANCE_LANDING",
+      "metricMeaning": "One axis of the required 1.5 x 1.5 m level platform. Does not prove its depth or level surface. Multiple-entrance selection must be confirmed by a human.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000039",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "13",
+      "paragraph": "2",
+      "item": "1",
+      "subtype": "DESIGNATED_ACCESSIBLE_ENTRANCE_LANDING",
+      "metricMeaning": "Other independent horizontal axis of the required platform. RUN_M is clear platform depth, not route length or width.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000040",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "13",
+      "paragraph": "2",
+      "item": "2",
+      "subtype": "ACCESSIBLE_VESTIBULE_SAME_DIRECTION",
+      "metricMeaning": "Only a vestibule that exists and has confirmed same-direction external and internal doors. RUN_M is clear vestibule depth.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000041",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "13",
+      "paragraph": "2",
+      "item": "2",
+      "subtype": "ACCESSIBLE_VESTIBULE_BOTH_INWARD",
+      "metricMeaning": "Only confirmed external and internal doors both opening into the vestibule; do not assume the same-direction case.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000042",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "22",
+      "paragraph": "1",
+      "item": "2",
+      "subtype": "ACCESSIBLE_INTERNAL_DOOR_ART22",
+      "metricMeaning": "RISE_M is the actual threshold height above adjacent finished floor, not total door height. A confirmed absent threshold is zero; missing evidence is not zero.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000043",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "7",
+      "paragraph": "1",
+      "item": "1",
+      "subtype": "CONFIRMED_STANDARD_FIVE_PERCENT_RAMP",
+      "metricMeaning": "Standard branch only, explicitly confirmed by a human; not a universal cap for exceptional ramps. SLOPE_RATIO is rise/run: 5 percent is 0.05, not 5 or degrees. Exception branch remains a separate blocked evaluator.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000044",
+      "readiness": "ENGINE_SUPPORTED",
+      "article": "34",
+      "paragraph": "4",
+      "item": null,
+      "subtype": "ABOVE_GROUND_OFFICE_EVACUATION_DOOR",
+      "metricMeaning": "Business-class door only; not a public-building door (which has a different minimum in the same paragraph). Door width and opening direction remain separate checks.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000045",
+      "readiness": "EVALUATOR_REQUIRED",
+      "article": "31",
+      "paragraph": null,
+      "item": null,
+      "subtype": "ABOVE_GROUND_OFFICE_ROOM",
+      "metricMeaning": "Requires scoped multi-input evaluation; see missingCapabilities.",
+      "missingCapabilities": [
+        "Verified occupants of this room, not project total",
+        "Distinct confirmed FIRST_EXIT elements belonging to this room through validated relations",
+        "A reviewed per-room counting evaluator; global COUNT_MIN is insufficient"
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000046",
+      "readiness": "EVALUATOR_REQUIRED",
+      "article": "34",
+      "paragraph": null,
+      "item": null,
+      "subtype": "ABOVE_GROUND_OFFICE_EVACUATION_DOOR",
+      "metricMeaning": "Requires scoped multi-input evaluation; see missingCapabilities.",
+      "missingCapabilities": [
+        "Door-to-room relationship and room-level occupant count, never Project.occupantCount",
+        "Reviewed handling of source intervals and the uncovered exact boundary of 50 occupants",
+        "Room purpose and applicability confirmed"
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000047",
+      "readiness": "EVALUATOR_REQUIRED",
+      "article": "32",
+      "paragraph": null,
+      "item": null,
+      "subtype": "ABOVE_GROUND_OFFICE_ROOM",
+      "metricMeaning": "Requires scoped multi-input evaluation; see missingCapabilities.",
+      "missingCapabilities": [
+        "Validated traversability graph with wall/door connectivity",
+        "Confirmed room FIRST_EXIT count and exact route start/end",
+        "No straight-line path through walls; reviewed 20/45 m branch selection"
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000048",
+      "readiness": "EVALUATOR_REQUIRED",
+      "article": "36",
+      "paragraph": null,
+      "item": null,
+      "subtype": "ABOVE_GROUND_STAIR_FLIGHT",
+      "metricMeaning": "Requires scoped multi-input evaluation; see missingCapabilities.",
+      "missingCapabilities": [
+        "Original HTML table 5 cell-wise review (flattened text is insufficient)",
+        "Occupants assigned to this stair and floors served by this stair, not whole-project totals",
+        "Reviewed table lookup and boundary/unsupported-value policy; no invented interpolation"
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000049",
+      "readiness": "EVALUATOR_REQUIRED",
+      "article": "7",
+      "paragraph": null,
+      "item": null,
+      "subtype": "ACCESSIBLE_RAMP_CONDITIONAL_SLOPE",
+      "metricMeaning": "Requires scoped multi-input evaluation; see missingCapabilities.",
+      "missingCapabilities": [
+        "Explicit reviewed evidence that 5-percent ramp is not feasible; no shared allowlisted field currently exists",
+        "Confirmed route length up to 6 m for the exceptional 8.3-percent branch",
+        "Reviewed relation between verified rise/run, total rise, ramp layout and source exceptions"
+      ]
+    }
+  ]
+}

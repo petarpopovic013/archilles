@@ -1,0 +1,1282 @@
+{
+  "task": "003",
+  "executionPolicy": "Only TEST_ONLY copies with unrelated IDs are activated in tests; live registry remains inactive. Unsupported evaluator probes must return NEEDS_REVIEW, never PASS/FAIL.",
+  "bundles": [
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000030",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "STAIR",
+      "subtype": "ABOVE_GROUND_STAIR_STEP",
+      "metric": "RUN_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000003000",
+          "name": "pass",
+          "value": 0.34,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003001",
+          "name": "fail",
+          "value": 0.32,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003002",
+          "name": "boundary",
+          "value": 0.33,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003003",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003004",
+          "name": "unverified-measurement",
+          "value": 0.34,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003005",
+          "name": "missing-subtype",
+          "value": 0.34,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003006",
+          "name": "wrong-subtype",
+          "value": 0.34,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003007",
+          "name": "missing-new-build",
+          "value": 0.34,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003008",
+          "name": "reconstruction",
+          "value": 0.34,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003009",
+          "name": "before-effective-date",
+          "value": 0.34,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000031",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "RAMP",
+      "subtype": "ACCESSIBLE_ONE_WAY_SINGLE_FLIGHT_RAMP",
+      "metric": "CLEAR_WIDTH_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000003100",
+          "name": "pass",
+          "value": 0.91,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003101",
+          "name": "fail",
+          "value": 0.89,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003102",
+          "name": "boundary",
+          "value": 0.9,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003103",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003104",
+          "name": "unverified-measurement",
+          "value": 0.91,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003105",
+          "name": "missing-subtype",
+          "value": 0.91,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003106",
+          "name": "wrong-subtype",
+          "value": 0.91,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003107",
+          "name": "missing-new-build",
+          "value": 0.91,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003108",
+          "name": "reconstruction",
+          "value": 0.91,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003109",
+          "name": "before-effective-date",
+          "value": 0.91,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000032",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "RAMP",
+      "subtype": "ACCESSIBLE_TWO_FLIGHT_RAMP",
+      "metric": "CLEAR_WIDTH_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000003200",
+          "name": "pass",
+          "value": 1.51,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003201",
+          "name": "fail",
+          "value": 1.49,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003202",
+          "name": "boundary",
+          "value": 1.5,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003203",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003204",
+          "name": "unverified-measurement",
+          "value": 1.51,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003205",
+          "name": "missing-subtype",
+          "value": 1.51,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003206",
+          "name": "wrong-subtype",
+          "value": 1.51,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003207",
+          "name": "missing-new-build",
+          "value": 1.51,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003208",
+          "name": "reconstruction",
+          "value": 1.51,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003209",
+          "name": "before-effective-date",
+          "value": 1.51,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000033",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "CORRIDOR",
+      "subtype": "ACCESSIBLE_DESIGNATED_SHORT_ONE_WAY_PASSAGE",
+      "metric": "CLEAR_WIDTH_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000003300",
+          "name": "pass",
+          "value": 0.91,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003301",
+          "name": "fail",
+          "value": 0.89,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003302",
+          "name": "boundary",
+          "value": 0.9,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003303",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003304",
+          "name": "unverified-measurement",
+          "value": 0.91,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003305",
+          "name": "missing-subtype",
+          "value": 0.91,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003306",
+          "name": "wrong-subtype",
+          "value": 0.91,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003307",
+          "name": "missing-new-build",
+          "value": 0.91,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003308",
+          "name": "reconstruction",
+          "value": 0.91,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003309",
+          "name": "before-effective-date",
+          "value": 0.91,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000034",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "DOOR",
+      "subtype": "ACCESSIBLE_INTERNAL_DOOR_ART22",
+      "metric": "CLEAR_WIDTH_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000003400",
+          "name": "pass",
+          "value": 0.82,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003401",
+          "name": "fail",
+          "value": 0.8,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003402",
+          "name": "boundary",
+          "value": 0.81,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003403",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003404",
+          "name": "unverified-measurement",
+          "value": 0.82,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003405",
+          "name": "missing-subtype",
+          "value": 0.82,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003406",
+          "name": "wrong-subtype",
+          "value": 0.82,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003407",
+          "name": "missing-new-build",
+          "value": 0.82,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003408",
+          "name": "reconstruction",
+          "value": 0.82,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003409",
+          "name": "before-effective-date",
+          "value": 0.82,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000035",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "DOOR",
+      "subtype": "ACCESSIBLE_ENTRANCE_DOOR_ART22",
+      "metric": "CLEAR_WIDTH_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000003500",
+          "name": "pass",
+          "value": 0.92,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003501",
+          "name": "fail",
+          "value": 0.9,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003502",
+          "name": "boundary",
+          "value": 0.91,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003503",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003504",
+          "name": "unverified-measurement",
+          "value": 0.92,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003505",
+          "name": "missing-subtype",
+          "value": 0.92,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003506",
+          "name": "wrong-subtype",
+          "value": 0.92,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003507",
+          "name": "missing-new-build",
+          "value": 0.92,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003508",
+          "name": "reconstruction",
+          "value": 0.92,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003509",
+          "name": "before-effective-date",
+          "value": 0.92,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000036",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "DOOR",
+      "subtype": "DESIGNATED_ACCESSIBLE_WC_DOOR",
+      "metric": "CLEAR_WIDTH_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000003600",
+          "name": "pass",
+          "value": 0.91,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003601",
+          "name": "fail",
+          "value": 0.89,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003602",
+          "name": "boundary",
+          "value": 0.9,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003603",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003604",
+          "name": "unverified-measurement",
+          "value": 0.91,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003605",
+          "name": "missing-subtype",
+          "value": 0.91,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003606",
+          "name": "wrong-subtype",
+          "value": 0.91,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003607",
+          "name": "missing-new-build",
+          "value": 0.91,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003608",
+          "name": "reconstruction",
+          "value": 0.91,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003609",
+          "name": "before-effective-date",
+          "value": 0.91,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000037",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "DOOR",
+      "subtype": "DESIGNATED_ACCESSIBLE_LIFT_CABIN_DOOR",
+      "metric": "CLEAR_WIDTH_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000003700",
+          "name": "pass",
+          "value": 0.81,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003701",
+          "name": "fail",
+          "value": 0.79,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003702",
+          "name": "boundary",
+          "value": 0.8,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003703",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003704",
+          "name": "unverified-measurement",
+          "value": 0.81,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003705",
+          "name": "missing-subtype",
+          "value": 0.81,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003706",
+          "name": "wrong-subtype",
+          "value": 0.81,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003707",
+          "name": "missing-new-build",
+          "value": 0.81,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003708",
+          "name": "reconstruction",
+          "value": 0.81,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003709",
+          "name": "before-effective-date",
+          "value": 0.81,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000038",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "ENTRANCE",
+      "subtype": "DESIGNATED_ACCESSIBLE_ENTRANCE_LANDING",
+      "metric": "CLEAR_WIDTH_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000003800",
+          "name": "pass",
+          "value": 1.51,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003801",
+          "name": "fail",
+          "value": 1.49,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003802",
+          "name": "boundary",
+          "value": 1.5,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003803",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003804",
+          "name": "unverified-measurement",
+          "value": 1.51,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003805",
+          "name": "missing-subtype",
+          "value": 1.51,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003806",
+          "name": "wrong-subtype",
+          "value": 1.51,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003807",
+          "name": "missing-new-build",
+          "value": 1.51,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003808",
+          "name": "reconstruction",
+          "value": 1.51,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003809",
+          "name": "before-effective-date",
+          "value": 1.51,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000039",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "ENTRANCE",
+      "subtype": "DESIGNATED_ACCESSIBLE_ENTRANCE_LANDING",
+      "metric": "RUN_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000003900",
+          "name": "pass",
+          "value": 1.51,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003901",
+          "name": "fail",
+          "value": 1.49,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003902",
+          "name": "boundary",
+          "value": 1.5,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003903",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003904",
+          "name": "unverified-measurement",
+          "value": 1.51,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003905",
+          "name": "missing-subtype",
+          "value": 1.51,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003906",
+          "name": "wrong-subtype",
+          "value": 1.51,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003907",
+          "name": "missing-new-build",
+          "value": 1.51,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003908",
+          "name": "reconstruction",
+          "value": 1.51,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000003909",
+          "name": "before-effective-date",
+          "value": 1.51,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000040",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "ENTRANCE",
+      "subtype": "ACCESSIBLE_VESTIBULE_SAME_DIRECTION",
+      "metric": "RUN_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000004000",
+          "name": "pass",
+          "value": 2.41,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004001",
+          "name": "fail",
+          "value": 2.39,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004002",
+          "name": "boundary",
+          "value": 2.4,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004003",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004004",
+          "name": "unverified-measurement",
+          "value": 2.41,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004005",
+          "name": "missing-subtype",
+          "value": 2.41,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004006",
+          "name": "wrong-subtype",
+          "value": 2.41,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004007",
+          "name": "missing-new-build",
+          "value": 2.41,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004008",
+          "name": "reconstruction",
+          "value": 2.41,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004009",
+          "name": "before-effective-date",
+          "value": 2.41,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000041",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "ENTRANCE",
+      "subtype": "ACCESSIBLE_VESTIBULE_BOTH_INWARD",
+      "metric": "RUN_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000004100",
+          "name": "pass",
+          "value": 3.01,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004101",
+          "name": "fail",
+          "value": 2.99,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004102",
+          "name": "boundary",
+          "value": 3,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004103",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004104",
+          "name": "unverified-measurement",
+          "value": 3.01,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004105",
+          "name": "missing-subtype",
+          "value": 3.01,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004106",
+          "name": "wrong-subtype",
+          "value": 3.01,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004107",
+          "name": "missing-new-build",
+          "value": 3.01,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004108",
+          "name": "reconstruction",
+          "value": 3.01,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004109",
+          "name": "before-effective-date",
+          "value": 3.01,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000042",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "DOOR",
+      "subtype": "ACCESSIBLE_INTERNAL_DOOR_ART22",
+      "metric": "RISE_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000004200",
+          "name": "pass",
+          "value": 0.019,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004201",
+          "name": "fail",
+          "value": 0.021,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004202",
+          "name": "boundary",
+          "value": 0.02,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004203",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004204",
+          "name": "unverified-measurement",
+          "value": 0.019,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004205",
+          "name": "missing-subtype",
+          "value": 0.019,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004206",
+          "name": "wrong-subtype",
+          "value": 0.019,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004207",
+          "name": "missing-new-build",
+          "value": 0.019,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004208",
+          "name": "reconstruction",
+          "value": 0.019,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004209",
+          "name": "before-effective-date",
+          "value": 0.019,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000043",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "RAMP",
+      "subtype": "CONFIRMED_STANDARD_FIVE_PERCENT_RAMP",
+      "metric": "SLOPE_RATIO",
+      "unit": "ratio",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000004300",
+          "name": "pass",
+          "value": 0.049,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004301",
+          "name": "fail",
+          "value": 0.051,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004302",
+          "name": "boundary",
+          "value": 0.05,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004303",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004304",
+          "name": "unverified-measurement",
+          "value": 0.049,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004305",
+          "name": "missing-subtype",
+          "value": 0.049,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004306",
+          "name": "wrong-subtype",
+          "value": 0.049,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004307",
+          "name": "missing-new-build",
+          "value": 0.049,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004308",
+          "name": "reconstruction",
+          "value": 0.049,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004309",
+          "name": "before-effective-date",
+          "value": 0.049,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000044",
+      "ruleVersion": 1,
+      "readiness": "ENGINE_SUPPORTED",
+      "elementType": "DOOR",
+      "subtype": "ABOVE_GROUND_OFFICE_EVACUATION_DOOR",
+      "metric": "HEIGHT_M",
+      "unit": "m",
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000004400",
+          "name": "pass",
+          "value": 2.01,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004401",
+          "name": "fail",
+          "value": 1.99,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004402",
+          "name": "boundary",
+          "value": 2,
+          "expected": "PASS"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004403",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004404",
+          "name": "unverified-measurement",
+          "value": 2.01,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004405",
+          "name": "missing-subtype",
+          "value": 2.01,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004406",
+          "name": "wrong-subtype",
+          "value": 2.01,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004407",
+          "name": "missing-new-build",
+          "value": 2.01,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004408",
+          "name": "reconstruction",
+          "value": 2.01,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004409",
+          "name": "before-effective-date",
+          "value": 2.01,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004410",
+          "name": "missing-fire-classification",
+          "value": 2.01,
+          "expected": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000045",
+      "ruleVersion": 1,
+      "readiness": "EVALUATOR_REQUIRED",
+      "elementType": "ROOM",
+      "subtype": "ABOVE_GROUND_OFFICE_ROOM",
+      "metric": null,
+      "unit": null,
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000004500",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004501",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004502",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004503",
+          "name": "missing-new-build",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004504",
+          "name": "before-effective-date",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000046",
+      "ruleVersion": 1,
+      "readiness": "EVALUATOR_REQUIRED",
+      "elementType": "DOOR",
+      "subtype": "ABOVE_GROUND_OFFICE_EVACUATION_DOOR",
+      "metric": null,
+      "unit": null,
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000004600",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004601",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004602",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004603",
+          "name": "missing-new-build",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004604",
+          "name": "before-effective-date",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000047",
+      "ruleVersion": 1,
+      "readiness": "EVALUATOR_REQUIRED",
+      "elementType": "ROOM",
+      "subtype": "ABOVE_GROUND_OFFICE_ROOM",
+      "metric": null,
+      "unit": null,
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000004700",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004701",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004702",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004703",
+          "name": "missing-new-build",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004704",
+          "name": "before-effective-date",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000048",
+      "ruleVersion": 1,
+      "readiness": "EVALUATOR_REQUIRED",
+      "elementType": "STAIR",
+      "subtype": "ABOVE_GROUND_STAIR_FLIGHT",
+      "metric": null,
+      "unit": null,
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000004800",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004801",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004802",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004803",
+          "name": "missing-new-build",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004804",
+          "name": "before-effective-date",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000049",
+      "ruleVersion": 1,
+      "readiness": "EVALUATOR_REQUIRED",
+      "elementType": "RAMP",
+      "subtype": "ACCESSIBLE_RAMP_CONDITIONAL_SLOPE",
+      "metric": null,
+      "unit": null,
+      "cases": [
+        {
+          "id": "00300000-0000-4000-8000-000000004900",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004901",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004902",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004903",
+          "name": "missing-new-build",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00300000-0000-4000-8000-000000004904",
+          "name": "before-effective-date",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    }
+  ]
+}

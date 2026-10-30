@@ -1,0 +1,68 @@
+{
+  "task": "003",
+  "reviewerKind": "AI",
+  "reviewedAt": "2026-10-30T17:04:57.775Z",
+  "humanApproved": false,
+  "ruleIds": [
+    "00300000-0000-4000-8000-000000000030",
+    "00300000-0000-4000-8000-000000000031",
+    "00300000-0000-4000-8000-000000000032",
+    "00300000-0000-4000-8000-000000000033",
+    "00300000-0000-4000-8000-000000000034",
+    "00300000-0000-4000-8000-000000000035",
+    "00300000-0000-4000-8000-000000000036",
+    "00300000-0000-4000-8000-000000000037",
+    "00300000-0000-4000-8000-000000000038",
+    "00300000-0000-4000-8000-000000000039",
+    "00300000-0000-4000-8000-000000000040",
+    "00300000-0000-4000-8000-000000000041",
+    "00300000-0000-4000-8000-000000000042",
+    "00300000-0000-4000-8000-000000000043",
+    "00300000-0000-4000-8000-000000000044",
+    "00300000-0000-4000-8000-000000000045",
+    "00300000-0000-4000-8000-000000000046",
+    "00300000-0000-4000-8000-000000000047",
+    "00300000-0000-4000-8000-000000000048",
+    "00300000-0000-4000-8000-000000000049"
+  ],
+  "engineSupportedIds": [
+    "00300000-0000-4000-8000-000000000030",
+    "00300000-0000-4000-8000-000000000031",
+    "00300000-0000-4000-8000-000000000032",
+    "00300000-0000-4000-8000-000000000033",
+    "00300000-0000-4000-8000-000000000034",
+    "00300000-0000-4000-8000-000000000035",
+    "00300000-0000-4000-8000-000000000036",
+    "00300000-0000-4000-8000-000000000037",
+    "00300000-0000-4000-8000-000000000038",
+    "00300000-0000-4000-8000-000000000039",
+    "00300000-0000-4000-8000-000000000040",
+    "00300000-0000-4000-8000-000000000041",
+    "00300000-0000-4000-8000-000000000042",
+    "00300000-0000-4000-8000-000000000043",
+    "00300000-0000-4000-8000-000000000044"
+  ],
+  "blockedCandidateIds": [
+    "00300000-0000-4000-8000-000000000045",
+    "00300000-0000-4000-8000-000000000046",
+    "00300000-0000-4000-8000-000000000047",
+    "00300000-0000-4000-8000-000000000048",
+    "00300000-0000-4000-8000-000000000049"
+  ],
+  "sourceCheck": "fixtures/regulations/003-source-check.json",
+  "checks": [
+    "Official source bytes were freshly rechecked and match captured versions.",
+    "Exact clauses are retained including alternative branches and exceptions.",
+    "Compound and graph/table-dependent rules remain CANDIDATE with unregistered REVIEWED_EVALUATOR references.",
+    "Room-specific occupant counts are not replaced by project totals.",
+    "Door-width provisions from articles 17/20/22 remain distinct; no silent lower-threshold precedence.",
+    "Entrance and lift rules require human-designated accessible units; alternatives are not universal violations.",
+    "Standard five-percent ramp branch is explicitly scoped; exceptional slope remains blocked."
+  ],
+  "openItems": [
+    "Human review of all twenty new interpretations and exact clause records",
+    "Geometry agreements and confirmation of contextual subtypes and measurement semantics",
+    "Runtime activation only after input support, evaluator availability and numerical fixtures",
+    "Reviewed evaluators and validated input contracts for five blocked candidates"
+  ]
+}

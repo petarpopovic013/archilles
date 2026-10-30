@@ -37,7 +37,7 @@ test("all domain records validate, references resolve and one human-verified ina
     assert.ok(regulationSources.some((s) => s.id === p.sourceId && s.sourceVersion === p.sourceVersion));
     for (const id of p.crossReferenceIds) assert.ok(regulationProvisions.some((other) => other.id === id));
   });
-  assert.equal(complianceRules.length, 1);
+  assert.equal(complianceRules.filter((rule) => rule.lifecycle === "HUMAN_VERIFIED").length, 1);
   const rule = ComplianceRuleSchema.parse(complianceRules[0]);
   assert.equal(rule.lifecycle, "HUMAN_VERIFIED");
   assert.equal(rule.approvedBy, humanReview.reviewer);

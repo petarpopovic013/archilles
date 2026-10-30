@@ -1,0 +1,342 @@
+{
+  "task": "002",
+  "executionPolicy": "Only synthetic TEST_ONLY active copies in unit tests exercise evaluator wiring. Shipped rules remain AI_REVIEWED and engine rejects them.",
+  "bundles": [
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000011",
+      "ruleVersion": 1,
+      "elementType": "CORRIDOR",
+      "subtype": "ABOVE_GROUND_EVACUATION_CORRIDOR",
+      "metric": "CLEAR_WIDTH_M",
+      "project": {
+        "purpose": "OFFICE",
+        "phase": "DESIGN",
+        "classification": "ИП1",
+        "buildingHeightM": 8,
+        "characteristics": {
+          "isNewBuild": true
+        }
+      },
+      "cases": [
+        {
+          "id": "00200000-0000-4000-8000-000000001100",
+          "name": "pass",
+          "valueM": 1.3,
+          "expected": "PASS"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001101",
+          "name": "fail",
+          "valueM": 1.19,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001102",
+          "name": "boundary",
+          "valueM": 1.2,
+          "expected": "PASS"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001103",
+          "name": "missing-measurement",
+          "valueM": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001104",
+          "name": "unverified-measurement",
+          "valueM": 1.3,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001105",
+          "name": "wrong-subtype",
+          "valueM": 1.3,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001106",
+          "name": "missing-subtype",
+          "valueM": 1.3,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001107",
+          "name": "reconstruction-outside-bounded-subset",
+          "valueM": 1.3,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001108",
+          "name": "missing-new-build-context",
+          "valueM": 1.3,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001109",
+          "name": "missing-fire-classification",
+          "valueM": 1.3,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001110",
+          "name": "missing-building-height",
+          "valueM": 1.3,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001111",
+          "name": "excluded-classification",
+          "valueM": 1.3,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001112",
+          "name": "above-bounded-height",
+          "valueM": 1.3,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000012",
+      "ruleVersion": 1,
+      "elementType": "STAIR",
+      "subtype": "ABOVE_GROUND_STAIR_FLIGHT",
+      "metric": "CLEAR_WIDTH_M",
+      "project": {
+        "purpose": "OFFICE",
+        "phase": "DESIGN",
+        "classification": "ИП1",
+        "buildingHeightM": 8,
+        "characteristics": {
+          "isNewBuild": true
+        }
+      },
+      "cases": [
+        {
+          "id": "00200000-0000-4000-8000-000000001200",
+          "name": "pass",
+          "valueM": 1.1,
+          "expected": "PASS"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001201",
+          "name": "fail",
+          "valueM": 0.99,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001202",
+          "name": "boundary",
+          "valueM": 1.0,
+          "expected": "PASS"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001203",
+          "name": "missing-measurement",
+          "valueM": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001204",
+          "name": "unverified-measurement",
+          "valueM": 1.1,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001205",
+          "name": "wrong-subtype",
+          "valueM": 1.1,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001206",
+          "name": "missing-subtype",
+          "valueM": 1.1,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001207",
+          "name": "reconstruction-outside-bounded-subset",
+          "valueM": 1.1,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001208",
+          "name": "missing-new-build-context",
+          "valueM": 1.1,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001209",
+          "name": "missing-fire-classification",
+          "valueM": 1.1,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001210",
+          "name": "missing-building-height",
+          "valueM": 1.1,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001211",
+          "name": "excluded-classification",
+          "valueM": 1.1,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001212",
+          "name": "above-bounded-height",
+          "valueM": 1.1,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000013",
+      "ruleVersion": 1,
+      "elementType": "STAIR",
+      "subtype": "ABOVE_GROUND_STAIR_FLIGHT",
+      "metric": "CLEAR_WIDTH_M",
+      "project": {
+        "purpose": "OFFICE",
+        "phase": "DESIGN",
+        "classification": "ИП1",
+        "buildingHeightM": 8,
+        "characteristics": {
+          "isNewBuild": true
+        }
+      },
+      "cases": [
+        {
+          "id": "00200000-0000-4000-8000-000000001300",
+          "name": "pass",
+          "valueM": 1.3,
+          "expected": "PASS"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001301",
+          "name": "fail",
+          "valueM": 1.19,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001302",
+          "name": "boundary",
+          "valueM": 1.2,
+          "expected": "PASS"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001303",
+          "name": "missing-measurement",
+          "valueM": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001304",
+          "name": "unverified-measurement",
+          "valueM": 1.3,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001305",
+          "name": "wrong-subtype",
+          "valueM": 1.3,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001306",
+          "name": "missing-subtype",
+          "valueM": 1.3,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001307",
+          "name": "reconstruction-outside-bounded-subset",
+          "valueM": 1.3,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001308",
+          "name": "missing-new-build-context",
+          "valueM": 1.3,
+          "expected": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000014",
+      "ruleVersion": 1,
+      "elementType": "STAIR",
+      "subtype": "ABOVE_GROUND_STAIR_STEP",
+      "metric": "RISE_M",
+      "project": {
+        "purpose": "OFFICE",
+        "phase": "DESIGN",
+        "classification": "ИП1",
+        "buildingHeightM": 8,
+        "characteristics": {
+          "isNewBuild": true
+        }
+      },
+      "cases": [
+        {
+          "id": "00200000-0000-4000-8000-000000001400",
+          "name": "pass",
+          "valueM": 0.14,
+          "expected": "PASS"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001401",
+          "name": "fail",
+          "valueM": 0.16,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001402",
+          "name": "boundary",
+          "valueM": 0.15,
+          "expected": "PASS"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001403",
+          "name": "missing-measurement",
+          "valueM": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001404",
+          "name": "unverified-measurement",
+          "valueM": 0.14,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001405",
+          "name": "wrong-subtype",
+          "valueM": 0.14,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001406",
+          "name": "missing-subtype",
+          "valueM": 0.14,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001407",
+          "name": "reconstruction-outside-bounded-subset",
+          "valueM": 0.14,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00200000-0000-4000-8000-000000001408",
+          "name": "missing-new-build-context",
+          "valueM": 0.14,
+          "expected": "UNKNOWN"
+        }
+      ]
+    }
+  ]
+}
