@@ -1,36 +1,7 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Archilles
 
-## Getting Started
+**Find the weakness before it becomes a risk.** Archilles is a hackathon prototype for source-backed, preliminary review of 2D architectural plans in Serbia. It is not a permit or professional certification. The application is currently a Next.js starter; implementation is split across three feature branches.
 
-First, run the development server:
+Start with the [team work agreement](TEAM.md), then read [product requirements](Constitution/PrD.md), [technical architecture](Constitution/Tech.MD), [agent instructions](Agents.MD), and [data contracts](Constitution/DB.md). Each branch has a distinct file owner. Changes are integrated into `main` through small reviewed pull requests.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The first demo target is confirmed plan geometry, an active verified rule, a deterministic evaluation, a visible finding, and hypothetical Fix & Recheck. Legal source and measurement uncertainty must remain visible throughout the workflow.
