@@ -51,6 +51,8 @@ export interface WorkspaceValue {
   error: string | null;
   /** The analysis on screen was made for an older project revision. */
   analysisOutdated: boolean;
+  /** The project details form is open, e.g. from the "What's needed" checklist. */
+  projectEditorOpen: boolean;
 
   select(selection: Selection | null): void;
   dismissError(): void;
@@ -62,6 +64,9 @@ export interface WorkspaceValue {
   runAnalysis(): Promise<void>;
   confirmMeasurement(elementId: string, metric: Metric, value: number): Promise<void>;
   confirmElement(elementId: string, change: { type?: ElementType; subtype?: string | null }): Promise<void>;
+  /** One revision for several elements, e.g. the same category for every door. */
+  confirmElements(updates: Array<{ elementId: string; type?: ElementType; subtype?: string | null }>): Promise<void>;
+  setProjectEditorOpen(open: boolean): void;
   recheck(elementId: string, metric: Metric, proposedValue: number): Promise<void>;
   loadEvidence(ids: readonly string[]): void;
   resetWorkspace(): void;
@@ -132,6 +137,7 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   const [recheckResult, setRecheckResult] = useState<RecheckResult | null>(null);
   const [busy, setBusy] = useState<Busy | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [projectEditorOpen, setProjectEditorOpen] = useState(false);
   const requested = useRef(new Set<string>());
 
   useEffect(() => {
@@ -274,6 +280,8 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
     busy,
     error,
     analysisOutdated: Boolean(snapshot && project && snapshot.session.projectRevision < project.revision),
+    projectEditorOpen,
+    setProjectEditorOpen,
 
     select: setSelection,
     dismissError: () => setError(null),
@@ -307,8 +315,14 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
         setDrawing(uploaded);
         setPageCount(pages);
         setPageState(uploaded.selectedPage);
-        setProject(await client.getProject(created.id));
+        const current = await client.getProject(created.id);
+        setProject(current);
         setCoverage(await client.getCoverage(created.id));
+        // A single page needs no choice, so the review starts right away; PDFs wait for a page.
+        if (pages === 1) {
+          const { sessionId: next } = await client.startAnalysis(created.id, { projectRevision: current.revision, drawingId: uploaded.id, page: uploaded.selectedPage });
+          followSession(next);
+        }
         return true;
       } catch (cause) {
         setError(describe(cause));
@@ -322,6 +336,9 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
       if (!project) return;
       const { project: updated } = await client.updateProject(project.id, { baseRevision: project.revision, patch });
       setProject(updated);
+      setProjectEditorOpen(false);
+      // Answers change which rules apply; re-run from stored geometry so results follow at once.
+      if (drawing && snapshot) await followRevision(updated.id);
     }),
 
     uploadDrawing: (file) => run("upload", async () => {
@@ -357,6 +374,12 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
     confirmElement: (elementId, change) => run("save", async () => {
       if (!project) return;
       await client.updateElement(elementId, { baseRevision: project.revision, ...change });
+      await followRevision(project.id);
+    }),
+
+    confirmElements: (updates) => run("save", async () => {
+      if (!project || updates.length === 0) return;
+      await client.updateElements(project.id, { baseRevision: project.revision, updates });
       await followRevision(project.id);
     }),
 

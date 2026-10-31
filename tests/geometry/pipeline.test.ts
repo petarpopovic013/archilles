@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import {createClaudeVisionRunner} from '../../src/vision/claude';
+import { plainRaster } from './raster';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID,createHash} from 'node:crypto';
@@ -21,5 +22,5 @@ test('confirmed observations survive new extraction and stale revisions are reje
 test('Claude adapter retries a transient failure only once and sanitizes provider errors',async()=>{
  let calls=0;
  const client={messages:{create:async()=>{calls++;throw new Anthropic.APIConnectionError({message:'private provider detail'});}}} as unknown as InstanceType<typeof Anthropic>;
- await assert.rejects(createClaudeVisionRunner(client,'configured-model').run(new Uint8Array(),800,600),e=>e instanceof Error&&e.message==='VISION_UNAVAILABLE');assert.equal(calls,2);
+ await assert.rejects(createClaudeVisionRunner(client,'configured-model').run(await plainRaster(800,600),800,600),e=>e instanceof Error&&e.message==='VISION_UNAVAILABLE');assert.equal(calls,2);
 });

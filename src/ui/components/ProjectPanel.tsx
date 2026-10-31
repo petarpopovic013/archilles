@@ -4,15 +4,16 @@ import { useState, type FormEvent } from "react";
 import type { CharacteristicKey, EvaluationStatus, Project, ProjectPhase, UpdateProjectRequest } from "../../domain";
 import { useWorkspace } from "../state/workspace";
 import { statusLabel } from "../format";
+import { OTHER_SUBTYPE, buildingClassLabel, buildingClasses, categoryLabel, checklistFor, notOnDrawing, ruleTypes, stepsFor, typeNoun } from "../guidance";
 import { Button, Icon, Section, StatusBadge, inputClass } from "./common";
 
 const phases: Record<ProjectPhase, string> = { CONCEPT: "Concept design", DESIGN: "Design", RECONSTRUCTION: "Reconstruction" };
 const characteristics: Record<CharacteristicKey, string> = {
-  isNewBuild: "New build",
-  hasPublicAccess: "Public access",
-  hasAccessibleRoute: "Accessible route",
+  isNewBuild: "New building",
+  hasPublicAccess: "Open to the public",
+  hasAccessibleRoute: "Has an accessible route",
   hasRamp: "Has a ramp",
-  hasExternalStair: "External stairs",
+  hasExternalStair: "Has external stairs",
 };
 const severity: EvaluationStatus[] = ["FAIL", "NEEDS_REVIEW", "UNKNOWN", "PASS", "NOT_APPLICABLE"];
 
@@ -24,6 +25,7 @@ export function ProjectPanel() {
         <>
           <ProjectSummary project={project} />
           <DrawingSection />
+          <NeededChecklist />
           <ResultsTabs />
         </>
       ) : <NewProjectForm />}
@@ -125,7 +127,7 @@ function patchOf(project: Project, draft: Draft): UpdateProjectRequest["patch"] 
 }
 
 function ProjectSummary({ project }: { project: Project }) {
-  const { updateProject, resetWorkspace, busy, requirements, activity } = useWorkspace();
+  const { resetWorkspace, busy, activity, projectEditorOpen, setProjectEditorOpen } = useWorkspace();
   // Latest question per missing fact, phrased by the Regulation agent.
   const questions = [...new Map(activity
     .filter((event) => event.type === "regulation.input.required")
@@ -133,17 +135,6 @@ function ProjectSummary({ project }: { project: Project }) {
       const payload = event.payload as { field: string; reason: string };
       return [payload.field, payload.reason] as const;
     })).entries()];
-  const [draft, setDraft] = useState<Draft | null>(null);
-  const editing = draft !== null;
-
-  const save = (event: FormEvent) => {
-    event.preventDefault();
-    if (!draft) return;
-    const patch = patchOf(project, draft);
-    if (Object.keys(patch).length > 0) void updateProject(patch);
-    setDraft(null);
-  };
-
   return (
     <Section title="Project" aside={<Button variant="ghost" onClick={resetWorkspace}>New</Button>}>
       <div className="text-sm font-semibold text-slate-100">{project.name}</div>
@@ -152,59 +143,128 @@ function ProjectSummary({ project }: { project: Project }) {
         <dt>Phase</dt><dd className="text-slate-200">{phases[project.phase]}</dd>
         <dt>New build</dt>
         <dd className="text-slate-200">{project.characteristics.isNewBuild === undefined ? "unknown" : project.characteristics.isNewBuild ? "yes" : "no"}</dd>
-        <dt>Classification</dt><dd className="text-slate-200">{project.classification ?? "unknown"}</dd>
+        <dt>Building type</dt><dd className="text-slate-200">{project.classification ? buildingClassLabel(project.classification) : "unknown"}</dd>
         <dt>Building height</dt><dd className="text-slate-200">{project.buildingHeightM !== undefined ? `${project.buildingHeightM} m` : "unknown"}</dd>
         <dt>Occupant count</dt><dd className="text-slate-200">{project.occupantCount ?? "unknown"}</dd>
       </dl>
       {questions.length > 0 && (
         <div className="space-y-1 rounded border border-amber-800 bg-amber-950/30 p-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Required information</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Questions from the Regulation agent</div>
           <ul className="space-y-1">
             {questions.map(([field, question]) => <li key={field} className="text-[11px] leading-snug text-amber-100">{question}</li>)}
           </ul>
         </div>
       )}
-      {!editing ? (
-        <Button onClick={() => setDraft(draftOf(project))} disabled={busy !== null} className="w-full">Edit project details</Button>
-      ) : (
-        <form onSubmit={save} className="space-y-2 rounded border border-slate-800 bg-slate-950/40 p-2">
-          <label className="block space-y-1 text-xs text-slate-300">
-            <span>Phase</span>
-            <select value={draft.phase} onChange={(e) => setDraft({ ...draft, phase: e.target.value as ProjectPhase })} className={inputClass}>
-              {Object.entries(phases).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-            </select>
+      {!projectEditorOpen ? (
+        <Button onClick={() => setProjectEditorOpen(true)} disabled={busy !== null} className="w-full">Edit project details</Button>
+      ) : <ProjectEditor project={project} onClose={() => setProjectEditorOpen(false)} />}
+    </Section>
+  );
+}
+
+function ProjectEditor({ project, onClose }: { project: Project; onClose(): void }) {
+  const { updateProject, requirements, busy } = useWorkspace();
+  const [draft, setDraft] = useState<Draft>(() => draftOf(project));
+  const classes = [...buildingClasses.map((entry) => entry.value),
+    ...(requirements?.classifications ?? []), ...(draft.classification ? [draft.classification] : [])];
+
+  const save = (event: FormEvent) => {
+    event.preventDefault();
+    const patch = patchOf(project, draft);
+    if (Object.keys(patch).length > 0) void updateProject(patch);
+    else onClose();
+  };
+
+  return (
+    <form onSubmit={save} className="space-y-2 rounded border border-cyan-800 bg-slate-950/40 p-2">
+      <TriState label="Is this a new building?" value={draft.characteristics.isNewBuild}
+        onChange={(value) => setDraft({ ...draft, characteristics: { ...draft.characteristics, isNewBuild: value } })} />
+      <label className="block space-y-1 text-xs text-slate-300">
+        <span>Building type</span>
+        <select value={draft.classification} onChange={(e) => setDraft({ ...draft, classification: e.target.value })} className={inputClass}>
+          <option value="">Not sure</option>
+          {[...new Set(classes)].map((value) => <option key={value} value={value}>{buildingClassLabel(value)}</option>)}
+        </select>
+      </label>
+      <div className="grid grid-cols-3 gap-2">
+        {([["buildingHeightM", "Height (m)", "0.01"], ["floorCount", "Floors", "1"], ["occupantCount", "Occupants", "1"]] as const).map(([key, label, step]) => (
+          <label key={key} className="block space-y-1 text-[11px] text-slate-300">
+            <span>{label}</span>
+            <input type="number" min={key === "floorCount" ? 1 : 0} step={step} value={draft[key]}
+              onChange={(e) => setDraft({ ...draft, [key]: e.target.value })} className={inputClass} />
           </label>
-          <label className="block space-y-1 text-xs text-slate-300">
-            <span>Building classification</span>
-            <select value={draft.classification} onChange={(e) => setDraft({ ...draft, classification: e.target.value })} className={inputClass}>
-              <option value="">Unknown</option>
-              {[...new Set([...(requirements?.classifications ?? []), ...(draft.classification ? [draft.classification] : [])])].map((value) => (
-                <option key={value} value={value}>{value}</option>
-              ))}
-            </select>
-            <span className="block text-[10px] text-slate-500">Values used by the rule registry; leave unknown unless confirmed.</span>
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {([["buildingHeightM", "Height (m)", "0.01"], ["floorCount", "Floors", "1"], ["occupantCount", "Occupants", "1"]] as const).map(([key, label, step]) => (
-              <label key={key} className="block space-y-1 text-[11px] text-slate-300">
-                <span>{label}</span>
-                <input type="number" min={key === "floorCount" ? 1 : 0} step={step} value={draft[key]}
-                  onChange={(e) => setDraft({ ...draft, [key]: e.target.value })} className={inputClass} />
-              </label>
-            ))}
-          </div>
-          {(Object.keys(characteristics) as CharacteristicKey[]).map((key) => (
+        ))}
+      </div>
+      <label className="block space-y-1 text-xs text-slate-300">
+        <span>Phase</span>
+        <select value={draft.phase} onChange={(e) => setDraft({ ...draft, phase: e.target.value as ProjectPhase })} className={inputClass}>
+          {Object.entries(phases).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        </select>
+      </label>
+      <details className="text-xs text-slate-300">
+        <summary className="cursor-pointer text-[11px] text-slate-400">More building details</summary>
+        <div className="mt-2 space-y-2">
+          {(Object.keys(characteristics) as CharacteristicKey[]).filter((key) => key !== "isNewBuild").map((key) => (
             <TriState key={key} label={characteristics[key]} value={draft.characteristics[key]}
               onChange={(value) => setDraft({ ...draft, characteristics: { ...draft.characteristics, [key]: value } })} />
           ))}
-          <p className="text-[11px] text-slate-500">Saving creates a new project revision; the existing analysis becomes outdated.</p>
-          <div className="flex gap-2">
-            <Button type="submit" variant="primary" className="flex-1">Save</Button>
-            <Button onClick={() => setDraft(null)} className="flex-1">Cancel</Button>
-          </div>
-        </form>
-      )}
+        </div>
+      </details>
+      <p className="text-[11px] text-slate-500">Saving re-runs the checks with your answers. Leave anything you don’t know as unknown.</p>
+      <div className="flex gap-2">
+        <Button type="submit" variant="primary" disabled={busy !== null} className="flex-1">Save and re-check</Button>
+        <Button onClick={onClose} className="flex-1">Cancel</Button>
+      </div>
+    </form>
+  );
+}
+
+/** One place that says what is still needed before UNKNOWN checks can give a result. */
+function NeededChecklist() {
+  const { snapshot, select, setProjectEditorOpen } = useWorkspace();
+  if (!snapshot || snapshot.session.status === "RUNNING" || snapshot.evaluations.length === 0) return null;
+  const list = checklistFor(snapshot);
+  if (list.done) {
+    return (
+      <Section title="What’s needed">
+        <p className="text-[11px] text-emerald-300">Nothing else is needed. The results below use the information you confirmed.</p>
+        {list.notOnDrawing > 0 && (
+          <p className="text-[11px] text-slate-500">{list.notOnDrawing} check{list.notOnDrawing === 1 ? "" : "s"} look for things this drawing doesn’t show (for example stairs or ramps) and cannot run here.</p>
+        )}
+      </Section>
+    );
+  }
+  const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? "" : "s"}`;
+  return (
+    <Section title="What’s needed for results">
+      <ol className="space-y-1.5">
+        {list.questions.length > 0 && (
+          <ChecklistItem number={1} text={`Answer ${plural(list.questions.length, "project question")}: ${list.questions.join(" ")}`}
+            action="Answer" onClick={() => setProjectEditorOpen(true)} />
+        )}
+        {list.classify.map((entry, index) => (
+          <ChecklistItem key={entry.type} number={(list.questions.length ? 2 : 1) + index}
+            text={`Say what kind of ${typeNoun(entry.type)} each one is (${plural(entry.count, typeNoun(entry.type))})`}
+            action="Start" onClick={() => select({ kind: "element", id: entry.firstId })} />
+        ))}
+        {list.measure.count > 0 && (
+          <ChecklistItem number={(list.questions.length ? 1 : 0) + list.classify.length + 1}
+            text={`Confirm ${plural(list.measure.count, "measurement")} against the drawing`}
+            action="Start" onClick={() => list.measure.firstId && select({ kind: "element", id: list.measure.firstId })} />
+        )}
+      </ol>
+      <p className="text-[11px] text-slate-500">Checks stay “Unknown” until this information is confirmed. Nothing is guessed for you.</p>
     </Section>
+  );
+}
+
+function ChecklistItem({ number, text, action, onClick }: { number: number; text: string; action: string; onClick(): void }) {
+  return (
+    <li className="flex items-start gap-2 rounded border border-amber-900/70 bg-amber-950/20 p-2 text-[11px] text-amber-100">
+      <span className="font-mono text-amber-300">{number}.</span>
+      <span className="flex-1 leading-snug">{text}</span>
+      <Button variant="primary" onClick={onClick} className="shrink-0">{action}</Button>
+    </li>
   );
 }
 
@@ -279,17 +339,37 @@ function ResultsTabs() {
 }
 
 function FindingsList() {
-  const { snapshot, selection, select } = useWorkspace();
+  const { snapshot, selection, select, requirements } = useWorkspace();
+  const [showNotApplicable, setShowNotApplicable] = useState(false);
   if (!snapshot) return <Empty text="Run an analysis to see findings." />;
   if (snapshot.findings.length === 0) {
     return <Empty text={snapshot.session.status === "RUNNING" ? "Agents are working..." : "No active checks were applied to this drawing."} />;
   }
   const elements = new Map(snapshot.elements.map((element) => [element.id, element]));
-  const sorted = [...snapshot.findings].sort((a, b) => severity.indexOf(a.status) - severity.indexOf(b.status));
+  const evaluations = new Map(snapshot.evaluations.map((evaluation) => [evaluation.id, evaluation]));
+  const types = ruleTypes(requirements);
+  // Checks that don't apply, or look for something the drawing doesn't show, need no action.
+  const quiet = (finding: (typeof snapshot.findings)[number]) => {
+    const evaluation = evaluations.get(finding.evaluationId);
+    return finding.status === "NOT_APPLICABLE" || (evaluation !== undefined && notOnDrawing(evaluation));
+  };
+  const hidden = snapshot.findings.filter(quiet).length;
+  const sorted = [...snapshot.findings]
+    .filter((finding) => showNotApplicable || !quiet(finding))
+    .sort((a, b) => severity.indexOf(a.status) - severity.indexOf(b.status));
   return (
     <ul className="space-y-1.5">
+      {hidden > 0 && (
+        <li>
+          <button type="button" className="text-[11px] text-cyan-300 hover:underline" onClick={() => setShowNotApplicable(!showNotApplicable)}>
+            {showNotApplicable ? "Hide" : "Show"} {hidden} check{hidden === 1 ? "" : "s"} that don’t apply or can’t run on this drawing
+          </button>
+        </li>
+      )}
       {sorted.map((finding) => {
         const element = finding.elementId ? elements.get(finding.elementId) : undefined;
+        const evaluation = evaluations.get(finding.evaluationId);
+        const step = evaluation ? stepsFor(evaluation, element, types.get(finding.ruleId))[0] : undefined;
         const active = selection?.kind === "finding" && selection.id === finding.id;
         return (
           <li key={finding.id}>
@@ -301,7 +381,8 @@ function FindingsList() {
                 {finding.stale && <span className="text-[10px] text-amber-300">outdated</span>}
               </div>
               <div className="text-xs text-slate-100">{finding.title}</div>
-              <div className="text-[11px] text-slate-400">{element ? element.label ?? element.type : "Whole project"}</div>
+              <div className="text-[11px] text-slate-400">{element ? element.label ?? typeNoun(element.type) : "Whole project"}</div>
+              {step && <div className={`text-[11px] ${step.fix ? "text-amber-200" : "text-slate-500"}`}>{step.fix ? `To get a result: ${step.text}` : step.text}</div>}
             </button>
           </li>
         );
@@ -324,11 +405,12 @@ function ElementsList() {
                 active ? "border-cyan-500 bg-slate-800" : "border-slate-800 bg-slate-950/40 hover:border-slate-600"}`}>
               <div className="flex items-center justify-between gap-2 text-xs">
                 <span className="text-slate-100">{element.label ?? element.type}</span>
-                <span className="font-mono text-[10px] text-slate-400">{element.type}</span>
+                <span className="text-[10px] text-slate-400">{typeNoun(element.type)}</span>
               </div>
               <div className="mt-0.5 text-[11px] text-slate-400">
-                {element.extraction === "AI_SUGGESTED" ? "AI suggestion, unconfirmed" : "User confirmed"}
-                {element.subtype && <> · {element.subtype}</>}
+                {element.extraction === "AI_SUGGESTED"
+                  ? element.subtype ? `AI suggests: ${categoryLabel(element.subtype)} — please confirm` : "Not confirmed yet"
+                  : element.subtype ? (element.subtype === OTHER_SUBTYPE ? "Confirmed: not checked" : `Confirmed: ${categoryLabel(element.subtype)}`) : "Confirmed"}
               </div>
             </button>
           </li>

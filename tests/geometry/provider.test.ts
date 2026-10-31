@@ -3,6 +3,7 @@ import test from 'node:test';
 import type Anthropic from '@anthropic-ai/sdk';
 import { createClaudeVisionRunner } from '../../src/vision/claude';
 import { providerFailure } from '../../src/vision/provider-errors';
+import { plainRaster } from './raster';
 
 test('provider error classification works across SDK module boundaries without exposing messages', () => {
   assert.deepEqual(providerFailure({ status: 503, message: 'private' }), { code: 'PROVIDER_UNAVAILABLE', retryable: true });
@@ -16,7 +17,7 @@ test('gateway 503 gets one retry; authentication and model errors do not', async
   for (const [status, expectedCalls, code] of [[503, 2, 'VISION_UNAVAILABLE'], [401, 1, 'PROVIDER_AUTH'], [404, 1, 'PROVIDER_MODEL_OR_ENDPOINT_NOT_FOUND']] as const) {
     let calls = 0;
     const client = { messages: { create: async () => { calls++; throw Object.assign(new Error('private gateway response'), { status }); } } } as unknown as Anthropic;
-    await assert.rejects(createClaudeVisionRunner(client, 'configured-model').run(new Uint8Array(), 800, 600), error => error instanceof Error && error.message === code);
+    await assert.rejects(createClaudeVisionRunner(client, 'configured-model').run(await plainRaster(800, 600), 800, 600), error => error instanceof Error && error.message === code);
     assert.equal(calls, expectedCalls);
   }
 });
@@ -25,7 +26,7 @@ test('truncation and refusal have explicit codes without blind retries', async (
   for (const [reason, code] of [['max_tokens', 'VISION_OUTPUT_TRUNCATED'], ['refusal', 'VISION_REFUSED']] as const) {
     let calls = 0;
     const client = { messages: { create: async () => { calls++; return { stop_reason: reason, usage: { input_tokens: 10, output_tokens: 20 } }; } } } as unknown as Anthropic;
-    await assert.rejects(createClaudeVisionRunner(client, 'configured-model').run(new Uint8Array(), 800, 600), new RegExp(code));
+    await assert.rejects(createClaudeVisionRunner(client, 'configured-model').run(await plainRaster(800, 600), 800, 600), new RegExp(code));
     assert.equal(calls, 1);
   }
 });
@@ -33,7 +34,7 @@ test('truncation and refusal have explicit codes without blind retries', async (
 test('billable schema-invalid answers retain token usage and are never retried', async () => {
   let calls = 0;
   const client = { messages: { create: async () => { calls++; return { stop_reason: 'end_turn', usage: { input_tokens: 100, output_tokens: 50 }, content: [{ type: 'text', text: '{invalid' }] }; } } } as unknown as Anthropic;
-  await assert.rejects(createClaudeVisionRunner(client, 'configured-model').run(new Uint8Array(), 800, 600), error => {
+  await assert.rejects(createClaudeVisionRunner(client, 'configured-model').run(await plainRaster(800, 600), 800, 600), error => {
     const value = error as { code?: string; usage?: { inputTokens: number; outputTokens: number } };
     return value.code === 'VISION_SCHEMA_INVALID' && value.usage?.inputTokens === 100 && value.usage.outputTokens === 50;
   });
@@ -48,6 +49,6 @@ test('Mozaik unsupported-model 503 is actionable and is not treated as a transie
   assert.deepEqual(providerFailure(error), { code: 'PROVIDER_MODEL_UNAVAILABLE', retryable: false });
   let calls = 0;
   const client = { messages: { create: async () => { calls++; throw error; } } } as unknown as Anthropic;
-  await assert.rejects(createClaudeVisionRunner(client, 'unsupported-model').run(new Uint8Array(), 800, 600), /PROVIDER_MODEL_UNAVAILABLE/);
+  await assert.rejects(createClaudeVisionRunner(client, 'unsupported-model').run(await plainRaster(800, 600), 800, 600), /PROVIDER_MODEL_UNAVAILABLE/);
   assert.equal(calls, 1);
 });

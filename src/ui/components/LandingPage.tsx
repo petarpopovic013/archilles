@@ -4,6 +4,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { useWorkspace } from "../state/workspace";
 import type { ProjectPhase } from "../../domain";
 import { SvgArrow } from "./common";
+import { buildingClasses } from "../guidance";
 import { PlanPreview } from "./PlanPreview";
 
 const reviewSteps = [
@@ -94,6 +95,9 @@ function UploadForm({ onOpenWorkspace }: { onOpenWorkspace(): void }) {
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState("");
   const [phase, setPhase] = useState<ProjectPhase>("CONCEPT");
+  const [newBuild, setNewBuild] = useState<"" | "yes" | "no" | "unsure">("");
+  const [buildingClass, setBuildingClass] = useState("");
+  const [height, setHeight] = useState("");
   const [dragging, setDragging] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
 
@@ -116,7 +120,15 @@ function UploadForm({ onOpenWorkspace }: { onOpenWorkspace(): void }) {
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!file || !name.trim() || busy) return;
-    const success = await createProjectWithDrawing({ name: name.trim(), phase, characteristics: {} }, file);
+    // Unanswered questions stay unknown; the workspace asks for them again where they block a check.
+    const heightM = height.trim() === "" ? undefined : Number(height);
+    const success = await createProjectWithDrawing({
+      name: name.trim(),
+      phase,
+      characteristics: newBuild === "yes" || newBuild === "no" ? { isNewBuild: newBuild === "yes" } : {},
+      ...(buildingClass ? { classification: buildingClass } : {}),
+      ...(heightM !== undefined && Number.isFinite(heightM) && heightM >= 0 ? { buildingHeightM: heightM } : {}),
+    }, file);
     if (success) onOpenWorkspace();
   };
 
@@ -158,10 +170,29 @@ function UploadForm({ onOpenWorkspace }: { onOpenWorkspace(): void }) {
             <option value="RECONSTRUCTION">Reconstruction</option>
           </select>
         </label>
+        <label htmlFor="project-new-build">Is this a new building?
+          <select id="project-new-build" required value={newBuild} disabled={busy !== null} onChange={(event) => setNewBuild(event.target.value as typeof newBuild)}>
+            <option value="" disabled>Choose…</option>
+            <option value="yes">Yes, a new building</option>
+            <option value="no">No, an existing building</option>
+            <option value="unsure">Not sure</option>
+          </select>
+        </label>
+        <label htmlFor="project-class">Building type
+          <select id="project-class" value={buildingClass} disabled={busy !== null} onChange={(event) => setBuildingClass(event.target.value)}>
+            <option value="">Not sure</option>
+            {buildingClasses.map((entry) => <option key={entry.value} value={entry.value}>{entry.label}</option>)}
+          </select>
+        </label>
+        <label htmlFor="project-height">Building height in metres
+          <input id="project-height" type="number" min={0} step="0.1" placeholder="e.g. 9.5 (optional)" value={height} disabled={busy !== null}
+            onChange={(event) => setHeight(event.target.value)} />
+        </label>
       </div>
+      <p className="upload-disclaimer upload-why">The checks apply to new office buildings, so these answers decide which rules can run. Choose “Not sure” if you don’t know; you can change it later.</p>
       {(fileError || error) && <p className="upload-error" role="alert">{fileError || error}</p>}
-      <button type="submit" className="pill pill-dark upload-submit" disabled={!file || !name.trim() || busy !== null}>
-        {busy ? "Uploading your plan…" : "Open workspace"}<SvgArrow />
+      <button type="submit" className="pill pill-dark upload-submit" disabled={!file || !name.trim() || !newBuild || busy !== null}>
+        {busy ? "Uploading your plan…" : "Upload and review"}<SvgArrow />
       </button>
       <p className="upload-disclaimer">Your drawing is stored privately.</p>
     </form>

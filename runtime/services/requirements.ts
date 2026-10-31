@@ -1,4 +1,5 @@
 import type { ComplianceRule, Condition, ElementType, Metric, RuleRequirements } from "../../src/domain";
+import type { VisionCategory } from "../../src/vision/claude";
 import { RuleRequirementsSchema } from "../../src/domain";
 import type { RuntimeContext } from "../context";
 
@@ -52,4 +53,21 @@ export async function ruleRequirements(ctx: RuntimeContext): Promise<RuleRequire
     subtypes: [...bySubtype.values()].sort((a, b) => a.elementType.localeCompare(b.elementType) || a.subtype.localeCompare(b.subtype)),
     classifications: [...classifications].sort(),
   });
+}
+
+/** Review categories of active rules, offered to Vision as suggestions a person must confirm. */
+export function reviewCategories(rules: readonly ComplianceRule[]): VisionCategory[] {
+  const byKey = new Map<string, VisionCategory>();
+  for (const rule of rules) {
+    if (rule.lifecycle !== "ACTIVE") continue;
+    const subtypes = new Set<string>();
+    collect(rule.applicability, "element.subtype", subtypes);
+    for (const subtype of subtypes) {
+      const key = `${rule.elementType}:${subtype}`;
+      const entry = byKey.get(key) ?? { elementType: rule.elementType as ElementType, subtype, description: "" };
+      entry.description = entry.description ? `${entry.description}; ${rule.title}` : rule.title;
+      byKey.set(key, entry);
+    }
+  }
+  return [...byKey.values()].sort((a, b) => a.elementType.localeCompare(b.elementType) || a.subtype.localeCompare(b.subtype));
 }

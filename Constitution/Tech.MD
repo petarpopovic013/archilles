@@ -35,6 +35,10 @@ ADR-09: Geometry and Regulation use Mozaik `runLoop` with registered, task-scope
 
 ADR-10: The AI budget has two caps checked on every reservation: the configured total (`ARCHILLES_AI_BUDGET_USD`, default 20) and a rolling one-hour spend cap (`ARCHILLES_AI_HOURLY_LIMIT_USD`, default 3). Hourly spend is recorded `AgentRun` cost finished in the last hour plus worst-case in-flight reservations. A denied call fails before provider access with `BUDGET_RATE_LIMITED` (or `BUDGET_EXCEEDED` for the total), so a burst of reruns cannot drain the total budget at once.
 
+ADR-11: Vision geometry is framed and refined deterministically. The plan is sent at the largest size the configured model accepts without API-side downsizing, with coordinate rulers in a margin, and answers are mapped back to raster pixels; the gateway serves only `claude-sonnet-4-6`, whose 1568px/1.15MP limit previously shrank coordinates on larger plans. `refineGeometry` then snaps room sides to wall faces and openings to wall gaps found in the raster itself, merges duplicate openings, and reports openings it could not place. This is pure code after the single Vision call; it adds no AI call and derives no measurement from pixels. Invalid elements are discarded with a warning rather than failing the floor.
+
+ADR-12: Guided review. The Vision call may suggest an element's review category (subtype) from the active rules' categories, or `OTHER`; a suggestion stays on an `AI_SUGGESTED` element and the engine still treats the subtype as unknown (`SUBTYPE_UNCONFIRMED`) until a person confirms it, alone or for several elements at once. Evaluations carry optional `unknownFacts` so the UI can say which answer or confirmation blocks each `UNKNOWN`; checks for element types the drawing does not contain are reported as such rather than as pending input. The upload form asks the facts every active rule depends on (new build, building class from the rulebook's Table 3, height); unanswered facts stay unknown. Regulation question output is validated per question, falling back to templates.
+
 Do not add Kubernetes, cloud storage, a vector database, or hosted authentication for the hackathon. Native Node process continuity is required: do not instantiate Mozaik per Next.js request or deploy the runtime as a serverless handler.
 
 ## 2. Repository and development environment
@@ -81,6 +85,8 @@ Next.js Route Handlers proxy to the runtime and validate request/response schema
 | `GET /api/analyses/:id` | none | `AnalysisSession`, elements, evaluations, findings, coverage counts |
 | `GET /api/analyses/:id/events?after=<sequence>` | SSE | Stored `AgentEvent` stream with ordered IDs |
 | `PATCH /api/elements/:id/measurements` | `{ baseRevision, metric, value, unit, evidenceIds }` | New revision and measurement |
+| `PATCH /api/elements/:id` | `{ baseRevision, type?, subtype? }` | Person-confirmed element, new revision |
+| `PATCH /api/projects/:id/elements` | `{ baseRevision, updates: [{ elementId, type?, subtype? }] }` | Several person-confirmed elements in one revision and one follow-up analysis |
 | `POST /api/projects/:id/rechecks` | `{ baseRevision, elementId, metric, proposedValue, unit }` | `ReviewAction`, before/after evaluations |
 | `GET /api/projects/:id/coverage` | none | Source and rule counts by lifecycle and evaluation status |
 

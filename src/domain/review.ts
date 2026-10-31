@@ -26,6 +26,8 @@ export const RuleEvaluationSchema = z.strictObject({
   unit: z.string().trim().min(1).optional(),
   evidenceIds: z.array(IdSchema),
   missingInputs: z.array(MetricSchema),
+  /** Additive: facts that left applicability undecided, e.g. `characteristic.isNewBuild` or `element.subtype`. */
+  unknownFacts: z.array(z.string().trim().min(1)).optional(),
   reasonCode: z.string().trim().min(1),
   evaluatedAt: UtcDateTimeSchema,
 }).superRefine((evaluation, context) => {

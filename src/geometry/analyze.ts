@@ -16,7 +16,7 @@ export interface AnalyzeInput {
 // Scoped to the injected cache; two distinct runtimes cannot accidentally share private results.
 const inFlight=new WeakMap<ExtractionCache,Map<string,Promise<GeometryExtraction>>>();
 export function extractionCacheKey(input: AnalyzeInput) {
-  return createHash('sha256').update(JSON.stringify([input.page.projectId,input.page.drawingId,input.page.revision,input.floor.id,input.page.sha256,input.page.page,input.page.preprocessingVersion,input.vision.model,PROMPT_VERSION,input.page.sourceToRaster])).digest('hex');
+  return createHash('sha256').update(JSON.stringify([input.page.projectId,input.page.drawingId,input.page.revision,input.floor.id,input.page.sha256,input.page.page,input.page.preprocessingVersion,input.vision.model,PROMPT_VERSION,input.vision.version??'',input.page.sourceToRaster])).digest('hex');
 }
 function materialize(output:VisionOutput,input:AnalyzeInput,usage:GeometryExtraction['usage']): GeometryExtraction {
   const {page,floor,at}=input;
@@ -32,7 +32,7 @@ function materialize(output:VisionOutput,input:AnalyzeInput,usage:GeometryExtrac
       if (!geometryFitsFloor(labelGeometry, floor)) throw new GeometryError('VISION_GEOMETRY_BOUNDS');
       return EvidenceSchema.parse({...evidence, id:randomUUID(), text:label.text, geometry:labelGeometry});
     });
-    const element=ArchitecturalElementSchema.parse({id:randomUUID(),projectId:page.projectId,floorId:floor.id,revision:page.revision,type:item.type,label:item.label,geometry,relationIds:[],extraction:'AI_SUGGESTED',evidenceIds:[evidence.id,...labelEvidence.map(label=>label.id)]});
+    const element=ArchitecturalElementSchema.parse({id:randomUUID(),projectId:page.projectId,floorId:floor.id,revision:page.revision,type:item.type,subtype:item.subtype,label:item.label,geometry,relationIds:[],extraction:'AI_SUGGESTED',evidenceIds:[evidence.id,...labelEvidence.map(label=>label.id)]});
     result.elements.push(element); result.evidence.push(evidence,...labelEvidence);
     for(const m of item.measurements) {
       const labelGeometry=m.geometry?transformGeometry(page.rasterToSource,m.geometry):geometry;

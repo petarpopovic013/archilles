@@ -244,6 +244,11 @@ export function currentMeasurement(measurements: readonly Measurement[], element
       !latest || measurement.recordedAt >= latest.recordedAt ? measurement : latest, undefined);
 }
 
+function unknownFactsOf(outcome: Outcome): string[] | undefined {
+  const facts = (outcome.facts as { unknownFacts?: unknown } | undefined)?.unknownFacts;
+  return Array.isArray(facts) && facts.length > 0 ? facts.filter((fact): fact is string => typeof fact === "string") : undefined;
+}
+
 function finish(
   rule: ComplianceRule,
   element: ArchitecturalElement | undefined,
@@ -263,6 +268,7 @@ function finish(
     unit: outcome.unit,
     evidenceIds: outcome.evidenceIds,
     missingInputs: outcome.missingInputs,
+    unknownFacts: unknownFactsOf(outcome),
     reasonCode: outcome.reasonCode,
     evaluatedAt: ctx.now,
   });

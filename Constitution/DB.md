@@ -131,7 +131,7 @@ interface RuleEvaluation {
   id: Id; projectId: Id; projectRevision: number; ruleId: Id; ruleVersion: number;
   elementId?: Id; status: EvaluationStatus; required?: number | string | boolean;
   observed?: number | string | boolean; unit?: string; evidenceIds: Id[];
-  missingInputs: Metric[]; reasonCode: string; evaluatedAt: ISODateTime;
+  missingInputs: Metric[]; unknownFacts?: string[]; reasonCode: string; evaluatedAt: ISODateTime;
 }
 interface ComplianceFinding {
   id: Id; evaluationId: Id; projectId: Id; projectRevision: number;

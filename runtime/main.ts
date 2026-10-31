@@ -5,6 +5,7 @@ import { createNodePageRenderer } from "../src/geometry/node-renderer";
 import { ClaudeInferenceRunner } from "./ai/inference";
 import { startRuntime } from "./app";
 import { loadConfig } from "./config";
+import { reviewCategories } from "./services/requirements";
 import { errorCode } from "./mozaik/app-events";
 
 // Last line of defence: log a code and keep serving rather than letting one failure end the demo.
@@ -16,12 +17,14 @@ async function main() {
   const config = loadConfig();
   // Credentials stay inside the SDK client (environment or `ant auth` profile), never in prompts.
   const client = new Anthropic({ maxRetries: 0 });
+  const regulatoryRegistry = createRegulatoryRegistry();
+  const categories = reviewCategories((await regulatoryRegistry.snapshot()).rules);
   const app = await startRuntime({
     config,
-    registry: createRegulatoryRegistry(),
+    registry: regulatoryRegistry,
     geometry: {
       renderer: createNodePageRenderer(),
-      vision: createClaudeVisionRunner(client, config.visionModel),
+      vision: createClaudeVisionRunner(client, config.visionModel, { categories }),
     },
     inferenceRunner: new ClaudeInferenceRunner(client),
   });

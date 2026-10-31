@@ -6,6 +6,8 @@ import {
   CreateProjectRequestSchema,
   ElementUpdateRequestSchema,
   ElementUpdateResponseSchema,
+  ElementsUpdateRequestSchema,
+  ElementsUpdateResponseSchema,
   EvidenceSchema,
   MeasurementCorrectionRequestSchema,
   MeasurementCorrectionResponseSchema,
@@ -23,6 +25,7 @@ import {
   type CoverageSummary,
   type CreateProjectRequest,
   type ElementUpdateRequest,
+  type ElementsUpdateRequest,
   type Evidence,
   type MeasurementCorrectionRequest,
   type Project,
@@ -127,6 +130,10 @@ export class HttpArchillesApiClient {
 
   updateElement(elementId: string, request: ElementUpdateRequest) {
     return this.json("PATCH", `/api/elements/${id(elementId)}`, ElementUpdateResponseSchema, ElementUpdateRequestSchema.parse(request));
+  }
+
+  updateElements(projectId: string, request: ElementsUpdateRequest) {
+    return this.json("PATCH", `/api/projects/${id(projectId)}/elements`, ElementsUpdateResponseSchema, ElementsUpdateRequestSchema.parse(request));
   }
 
   recheck(projectId: string, request: RecheckRequest) {

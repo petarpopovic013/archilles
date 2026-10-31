@@ -2,7 +2,7 @@ import { createAgent, type Agent } from "@mozaik-ai/core";
 import type { Measurement, Project } from "../../src/domain";
 import { GeometryError, analyzeDrawing, type ExtractionCache, type GeometryExtraction, type MissingInput } from "../../src/geometry";
 import { fingerprint } from "../../src/rules/engine";
-import { PROMPT_VERSION } from "../../src/vision/claude";
+import { PROMPT_VERSION, VISION_MAX_OUTPUT_TOKENS } from "../../src/vision/claude";
 import { estimateCostUsd } from "../ai/pricing";
 import type { Reservation } from "../ai/budget";
 import type { RuntimeContext } from "../context";
@@ -15,7 +15,6 @@ import { finishRun, startRun } from "../services/runs";
 
 /** Worst case per Vision call: a ~2048px page plus prompt in, the adapter's 6000-token cap out. */
 const VISION_INPUT_TOKENS = 10_000;
-const VISION_OUTPUT_TOKENS = 6_000;
 const NEEDS_WIDTH = new Set(["DOOR", "CORRIDOR", "ENTRANCE", "EXIT"]);
 
 /**
@@ -81,7 +80,7 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
                   at: ctx.now(),
                   readPrivateRaster: (key) => ctx.store.read(key),
                   reserveBudget: async () => {
-                    const perCall = estimateCostUsd(vision.model, VISION_INPUT_TOKENS, VISION_OUTPUT_TOKENS);
+                    const perCall = estimateCostUsd(vision.model, VISION_INPUT_TOKENS, VISION_MAX_OUTPUT_TOKENS);
                     reservation = ctx.budget.reserve(perCall * 2);
                   },
                 });

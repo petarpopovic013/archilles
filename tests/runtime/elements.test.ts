@@ -5,6 +5,7 @@ import {
   AnalysisSnapshotSchema,
   ApiErrorSchema,
   ElementUpdateResponseSchema,
+  ElementsUpdateResponseSchema,
   EvidenceSchema,
   ProjectSchema,
   StartAnalysisResponseSchema,
@@ -116,4 +117,37 @@ test("element confirmation rejects stale revisions and invalid types", async () 
 
   const invalid = await call(app.url, "PATCH", `/api/elements/${elementId}`, { baseRevision: current, type: "SPACESHIP" });
   assert.equal(invalid.status, 422);
+});
+
+test("several elements are confirmed in one revision and one follow-up analysis", async () => {
+  const project = ProjectSchema.parse((await call(app.url, "POST", "/api/projects", { name: "Bulk" })).body);
+  const form = new FormData();
+  form.append("file", new Blob([await readFile("fixtures/plans/office-a.png")], { type: "image/png" }), "office-a.png");
+  form.append("baseRevision", "1");
+  const { drawing } = UploadDrawingResponseSchema.parse(await (await fetch(`${app.url}/api/projects/${project.id}/drawings`, { method: "POST", body: form })).json());
+  const { sessionId } = StartAnalysisResponseSchema.parse(
+    (await call(app.url, "POST", `/api/projects/${project.id}/analyses`, { projectRevision: 2, drawingId: drawing.id, page: 1 })).body);
+  const initial = await settled(sessionId);
+  assert.deepEqual(initial.evaluations[0].unknownFacts, ["element.subtype"], "the evaluation names the missing fact");
+
+  const [corridor, door] = [corridorOf(initial), initial.elements.find((element) => element.type === "DOOR")!];
+  const sessionsBefore = app.ctx.db.prepare("SELECT COUNT(*) FROM sessions").pluck().get() as number;
+  const response = await call(app.url, "PATCH", `/api/projects/${project.id}/elements`, {
+    baseRevision: 2,
+    updates: [{ elementId: corridor.id, subtype: SUBTYPE }, { elementId: door.id, subtype: "OTHER" }],
+  });
+  assert.equal(response.status, 200);
+  const { revision, elements } = ElementsUpdateResponseSchema.parse(response.body);
+  assert.equal(revision.revision, 3, "one revision for both elements");
+  assert.deepEqual(elements.map((element) => [element.subtype, element.extraction]), [[SUBTYPE, "USER_CONFIRMED"], ["OTHER", "USER_CONFIRMED"]]);
+  const followUp = await latest(project.id);
+  assert.equal(followUp.session.projectRevision, 3);
+  assert.equal(app.ctx.db.prepare("SELECT COUNT(*) FROM sessions").pluck().get(), sessionsBefore + 1, "one follow-up analysis");
+  assert.deepEqual(followUp.evaluations.map((e) => e.reasonCode), ["INPUT_UNVERIFIED"]);
+
+  const stale = await call(app.url, "PATCH", `/api/projects/${project.id}/elements`, { baseRevision: 2, updates: [{ elementId: door.id, subtype: null }] });
+  assert.equal(stale.status, 409);
+  const other = ProjectSchema.parse((await call(app.url, "POST", "/api/projects", { name: "Other" })).body);
+  const foreign = await call(app.url, "PATCH", `/api/projects/${other.id}/elements`, { baseRevision: 1, updates: [{ elementId: door.id, subtype: null }] });
+  assert.equal(foreign.status, 404, "elements of another project cannot be confirmed through this one");
 });

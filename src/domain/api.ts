@@ -109,6 +109,21 @@ export const ElementUpdateResponseSchema = z.strictObject({
 });
 export type ElementUpdateRequest = z.input<typeof ElementUpdateRequestSchema>;
 
+/** Confirms several elements in one revision, e.g. the same category for every door on a floor. */
+export const ElementsUpdateRequestSchema = z.strictObject({
+  baseRevision: PositiveIntegerSchema,
+  updates: z.array(z.strictObject({
+    elementId: IdSchema,
+    type: ElementTypeSchema.optional(),
+    subtype: z.string().trim().min(1).max(100).nullable().optional(),
+  })).min(1).max(150),
+});
+export const ElementsUpdateResponseSchema = z.strictObject({
+  revision: ProjectRevisionSchema,
+  elements: z.array(ArchitecturalElementSchema),
+});
+export type ElementsUpdateRequest = z.input<typeof ElementsUpdateRequestSchema>;
+
 export const RecheckRequestSchema = z.strictObject({
   baseRevision: PositiveIntegerSchema,
   elementId: IdSchema,
@@ -213,6 +228,7 @@ export const apiContracts = {
   getAnalysis: { method: "GET", path: "/api/analyses/:id", response: AnalysisSnapshotSchema },
   streamEvents: { method: "GET", path: "/api/analyses/:id/events", request: EventStreamQuerySchema, response: EventStreamItemSchema },
   updateElement: { method: "PATCH", path: "/api/elements/:id", request: ElementUpdateRequestSchema, response: ElementUpdateResponseSchema },
+  updateElements: { method: "PATCH", path: "/api/projects/:id/elements", request: ElementsUpdateRequestSchema, response: ElementsUpdateResponseSchema },
   correctMeasurement: { method: "PATCH", path: "/api/elements/:id/measurements", request: MeasurementCorrectionRequestSchema, response: MeasurementCorrectionResponseSchema },
   recheck: { method: "POST", path: "/api/projects/:id/rechecks", request: RecheckRequestSchema, response: RecheckResponseSchema },
   coverage: { method: "GET", path: "/api/projects/:id/coverage", response: CoverageSummarySchema },

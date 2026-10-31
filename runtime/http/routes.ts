@@ -1,6 +1,7 @@
 import {
   CreateProjectRequestSchema,
   ElementUpdateRequestSchema,
+  ElementsUpdateRequestSchema,
   IdSchema,
   MeasurementCorrectionRequestSchema,
   PositiveIntegerSchema,
@@ -13,7 +14,7 @@ import type { RuntimeContext } from "../context";
 import { findEvidence, findSession } from "../db/repo";
 import { computeCoverage, getAnalysisSnapshot, startAnalysis } from "../services/analyses";
 import { readPageRaster, uploadDrawing } from "../services/drawings";
-import { confirmElement } from "../services/elements";
+import { confirmElement, confirmElements } from "../services/elements";
 import { correctElementMeasurement, recheckProposal } from "../services/measurements";
 import { createProject, getProject, updateProject } from "../services/projects";
 import { ruleRequirements } from "../services/requirements";
@@ -97,6 +98,8 @@ export function createRouter(ctx: RuntimeContext): Router {
 
     .add("PATCH", "/api/elements/:id", async (req) =>
       confirmElement(ctx, idParam(req.params.id, "Element"), await req.json(ElementUpdateRequestSchema)))
+    .add("PATCH", "/api/projects/:id/elements", async (req) =>
+      confirmElements(ctx, idParam(req.params.id, "Project"), await req.json(ElementsUpdateRequestSchema)))
     .add("PATCH", "/api/elements/:id/measurements", async (req) =>
       correctElementMeasurement(ctx, idParam(req.params.id, "Element"), await req.json(MeasurementCorrectionRequestSchema)))
     .add("POST", "/api/projects/:id/rechecks", async (req) =>

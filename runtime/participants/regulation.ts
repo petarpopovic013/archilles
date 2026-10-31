@@ -255,11 +255,19 @@ export function createRegulationAgent(ctx: RuntimeContext, geometryId: () => str
   return agent;
 }
 
-function parseQuestions(answer: string): z.infer<typeof QuestionsSchema> | undefined {
-  try {
-    const parsed = QuestionsSchema.safeParse(JSON.parse(answer));
-    return parsed.success ? parsed.data : undefined;
-  } catch {
-    return undefined;
-  }
+/**
+ * Questions are validated one by one: an over-long or malformed question falls back to the field's
+ * template instead of discarding every question (and failing the run). Only an answer that is not
+ * the expected JSON shape at all counts as invalid output.
+ */
+export function parseQuestions(answer: string): z.infer<typeof QuestionsSchema> | undefined {
+  let value: unknown;
+  try { value = JSON.parse(answer); } catch { return undefined; }
+  const loose = z.object({ questions: z.array(z.unknown()) }).safeParse(value);
+  if (!loose.success) return undefined;
+  const questions = loose.data.questions.flatMap((item) => {
+    const parsed = QuestionsSchema.shape.questions.element.safeParse(item);
+    return parsed.success ? [parsed.data] : [];
+  });
+  return { questions };
 }
