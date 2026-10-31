@@ -76,7 +76,8 @@ test("Geometry and Regulation overlap, refine selection, and Review consumes the
 
   assert.equal(snapshot.session.status, "COMPLETE");
   assert.equal(vision.calls, 1);
-  assert.deepEqual(inference.byKind, { review: 1, questions: 1 }, "one explanation batch and one question call");
+  assert.equal(inference.roleCalls.REVIEW, 1, "one Review explanation batch");
+  assert.equal(inference.roleCalls.REGULATION, 1, "one missing-fact question call");
 
   // Real overlap: Regulation's first run started and finished while Geometry was extracting.
   const runs = listSessionRuns(app.ctx.db, sessionId);
@@ -142,6 +143,8 @@ test("every activity event names its source agent, and cited evidence is retriev
 });
 
 test("a confirmed correction creates a revision and re-evaluates from stored geometry", async () => {
+  const selectionCalls = inference.roleCalls.REGULATION;
+  const controllerCalls = inference.roleCalls.GEOMETRY;
   const corrected = await call(app.url, "PATCH", `/api/elements/${first.corridorId}/measurements`, {
     baseRevision: 2, metric: "CLEAR_WIDTH_M", value: 1.05, unit: "m", evidenceIds: [],
   });
@@ -158,6 +161,8 @@ test("a confirmed correction creates a revision and re-evaluates from stored geo
   assert.equal(snapshot.evaluations[0].status, "FAIL");
   assert.equal(snapshot.evaluations[0].observed, 1.05);
   assert.equal(vision.calls, 1, "no new Vision call after a correction");
+  assert.equal(inference.roleCalls.REGULATION, selectionCalls, "dimension-only correction reuses the registry proposal");
+  assert.equal(inference.roleCalls.GEOMETRY, controllerCalls, "stored geometry requires no controller call");
 
   const oldFindings = AnalysisSnapshotSchema.parse((await call(app.url, "GET", `/api/analyses/${first.sessionId}`)).body).findings;
   assert.ok(oldFindings.every((finding) => finding.stale));

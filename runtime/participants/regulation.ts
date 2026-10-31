@@ -5,7 +5,7 @@ import { evaluateCondition, fingerprint, projectFacts } from "../../src/rules/en
 import { BudgetExceededError, type Reservation } from "../ai/budget";
 import { estimateCostUsd, isPricedModel } from "../ai/pricing";
 import type { RuntimeContext } from "../context";
-import { claimPendingInput, findSession, floorView, saveSession } from "../db/repo";
+import { claimPendingInput, findSession, floorView, previousQuestion, recordQuestion, saveSession } from "../db/repo";
 import { createAppEvent, defineAppHandler, emitAppEvent, errorCode, type EventScope } from "../mozaik/app-events";
 import { createModelCalls, type ModelCallResult } from "../mozaik/model-calls";
 import { coordination, typesKey } from "../mozaik/runtime";
@@ -97,7 +97,7 @@ function rulesByMissingFact(project: Project, elements: ArchitecturalElement[], 
  * once per new set of missing facts per revision. It never activates rules or decides outcomes.
  */
 export function createRegulationAgent(ctx: RuntimeContext, geometryId: () => string): Agent {
-  const calls = createModelCalls(() => agent.getId());
+  const calls = createModelCalls(ctx.db, () => agent.getId(), ctx.now);
 
   async function select(sessionId: string, scope: EventScope): Promise<void> {
     const state = coordination(sessionId);
@@ -140,25 +140,48 @@ export function createRegulationAgent(ctx: RuntimeContext, geometryId: () => str
     }
 
     // One clarification per missing fact per revision, across sessions and re-selections.
+    const keyOf = (field: string) => `${project.id}:${state.projectRevision}:context:${field}`;
     const fields = missingContext.filter((field) =>
-      claimPendingInput(ctx.db, `${state.projectRevision}:context:${field}`, sessionId, state.projectRevision, { field }));
-    if (fields.length === 0) {
+      claimPendingInput(ctx.db, keyOf(field), sessionId, state.projectRevision, { field }));
+    const affected = rulesByMissingFact(project, view.elements, selected);
+    // A fact already phrased for this project (e.g. before a dimension-only correction) reuses that text.
+    const known = new Map(fields.flatMap((field) => {
+      const question = previousQuestion(ctx.db, project.id, field);
+      return question ? [[field, question] as const] : [];
+    }));
+    const ask = fields.filter((field) => !known.has(field));
+    if (ask.length === 0) {
       finishRun(ctx, run.id, { status: "COMPLETED", estimatedCostUsd: 0 });
+      publishQuestions(scope, fields, known, affected, keyOf);
       return;
     }
-    askQuestions(run.id, scope, project, fields, rulesByMissingFact(project, view.elements, selected));
+    askQuestions(run.id, scope, project, ask, affected, (asked) => publishQuestions(scope, fields, new Map([...known, ...asked]), affected, keyOf));
   }
 
-  function askQuestions(runId: string, scope: EventScope, project: Project, fields: string[], affected: Map<string, ComplianceRule[]>): void {
-    const publish = (questions: Map<string, string>) => {
-      for (const field of fields) {
-        emitAppEvent(agent, createAppEvent("regulation.input.required", scope, {
-          field,
-          reason: questions.get(field) ?? templateQuestions[field] ?? `Potreban podatak o projektu: ${field}.`,
-          affectedRuleIds: (affected.get(field) ?? []).map((rule) => rule.id),
-        }));
-      }
-    };
+  function publishQuestions(
+    scope: EventScope,
+    fields: string[],
+    questions: Map<string, string>,
+    affected: Map<string, ComplianceRule[]>,
+    keyOf: (field: string) => string,
+  ): void {
+    for (const field of fields) {
+      const reason = questions.get(field) ?? templateQuestions[field] ?? `Potreban podatak o projektu: ${field}.`;
+      if (questions.has(field)) recordQuestion(ctx.db, keyOf(field), reason);
+      emitAppEvent(agent, createAppEvent("regulation.input.required", scope, {
+        field, reason, affectedRuleIds: (affected.get(field) ?? []).map((rule) => rule.id),
+      }));
+    }
+  }
+
+  function askQuestions(
+    runId: string,
+    scope: EventScope,
+    project: Project,
+    fields: string[],
+    affected: Map<string, ComplianceRule[]>,
+    publish: (questions: Map<string, string>) => void,
+  ): void {
     const fail = (code: string, usage: Partial<ModelCallResult> = {}) => {
       finishRun(ctx, runId, {
         status: "FAILED", errorCode: code, model: ctx.config.reviewModel,
@@ -170,6 +193,7 @@ export function createRegulationAgent(ctx: RuntimeContext, geometryId: () => str
 
     const model = ctx.config.reviewModel;
     const payload = {
+      task: "REGULATION",
       project: { purpose: project.purpose, phase: project.phase },
       fields: fields.map((field) => ({
         field,
@@ -187,6 +211,7 @@ export function createRegulationAgent(ctx: RuntimeContext, geometryId: () => str
     }
 
     calls.start({
+      runId,
       model,
       instruction: INSTRUCTION,
       payload,

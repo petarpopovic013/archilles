@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import {
+  FunctionCallItem,
+  FunctionCallOutputItem,
   InputTokenDetails,
   ModelMessageItem,
   OutputTokenDetails,
@@ -68,28 +70,47 @@ export function fakeGeometry(vision: VisionRunner): GeometryPort {
 /** Answer text the fake gives for a Regulation question, so tests can recognise it. */
 export const fakeQuestion = (field: string) => `Test pitanje za ${field}?`;
 
+type Role = "GEOMETRY" | "REGULATION" | "REVIEW";
+
 /**
- * Mozaik InferenceRunner fake: answers Review explanation batches and Regulation question calls
- * with schema-valid JSON, counting each kind of call.
+ * Mozaik InferenceRunner fake. Drives the Geometry tool loop through real tool transitions,
+ * answers Regulation missing-fact question calls and Review explanation batches with schema-valid
+ * JSON, and counts calls per role. `fail` makes the text calls (Regulation, Review) fail.
  */
-export function fakeInference(mode: { fail?: boolean } = {}): InferenceRunner & { calls: number; byKind: { review: number; questions: number } } {
+export function fakeInference(mode: { fail?: boolean } = {}): InferenceRunner & {
+  calls: number;
+  roleCalls: Record<Role, number>;
+  contexts: { task: string; contextId: string; batchId?: string }[];
+} {
   const runner = {
     calls: 0,
-    byKind: { review: 0, questions: 0 },
+    roleCalls: { GEOMETRY: 0, REGULATION: 0, REVIEW: 0 } as Record<Role, number>,
+    contexts: [] as { task: string; contextId: string; batchId?: string }[],
     async run(input: InferenceInput): Promise<InferenceOutput> {
       runner.calls += 1;
       const user = input.context.getItems().filter((item): item is UserMessageItem => item instanceof UserMessageItem).at(-1);
-      const request = JSON.parse(user?.content.text ?? "{}") as {
-        findings?: { findingId: string; status: string }[];
+      const data = JSON.parse(user?.content.text ?? "{}") as {
+        task?: "GEOMETRY" | "REGULATION";
+        batchId?: string;
+        callId?: string;
         fields?: { field: string }[];
+        findings?: { findingId: string; status: string }[];
       };
-      const kind = request.fields ? "questions" : "review";
-      runner.byKind[kind] += 1;
+      const role: Role = data.task ?? "REVIEW";
+      runner.roleCalls[role]++;
+      runner.contexts.push({ task: role, contextId: input.context.id, batchId: data.batchId ?? data.callId });
+      if (role === "GEOMETRY") {
+        const result = input.context.getItems().filter((item): item is FunctionCallOutputItem => item instanceof FunctionCallOutputItem).at(-1);
+        const items = result
+          ? [ModelMessageItem.rehydrate({ text: '{"completed":true}' })]
+          : [FunctionCallItem.rehydrate({ callId: crypto.randomUUID(), name: input.tools![0].name, args: JSON.stringify({ batchId: data.batchId }) })];
+        return { items, tokenUsage: new TokenUsage(100, 30, 130, new InputTokenDetails(0), new OutputTokenDetails(0)), rowResponse: {} };
+      }
       if (mode.fail) throw new Error("PROVIDER_UNAVAILABLE");
-      const answer = kind === "questions"
-        ? { questions: request.fields!.map(({ field }) => ({ field, question: fakeQuestion(field) })) }
+      const answer = role === "REGULATION"
+        ? { questions: data.fields!.map(({ field }) => ({ field, question: fakeQuestion(field) })) }
         : {
-          explanations: (request.findings ?? []).map((finding) => ({
+          explanations: (data.findings ?? []).map((finding) => ({
             findingId: finding.findingId,
             explanation: `Reviewed explanation for a ${finding.status} outcome.`,
             suggestedAction: "Confirm the dimension on the drawing.",

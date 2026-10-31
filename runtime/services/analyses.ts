@@ -31,6 +31,7 @@ import {
 import { notFound, revisionConflict } from "../http/errors";
 import { createAppEvent, emitAppEvent, type EventScope } from "../mozaik/app-events";
 import { resolveRuntime } from "../mozaik/runtime";
+import { TOOL_LOOP_VERSION } from "../mozaik/tool-loop";
 import { ensureFloor } from "./drawings";
 import { getProject, saveProject } from "./projects";
 
@@ -66,6 +67,7 @@ export async function startAnalysis(
     sha256: drawing.sha256,
     page: request.page,
     ruleSetVersion,
+    controllers: [TOOL_LOOP_VERSION, ctx.config.visionModel, ctx.config.reviewModel],
     extraction: [PREPROCESSING_VERSION, PROMPT_VERSION, ctx.geometry.vision?.model ?? "none"],
   });
 

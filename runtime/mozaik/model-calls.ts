@@ -9,6 +9,7 @@ import {
 import type { Reservation } from "../ai/budget";
 import { inferenceErrorCode } from "../ai/inference";
 import { estimateCostUsd } from "../ai/pricing";
+import type { Db } from "../db/connection";
 import { errorCode } from "./app-events";
 import { runLoop } from "./runtime";
 
@@ -26,6 +27,8 @@ export interface ModelCallResult {
 }
 
 export interface ModelCallRequest {
+  /** AgentRun the call belongs to; loop diagnostics are recorded against it. */
+  runId: string;
   model: string;
   instruction: string;
   /** Sent as the user message (JSON); never contains drawings or secrets. */
@@ -49,9 +52,11 @@ interface Pending extends ModelCallRequest {
  * `inference.completed` adds token usage, and `model.answer` finishes the call.
  * Join the returned handler to the agent that makes the calls.
  */
-export function createModelCalls(agentId: () => string) {
+export function createModelCalls(db: Db, agentId: () => string, now: () => string) {
   const pending = new Map<string, Pending>();
   const loops = new Map<string, string>();
+  // Allowlisted diagnostics only: event types per loop, never context, arguments, or answers.
+  const record = db.prepare("INSERT INTO agent_loop_events (run_id, loop_id, type, occurred_at) VALUES (?, ?, ?, ?)");
 
   function finish(callId: string, text: string): void {
     const call = pending.get(callId);
@@ -72,7 +77,8 @@ export function createModelCalls(agentId: () => string) {
     specification: new (class extends SituationSpecification {
       isSatisfiedBy({ event, participant }: SituationContext) {
         return event.producerId === participant.getId() &&
-          (event.type === "message_received.started" || event.type === "inference.completed" || event.type === "model.answer");
+          (event.type === "message_received.started" || event.type === "inference.started" ||
+            event.type === "inference.completed" || event.type === "model.answer");
       }
     })(),
     processor: {
@@ -87,11 +93,13 @@ export function createModelCalls(agentId: () => string) {
           if (event.type === "message_received.started") {
             const { callId } = JSON.parse(payload.content ?? "{}") as { callId?: string };
             if (callId && pending.has(callId)) loops.set(payload.loopId, callId);
-            return;
           }
           const callId = loops.get(payload.loopId);
           const call = callId ? pending.get(callId) : undefined;
           if (!callId || !call) return;
+          record.run(call.runId, payload.loopId, event.type, now());
+          if (event.type === "message_received.started") return;
+          if (event.type === "inference.started") return;
           if (event.type === "inference.completed") {
             call.inputTokens += payload.tokenUsage?.inputTokens ?? 0;
             call.outputTokens += payload.tokenUsage?.outputTokens ?? 0;

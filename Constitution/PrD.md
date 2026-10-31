@@ -92,6 +92,8 @@ MVP success is measured by: 3–5 active, tested checks spanning both source fam
 
 Build sequence: (1) source verification and shared types; (2) one end-to-end verified geometry/rule/engine/Mozaik/finding/recheck slice; (3) real upload, Vision suggestions, and correction flow; (4) remaining verified checks across both regulations plus coverage; (5) demo hardening. Parallel frontend, geometry, regulatory, and runtime work begins only after the shared contract is agreed. Drop PDF export, broad ingestion UI, extra checks, accounts, cloud deployment, and multi-floor analysis before compromising the vertical slice.
 
+Collaboration acceptance includes native Mozaik loop/tool traces for Geometry and Regulation, followed by Review consuming a persisted engine result. A budgeted live smoke can inject an explicitly test-only synthetic rule into a temporary database to exercise all three loops when production rules remain inactive; this is never legal coverage or production activation.
+
 The principal risks are false geometry from complex scans, incorrect legal applicability or amendment handling, and Mozaik/Claude integration or API-cost instability. Mitigations are visible measurement confirmation, human source-and-test approval, one-page scope, cached extraction, bounded agent loops, cost tracking, and a verified fixture fallback.
 
 ## 8. Explicit non-goals and roadmap
