@@ -4,6 +4,7 @@ import { VisionOutputSchema, type VisionOutput, type VisionRunner } from '../vis
 import { PROMPT_VERSION } from '../vision/claude';
 import { transformGeometry } from './transforms';
 import { normalizeValue } from './measurements';
+import { dimensionLabelIssue } from './dimension-labels';
 import { GeometryError, type ExistingObservations, type GeometryExtraction, type PreparedPage } from './types';
 export interface ExtractionCache { get(key:string):Promise<GeometryExtraction|undefined>; set(key:string,value:GeometryExtraction):Promise<void> }
 export interface AnalyzeInput {
@@ -26,8 +27,13 @@ function materialize(output:VisionOutput,input:AnalyzeInput,usage:GeometryExtrac
     const geometry=transformGeometry(page.rasterToSource,item.geometry);
     if(!geometryFitsFloor(geometry,floor)) throw new GeometryError('VISION_GEOMETRY_BOUNDS');
     const evidence=EvidenceSchema.parse({id:randomUUID(),projectId:page.projectId,revision:page.revision,drawingId:page.drawingId,page:page.page,geometry,source:'DRAWING',text:item.label,capturedAt:at});
-    const element=ArchitecturalElementSchema.parse({id:randomUUID(),projectId:page.projectId,floorId:floor.id,revision:page.revision,type:item.type,label:item.label,geometry,relationIds:[],extraction:'AI_SUGGESTED',evidenceIds:[evidence.id]});
-    result.elements.push(element); result.evidence.push(evidence);
+    const labelEvidence = (item.labels ?? []).map(label => {
+      const labelGeometry = transformGeometry(page.rasterToSource, label.geometry);
+      if (!geometryFitsFloor(labelGeometry, floor)) throw new GeometryError('VISION_GEOMETRY_BOUNDS');
+      return EvidenceSchema.parse({...evidence, id:randomUUID(), text:label.text, geometry:labelGeometry});
+    });
+    const element=ArchitecturalElementSchema.parse({id:randomUUID(),projectId:page.projectId,floorId:floor.id,revision:page.revision,type:item.type,label:item.label,geometry,relationIds:[],extraction:'AI_SUGGESTED',evidenceIds:[evidence.id,...labelEvidence.map(label=>label.id)]});
+    result.elements.push(element); result.evidence.push(evidence,...labelEvidence);
     for(const m of item.measurements) {
       const labelGeometry=m.geometry?transformGeometry(page.rasterToSource,m.geometry):geometry;
       if(!geometryFitsFloor(labelGeometry,floor)) throw new GeometryError('VISION_GEOMETRY_BOUNDS');
@@ -35,6 +41,8 @@ function materialize(output:VisionOutput,input:AnalyzeInput,usage:GeometryExtrac
       result.evidence.push(labelEvidence);
       try {
         if(m.value===undefined||!m.unit||!m.rawLabel.trim()) throw new GeometryError('AMBIGUOUS_MEASUREMENT');
+        const issue=dimensionLabelIssue({...m,value:m.value,unit:m.unit});
+        if(issue){result.missingInputs.push({elementId:element.id,metric:m.metric,reason:issue});continue;}
         const normalized=normalizeValue(m.metric,m.value,m.unit);
         // Route lengths require a validated connectivity graph, outside this extractor.
         if(m.metric==='ROUTE_LENGTH_M') throw new GeometryError('ROUTE_GRAPH_REQUIRED');

@@ -22,9 +22,13 @@ AI dimensions are always unverified. Missing-input keys are element/metric withi
 
 ## Synthetic demo
 
+For a user-supplied dimensioned working drawing and its live recognition assessment, see `fixtures/plans/residential-dimensioned.png` and `fixtures/plans/README.md`. Recognition on that reference has not passed visual acceptance; the synthetic examples below are technical fixtures, not a substitute for that test.
+
 Call `loadConfirmedFixture(parsedJson, context)` explicitly with either `fixtures/plans/office-a.json` or `office-b.json`. These are authored synthetic observations, not real architect approvals or regulatory requirements. Display the returned disclosure warning. The JSON geometry refers to the corresponding 800×600 PNG/JPG, not to the PDF render. The two-page PDF is an independent normalization fixture; its source frame is 1600×1200. Fixtures contain no findings or rule thresholds. The engine computes all outcomes.
 
 Optional asset regeneration uses `fixtures/plans/generate.mjs`. It uses the pinned direct `@napi-rs/canvas` dependency. Committed raster/PDF assets need no generator at runtime.
+
+The technical-plan prompt preserves independently located annotation evidence (`labels`) even when no canonical measurement can be assigned. Nominal opening sizes and uncertain associations are withheld from numeric measurements. A proposed physical value/unit must match an explicit quoted label; unitless annotations and width/height pairs require confirmation. These module-local additions do not change shared entity schemas. Prompt version `geometry-v2-technical-plan` invalidates extraction caches for fresh analysis; existing stored project observations remain historical and are reused by the runtime, so use a fresh upload/project to test new recognition behavior.
 
 ## Verification and remaining gates
 
