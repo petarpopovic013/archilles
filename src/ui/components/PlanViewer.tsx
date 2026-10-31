@@ -38,7 +38,7 @@ export function PlanViewer() {
       if (cancelled) return URL.revokeObjectURL(info.url);
       setPageError(null);
       setImage({ key: pageKey, url: info.url, width: info.widthPx, height: info.heightPx });
-    }).catch(() => { if (!cancelled) setPageError("Stranica crteža nije dostupna."); });
+    }).catch(() => { if (!cancelled) setPageError("The drawing page is unavailable."); });
     return () => {
       cancelled = true;
       if (url) URL.revokeObjectURL(url);
@@ -139,18 +139,18 @@ export function PlanViewer() {
   };
 
   return (
-    <main className="flex min-w-0 flex-1 flex-col bg-slate-950" aria-label="Pregled plana">
+    <main className="flex min-w-0 flex-1 flex-col bg-slate-950" aria-label="Plan viewer">
       <div className="flex flex-wrap items-center gap-1 border-b border-slate-800 bg-slate-900 px-2 py-1.5">
-        <Button variant="ghost" aria-label="Uvećaj" onClick={() => zoomCentre(1.25)} disabled={!current}><Icon name="plus" /></Button>
-        <Button variant="ghost" aria-label="Umanji" onClick={() => zoomCentre(0.8)} disabled={!current}><Icon name="minus" /></Button>
-        <Button variant="ghost" aria-label="Prikaži ceo crtež" onClick={fit} disabled={!current}><Icon name="fit" /></Button>
-        <Button variant="ghost" aria-label="Fokusiraj izabrani element" onClick={focusSelected} disabled={!current || !selectedElement}><Icon name="focus" /></Button>
+        <Button variant="ghost" aria-label="Zoom in" onClick={() => zoomCentre(1.25)} disabled={!current}><Icon name="plus" /></Button>
+        <Button variant="ghost" aria-label="Zoom out" onClick={() => zoomCentre(0.8)} disabled={!current}><Icon name="minus" /></Button>
+        <Button variant="ghost" aria-label="Fit drawing to view" onClick={fit} disabled={!current}><Icon name="fit" /></Button>
+        <Button variant="ghost" aria-label="Focus selected element" onClick={focusSelected} disabled={!current || !selectedElement}><Icon name="focus" /></Button>
         <span className="ml-1 w-12 font-mono text-[11px] text-slate-400" aria-live="polite">{Math.round(view.scale * 100)}%</span>
         <div className="ml-auto flex items-center gap-3 text-[11px] text-slate-300">
           {(Object.keys(layers) as (keyof typeof layers)[]).map((layer) => (
             <label key={layer} className="flex items-center gap-1">
               <input type="checkbox" checked={layers[layer]} onChange={() => setLayers({ ...layers, [layer]: !layers[layer] })} />
-              {{ elements: "Elementi", labels: "Oznake", evidence: "Dokazi" }[layer]}
+              {{ elements: "Elements", labels: "Labels", evidence: "Evidence" }[layer]}
             </label>
           ))}
         </div>
@@ -161,15 +161,15 @@ export function PlanViewer() {
         className="relative flex-1 touch-none select-none overflow-hidden"
         style={{ backgroundImage: "radial-gradient(#1e293b 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
         {!drawing ? (
-          <Placeholder text="Kreirajte projekat i otpremite crtež." />
+          <Placeholder text="Create a project and upload a drawing." />
         ) : !current ? (
-          <Placeholder text={pageError ?? "Učitavanje stranice..."} />
+          <Placeholder text={pageError ?? "Loading page..."} />
         ) : (
           <div className="absolute left-0 top-0 origin-top-left"
             style={{ width: current.width, height: current.height, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>
             {/* The raster may be smaller than the source frame; it is stretched to source size so overlays align. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={current.url} alt={`Stranica ${page} crteža ${drawing.originalName}`} draggable={false}
+            <img src={current.url} alt={`Page ${page} of ${drawing.originalName}`} draggable={false}
               className="absolute left-0 top-0 bg-white" style={{ width: current.width, height: current.height }} />
             <svg className="absolute left-0 top-0 overflow-visible" width={current.width} height={current.height}
               viewBox={`0 0 ${current.width} ${current.height}`}>
@@ -190,7 +190,7 @@ export function PlanViewer() {
           </div>
         )}
         <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-slate-900/90 px-2 py-1 font-mono text-[11px] text-slate-300">
-          {cursor ? `x ${Math.round(cursor.x)} · y ${Math.round(cursor.y)} px` : "Točkić: zum · prevlačenje: pomeranje"}
+          {cursor ? `x ${Math.round(cursor.x)} · y ${Math.round(cursor.y)} px` : "Scroll to zoom · drag to pan"}
         </div>
       </div>
     </main>
@@ -208,7 +208,7 @@ function ElementShape({ element, status, selected, showLabel, scale, onSelect }:
   const suggested = element.extraction === "AI_SUGGESTED";
   const colour = status ? statusTone[status].stroke : suggested ? "#22d3ee" : "#38bdf8";
   const bounds = boundsOf(element.geometry);
-  const label = `${element.label ?? element.type}${status ? `: ${statusLabel[status]}` : ""}${suggested ? " (nepotvrđeno)" : ""}`;
+  const label = `${element.label ?? element.type}${status ? `: ${statusLabel[status]}` : ""}${suggested ? " (unconfirmed)" : ""}`;
   const onKeyDown = (event: KeyboardEvent<SVGGElement>) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();

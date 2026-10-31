@@ -11,7 +11,7 @@
       "00100000-0000-4000-8000-000000000400"
     ],
     "title": "Ширина коридора између фиксних елемената намештаја",
-    "lifecycle": "HUMAN_VERIFIED",
+    "lifecycle": "ACTIVE",
     "elementType": "CORRIDOR",
     "applicability": {
       "op": "ALL",
@@ -72,7 +72,7 @@
       "00100000-0000-4000-8000-000000000206"
     ],
     "interpretationNotes": [
-      "HUMAN_VERIFIED following explicit user review; see human-review.json. No activation has been performed.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. Activation authorized separately; see 005-activation.json.",
       "Article 18 paragraph 1 only: passages between fixed furniture, not every corridor or full accessibility compliance.",
       "Amendment 10/2026 changes article 3 definitions, article 35, article 39 and adds 39a–39e and replaces the annex. It does not directly amend article 18; the current consolidated text retains 90 cm.",
       "New office construction subset only. Reconstruction/adaptation excluded pending project-specific technical-feasibility review.",

@@ -13,6 +13,7 @@ import fixtureData from "../../fixtures/regulations/rule-cases-002.json";
 import review from "../../fixtures/regulations/002-ai-review.json";
 import sourceCheck from "../../fixtures/regulations/002-source-check.json";
 import additionalData from "../../fixtures/regulations/rules-002.json";
+import { assertActiveRegistry, assertProvisionApproval, assertRuleApproval } from "./approval-fixtures";
 
 const originals = additionalData.map((rule) => ComplianceRuleSchema.parse(rule));
 const now = "2026-10-30T17:00:00Z";
@@ -52,17 +53,15 @@ function contextFor(bundle: typeof fixtureData.bundles[number], item: typeof bun
   return { project, elements: [element], measurements, asOf: "2026-10-30", now, newId: randomUUID };
 }
 
-test("002 ships four AI-reviewed rules spanning both sources without extending 001 human approval", () => {
+test("002 respects the newer explicitly scoped human approval across both sources", () => {
   assert.equal(originals.length, 4);
-  assert.equal(complianceRules.filter((rule) => !rule.id.startsWith("00300000")).length, 5);
+  assert.equal(complianceRules.filter((rule) => rule.id.startsWith("00100000") || rule.id.startsWith("00200000")).length, 5);
   assert.equal(new Set(originals.map((rule) => rule.sourceId)).size, 2);
   assert.equal(review.humanApproved, false);
   assert.deepEqual(review.ruleIds, originals.map((rule) => rule.id));
-  assert.deepEqual(getActiveRules("2026-10-30"), []);
+  assertActiveRegistry(getActiveRules("2026-10-30"));
   for (const rule of originals) {
-    assert.equal(rule.lifecycle, "AI_REVIEWED");
-    assert.equal(rule.approvedBy, undefined);
-    assert.equal(rule.approvedAt, undefined);
+    assertRuleApproval(rule, "AI_REVIEWED");
     for (const id of rule.provisionIds) {
       const provision = regulationProvisions.find((p) => p.id === id)!;
       assert.ok(provision);
@@ -71,8 +70,13 @@ test("002 ships four AI-reviewed rules spanning both sources without extending 0
     }
     const ctx = contextFor(fixtureData.bundles.find((b) => b.ruleId === rule.id)!, fixtureData.bundles[0].cases[0]);
     const result = evaluateRules([rule], ctx);
-    assert.deepEqual(result.results, []);
-    assert.deepEqual(result.rejected.map((rejection) => rejection.reasonCode), ["RULE_NOT_ACTIVE"]);
+    if (rule.lifecycle === "ACTIVE") {
+      assert.deepEqual(result.rejected, []);
+      assert.equal(result.results[0].evaluation.status, "PASS");
+    } else {
+      assert.deepEqual(result.results, []);
+      assert.deepEqual(result.rejected.map((rejection) => rejection.reasonCode), ["RULE_NOT_ACTIVE"]);
+    }
   }
 });
 
@@ -87,7 +91,7 @@ test("002 exact clauses occur in captured official text and source bytes were re
   for (const provision of regulationProvisions.filter((p) => p.id.startsWith("00200000"))) {
     const name = provision.article === "29" ? "fire" : "accessibility";
     assert.ok(readFileSync(`fixtures/regulations/${name}-current.txt`, "utf8").includes(provision.text));
-    assert.equal(provision.verification, "UNVERIFIED");
+    assertProvisionApproval(provision);
   }
 });
 
@@ -103,8 +107,12 @@ for (const bundle of fixtureData.bundles) {
       assert.deepEqual(result.rejected, []);
       assert.equal(result.results.length, 1);
       assert.equal(result.results[0].evaluation.status, item.expected);
-      assert.equal(rule.lifecycle, "AI_REVIEWED");
-      assert.equal(rule.approvedBy, undefined);
+      if (rule.lifecycle === "ACTIVE") {
+        const actual = evaluateRules([rule], ctx);
+        assert.deepEqual(actual.rejected, []);
+        assert.equal(actual.results[0].evaluation.status, item.expected);
+      }
+      assertRuleApproval(rule, "AI_REVIEWED");
     });
   }
   test(`002 applicability ${bundle.ruleId.slice(-2)}: missing source scope stays unknown`, () => {

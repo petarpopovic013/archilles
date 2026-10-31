@@ -9,6 +9,7 @@ import manifest from "../../fixtures/regulations/manifest.json";
 import cases from "../../fixtures/regulations/rule-cases.json";
 import aiReview from "../../fixtures/regulations/ai-review.json";
 import humanReview from "../../fixtures/regulations/human-review.json";
+import { assertActiveRegistry } from "./approval-fixtures";
 
 const DATE = "2026-10-30";
 
@@ -30,16 +31,16 @@ test("captures match manifest and PDF identity; no shell is represented as a leg
   }
 });
 
-test("all domain records validate, references resolve and one human-verified inactive rule exists", () => {
+test("domain records validate with 20 activated and six evaluator-blocked human-verified rules", () => {
   regulationSources.forEach((s) => RegulationSourceSchema.parse(s));
   regulationProvisions.forEach((p) => {
     RegulationProvisionSchema.parse(p);
     assert.ok(regulationSources.some((s) => s.id === p.sourceId && s.sourceVersion === p.sourceVersion));
     for (const id of p.crossReferenceIds) assert.ok(regulationProvisions.some((other) => other.id === id));
   });
-  assert.equal(complianceRules.filter((rule) => rule.lifecycle === "HUMAN_VERIFIED").length, 1);
+  assert.equal(complianceRules.filter((rule) => rule.lifecycle === "HUMAN_VERIFIED").length, 6);
   const rule = ComplianceRuleSchema.parse(complianceRules[0]);
-  assert.equal(rule.lifecycle, "HUMAN_VERIFIED");
+  assert.equal(rule.lifecycle, "ACTIVE");
   assert.equal(rule.approvedBy, humanReview.reviewer);
   assert.equal(rule.approvedAt, humanReview.reviewedAt);
   assert.deepEqual(humanReview.testFixtureIds, rule.testFixtureIds);
@@ -48,7 +49,7 @@ test("all domain records validate, references resolve and one human-verified ina
   for (const id of rule.provisionIds) assert.ok(regulationProvisions.some((p) => p.id === id));
   assert.deepEqual(rule.testFixtureIds, cases.cases.map((c) => c.id));
   assert.match(regulationProvisions.find((p) => p.article === "18")!.text, /најмање 90 цм/);
-  assert.deepEqual(getActiveRules(DATE), []);
+  assertActiveRegistry(getActiveRules(DATE));
 });
 
 test("current rule is tied to captured official text and explicit human approval", () => {
@@ -105,8 +106,10 @@ test("registry requires exact human-verified provenance and known effective wind
   assert.throws(() => filterActiveRules(DATE, [rule, { ...rule, version: rule.version + 1 }], [source], provisions), /REGISTRY_OVERLAPPING_ACTIVE_VERSIONS/);
 });
 
-test("actual candidate is rejected by existing engine before any numerical evaluation", () => {
-  const result = evaluateRules(complianceRules, { project: contractFixture.project, elements: [], measurements: [], asOf: DATE, now: "2026-10-30T00:00:00Z", newId: () => crypto.randomUUID() });
+test("all remaining inactive rules are rejected before numerical evaluation", () => {
+  const inactive = complianceRules.filter((rule) => rule.lifecycle !== "ACTIVE");
+  const result = evaluateRules(inactive, { project: contractFixture.project, elements: [], measurements: [], asOf: DATE, now: "2026-10-30T00:00:00Z", newId: () => crypto.randomUUID() });
   assert.deepEqual(result.results, []);
-  assert.equal(result.rejected[0].reasonCode, "RULE_NOT_ACTIVE");
+  assert.equal(result.rejected.length, 15);
+  assert.ok(result.rejected.every((rejection) => rejection.reasonCode === "RULE_NOT_ACTIVE"));
 });

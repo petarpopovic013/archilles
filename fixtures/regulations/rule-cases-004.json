@@ -1,0 +1,406 @@
+{
+  "task": "004",
+  "bundles": [
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000060",
+      "elementType": "RAMP",
+      "subtype": "DESIGNATED_ACCESSIBLE_LONG_RAMP_REST_LANDING",
+      "cases": [
+        {
+          "id": "00400000-0000-4000-8000-000000006000",
+          "name": "pass",
+          "value": 1.6,
+          "expected": "PASS"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006001",
+          "name": "fail",
+          "value": 1.49,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006002",
+          "name": "boundary",
+          "value": 1.5,
+          "expected": "PASS"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006003",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006004",
+          "name": "unverified-measurement",
+          "value": 1.5,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006005",
+          "name": "missing-subtype",
+          "value": 1.5,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006006",
+          "name": "wrong-subtype",
+          "value": 1.5,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006007",
+          "name": "missing-new-build",
+          "value": 1.5,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006008",
+          "name": "reconstruction",
+          "value": 1.5,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000061",
+      "elementType": "ENTRANCE",
+      "subtype": "ACCESSIBLE_VESTIBULE_INWARD_EXTENSION",
+      "cases": [
+        {
+          "id": "00400000-0000-4000-8000-000000006100",
+          "name": "pass",
+          "value": 1.0,
+          "expected": "PASS"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006101",
+          "name": "fail",
+          "value": 0.89,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006102",
+          "name": "boundary",
+          "value": 0.9,
+          "expected": "PASS"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006103",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006104",
+          "name": "unverified-measurement",
+          "value": 0.9,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006105",
+          "name": "missing-subtype",
+          "value": 0.9,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006106",
+          "name": "wrong-subtype",
+          "value": 0.9,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006107",
+          "name": "missing-new-build",
+          "value": 0.9,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006108",
+          "name": "reconstruction",
+          "value": 0.9,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000062",
+      "elementType": "CORRIDOR",
+      "subtype": "ACCESSIBLE_WORKSPACE_FURNITURE_CIRCULATION",
+      "cases": [
+        {
+          "id": "00400000-0000-4000-8000-000000006200",
+          "name": "pass",
+          "value": 1.3,
+          "expected": "PASS"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006201",
+          "name": "fail",
+          "value": 1.19,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006202",
+          "name": "boundary",
+          "value": 1.2,
+          "expected": "PASS"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006203",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006204",
+          "name": "unverified-measurement",
+          "value": 1.2,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006205",
+          "name": "missing-subtype",
+          "value": 1.2,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006206",
+          "name": "wrong-subtype",
+          "value": 1.2,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006207",
+          "name": "missing-new-build",
+          "value": 1.2,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006208",
+          "name": "reconstruction",
+          "value": 1.2,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000063",
+      "elementType": "CORRIDOR",
+      "subtype": "PUBLIC_ACCESS_RAIL_GUIDED_CORRIDOR",
+      "cases": [
+        {
+          "id": "00400000-0000-4000-8000-000000006300",
+          "name": "pass",
+          "value": 1.0,
+          "expected": "PASS"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006301",
+          "name": "fail",
+          "value": 0.89,
+          "expected": "FAIL"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006302",
+          "name": "boundary",
+          "value": 0.9,
+          "expected": "PASS"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006303",
+          "name": "missing-measurement",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006304",
+          "name": "unverified-measurement",
+          "value": 0.9,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006305",
+          "name": "missing-subtype",
+          "value": 0.9,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006306",
+          "name": "wrong-subtype",
+          "value": 0.9,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006307",
+          "name": "missing-new-build",
+          "value": 0.9,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006308",
+          "name": "reconstruction",
+          "value": 0.9,
+          "expected": "NOT_APPLICABLE"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006309",
+          "name": "missing-public-context",
+          "value": 0.9,
+          "expected": "UNKNOWN"
+        }
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000064",
+      "elementType": "RAMP",
+      "subtype": "DESIGNATED_ACCESSIBLE_TWO_FLIGHT_RAMP_LANDING",
+      "cases": [
+        {
+          "id": "00400000-0000-4000-8000-000000006400",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006401",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006402",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000065",
+      "elementType": "ROOM",
+      "subtype": "DESIGNATED_ACCESSIBLE_LIFT_CABIN",
+      "cases": [
+        {
+          "id": "00400000-0000-4000-8000-000000006500",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006501",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006502",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000066",
+      "elementType": "DOOR",
+      "subtype": "DESIGNATED_ACCESSIBLE_LIFT_CABIN_DOOR",
+      "cases": [
+        {
+          "id": "00400000-0000-4000-8000-000000006600",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006601",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006602",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000067",
+      "elementType": "ROOM",
+      "subtype": "DESIGNATED_ACCESSIBLE_WC",
+      "cases": [
+        {
+          "id": "00400000-0000-4000-8000-000000006700",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006701",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006702",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000068",
+      "elementType": "ROOM",
+      "subtype": "ACCESSIBLE_WORKSPACE",
+      "cases": [
+        {
+          "id": "00400000-0000-4000-8000-000000006800",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006801",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006802",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000069",
+      "elementType": "DOOR",
+      "subtype": "ACCESSIBLE_MANUAL_DOOR",
+      "cases": [
+        {
+          "id": "00400000-0000-4000-8000-000000006900",
+          "name": "missing-evaluator",
+          "value": null,
+          "expected": "NEEDS_REVIEW"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006901",
+          "name": "missing-subtype",
+          "value": null,
+          "expected": "UNKNOWN"
+        },
+        {
+          "id": "00400000-0000-4000-8000-000000006902",
+          "name": "wrong-subtype",
+          "value": null,
+          "expected": "NOT_APPLICABLE"
+        }
+      ]
+    }
+  ],
+  "policy": "Only synthetic test-only evaluator probes; original rules are inactive."
+}

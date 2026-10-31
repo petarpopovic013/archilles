@@ -14,7 +14,7 @@
       "00100000-0000-4000-8000-000000000530"
     ],
     "title": "Апсолутни минимум ширине надземног евакуационог ходника",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "ACTIVE",
     "elementType": "CORRIDOR",
     "applicability": {
       "op": "ALL",
@@ -100,14 +100,16 @@
       "00200000-0000-4000-8000-000000001112"
     ],
     "interpretationNotes": [
-      "AI_REVIEWED only. New interpretation requires its own human approval; task 001 approval does not cover this rule.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. Activation authorized separately; see 005-activation.json.",
       "Bounded subset: new RS office projects at CONCEPT/DESIGN; above-ground elements only. Reconstruction and excluded source categories are not modeled.",
       "Element type/subtype and relevant project context must be confirmed by a human; never infer scope from filename, threshold or default project values.",
       "Absolute minimum only. Article 29 also requires capacity-based sizing, and obstacles reduce effective width. PASS means this minimum only, not evacuation-capacity compliance.",
       "classification must be the reviewed fire classification ИП1 or НП1 under articles 4 and 7; both are business classes up to 10 m. Do not infer from OFFICE.",
       "Human scope confirmation must exclude high-rise, floating, hospitality-for-food/drink and underground categories under article 3. ABOVE_GROUND subtypes cannot be auto-assigned to uncertain geometry.",
       "CLEAR_WIDTH_M is the actual clear usable width after obstacles, not overall bbox width or raw pixel length."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00200000-0000-4000-8000-000000000012",
@@ -124,7 +126,7 @@
       "00100000-0000-4000-8000-000000000530"
     ],
     "title": "Апсолутни минимум ширине надземног евакуационог степенишног крака",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "ACTIVE",
     "elementType": "STAIR",
     "applicability": {
       "op": "ALL",
@@ -210,14 +212,16 @@
       "00200000-0000-4000-8000-000000001212"
     ],
     "interpretationNotes": [
-      "AI_REVIEWED only. New interpretation requires its own human approval; task 001 approval does not cover this rule.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. Activation authorized separately; see 005-activation.json.",
       "Bounded subset: new RS office projects at CONCEPT/DESIGN; above-ground elements only. Reconstruction and excluded source categories are not modeled.",
       "Element type/subtype and relevant project context must be confirmed by a human; never infer scope from filename, threshold or default project values.",
       "Absolute minimum only. Article 29 also requires capacity-based sizing, and obstacles reduce effective width. PASS means this minimum only, not evacuation-capacity compliance.",
       "classification must be the reviewed fire classification ИП1 or НП1 under articles 4 and 7; both are business classes up to 10 m. Do not infer from OFFICE.",
       "Human scope confirmation must exclude high-rise, floating, hospitality-for-food/drink and underground categories under article 3. ABOVE_GROUND subtypes cannot be auto-assigned to uncertain geometry.",
       "CLEAR_WIDTH_M is the actual clear usable width after obstacles, not overall bbox width or raw pixel length."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00200000-0000-4000-8000-000000000013",
@@ -233,7 +237,7 @@
       "00100000-0000-4000-8000-000000000315"
     ],
     "title": "Минимална ширина приступачног надземног степенишног крака",
-    "lifecycle": "AI_REVIEWED",
+    "lifecycle": "ACTIVE",
     "elementType": "STAIR",
     "applicability": {
       "op": "ALL",
@@ -297,12 +301,14 @@
       "00200000-0000-4000-8000-000000001308"
     ],
     "interpretationNotes": [
-      "AI_REVIEWED only. New interpretation requires its own human approval; task 001 approval does not cover this rule.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. Activation authorized separately; see 005-activation.json.",
       "Bounded subset: new RS office projects at CONCEPT/DESIGN; above-ground elements only. Reconstruction and excluded source categories are not modeled.",
       "Element type/subtype and relevant project context must be confirmed by a human; never infer scope from filename, threshold or default project values.",
       "Article 8 accessibility is linked to internal stairs by article 15. Passing one dimension does not satisfy all accessibility, tread, handrail, surface or contrast conditions.",
       "CLEAR_WIDTH_M is the actual clear usable width after obstacles, not overall bbox width or raw pixel length."
-    ]
+    ],
+    "approvedBy": "Petar Popovic",
+    "approvedAt": "2026-10-30T18:32:33.996Z"
   },
   {
     "id": "00200000-0000-4000-8000-000000000014",

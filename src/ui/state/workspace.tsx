@@ -14,6 +14,7 @@ import type {
   Metric,
   Project,
   RuleEvaluation,
+  RuleRequirements,
   UpdateProjectRequest,
 } from "../../domain";
 import { unitForMetric } from "../../domain";
@@ -38,6 +39,8 @@ export interface WorkspaceValue {
   page: number;
   snapshot: AnalysisSnapshot | null;
   coverage: CoverageSummary | null;
+  /** Subtypes, measurements, and classifications the rule registry uses; null until loaded. */
+  requirements: RuleRequirements | null;
   activity: AgentEvent[];
   selection: Selection | null;
   selectedFinding: ComplianceFinding | null;
@@ -52,6 +55,7 @@ export interface WorkspaceValue {
   select(selection: Selection | null): void;
   dismissError(): void;
   createProject(request: CreateProjectRequest): Promise<void>;
+  createProjectWithDrawing(request: CreateProjectRequest, file: File): Promise<boolean>;
   updateProject(patch: UpdateProjectRequest["patch"]): Promise<void>;
   uploadDrawing(file: File): Promise<void>;
   setPage(page: number): void;
@@ -67,21 +71,21 @@ const STORAGE_KEY = "archilles.workspace.v1";
 const RUNNING_POLL_MS = 1_500;
 
 const errorMessages: Record<string, string> = {
-  REVISION_CONFLICT: "Projekat je u međuvremenu izmenjen. Podaci su osveženi; pokušajte ponovo.",
-  RUNTIME_UNAVAILABLE: "Servis za analizu nije pokrenut ili nije dostupan.",
-  NETWORK_ERROR: "Server nije dostupan.",
-  FILE_TOO_LARGE: "Crtež je veći od 20 MiB.",
-  UNSUPPORTED_FILE_TYPE: "Podržani su samo PDF, PNG i JPEG crteži.",
-  FILE_TYPE_MISMATCH: "Ekstenzija fajla ne odgovara njegovom sadržaju.",
-  RENDERER_UNSUPPORTED_FORMAT: "Ovaj format crteža server još ne može da obradi.",
-  UNRENDERABLE_PAGE: "Stranica crteža ne može da se pripremi (oštećen ili zaštićen fajl).",
-  PAGE_LIMIT: "Crtež ima više od 20 stranica.",
-  INVALID_INPUT: "Uneti podaci nisu ispravni.",
+  REVISION_CONFLICT: "The project has changed. Data has been refreshed; please try again.",
+  RUNTIME_UNAVAILABLE: "The analysis service is not running or is unavailable.",
+  NETWORK_ERROR: "The server is unavailable.",
+  FILE_TOO_LARGE: "The drawing exceeds the 20 MiB limit.",
+  UNSUPPORTED_FILE_TYPE: "Only PDF, PNG and JPEG drawings are supported.",
+  FILE_TYPE_MISMATCH: "The file extension does not match its contents.",
+  RENDERER_UNSUPPORTED_FORMAT: "The server cannot process this drawing format yet.",
+  UNRENDERABLE_PAGE: "The drawing page cannot be prepared (corrupt or protected file).",
+  PAGE_LIMIT: "The drawing contains more than 20 pages.",
+  INVALID_INPUT: "The supplied information is invalid.",
 };
 
 function describe(error: unknown): string {
   if (error instanceof ArchillesApiError) return errorMessages[error.code] ?? `${error.message} (${error.code})`;
-  return error instanceof Error ? error.message : "Nepoznata greška.";
+  return error instanceof Error ? error.message : "An unknown error occurred.";
 }
 
 interface Stored {
@@ -121,6 +125,7 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<AnalysisSnapshot | null>(null);
   const [coverage, setCoverage] = useState<CoverageSummary | null>(null);
+  const [requirements, setRequirements] = useState<RuleRequirements | null>(null);
   const [activity, setActivity] = useState<AgentEvent[]>([]);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [evidence, setEvidence] = useState<ReadonlyMap<string, Evidence>>(new Map());
@@ -128,6 +133,12 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   const [busy, setBusy] = useState<Busy | null>(null);
   const [error, setError] = useState<string | null>(null);
   const requested = useRef(new Set<string>());
+
+  useEffect(() => {
+    let cancelled = false;
+    client.getRuleRequirements().then((value) => { if (!cancelled) setRequirements(value); }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [client]);
 
   // Restore the last project after a reload; the server remains the source of truth.
   useEffect(() => {
@@ -248,6 +259,7 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
     page,
     snapshot,
     coverage,
+    requirements,
     activity,
     selection,
     selectedFinding: selection?.kind === "finding" ? snapshot?.findings.find((finding) => finding.id === selection.id) ?? null : null,
@@ -275,6 +287,36 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
       clearAnalysis();
       setCoverage(await client.getCoverage(created.id));
     }),
+
+    createProjectWithDrawing: async (request, file) => {
+      setBusy("upload");
+      setError(null);
+      try {
+        const created = await client.createProject(request);
+        // Keep the created project available if uploading fails, so it can be retried.
+        setProject(created);
+        setDrawing(null);
+        setPageCount(0);
+        setPageState(1);
+        setCoverage(null);
+        clearAnalysis();
+        const { drawing: uploaded, pageCount: pages } = await client.uploadDrawing(created.id, file, {
+          baseRevision: created.revision,
+          selectedPage: 1,
+        });
+        setDrawing(uploaded);
+        setPageCount(pages);
+        setPageState(uploaded.selectedPage);
+        setProject(await client.getProject(created.id));
+        setCoverage(await client.getCoverage(created.id));
+        return true;
+      } catch (cause) {
+        setError(describe(cause));
+        return false;
+      } finally {
+        setBusy(null);
+      }
+    },
 
     updateProject: (patch) => run("save", async () => {
       if (!project) return;

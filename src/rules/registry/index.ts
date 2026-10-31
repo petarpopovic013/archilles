@@ -8,10 +8,11 @@ import {
 import ruleData from "../../../fixtures/regulations/rules.json";
 import additionalRuleData from "../../../fixtures/regulations/rules-002.json";
 import expandedRuleData from "../../../fixtures/regulations/rules-003.json";
+import floorPlanRuleData from "../../../fixtures/regulations/rules-004.json";
 import { regulationProvisions, regulationSources } from "../sources";
 
 export { regulationProvisions, regulationSources } from "../sources";
-export const complianceRules = [...ruleData, ...additionalRuleData, ...expandedRuleData].map((rule) => ComplianceRuleSchema.parse(rule));
+export const complianceRules = [...ruleData, ...additionalRuleData, ...expandedRuleData, ...floorPlanRuleData].map((rule) => ComplianceRuleSchema.parse(rule));
 
 /** Testable registry gate; never promotes a lifecycle or supplies a missing effective date. */
 export function filterActiveRules(

@@ -1,0 +1,274 @@
+{
+  "scope": "Numeric-input availability only. Does not establish legal applicability, approval, scale, complete evidence or activation.",
+  "entries": [
+    {
+      "ruleId": "00100000-0000-4000-8000-000000000010",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000011",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000012",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000013",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000014",
+      "inputMode": "EXTRA_DOCUMENTATION",
+      "engineSupported": true,
+      "why": "Step rise requires a section, elevation label or extra verified input.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000030",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000031",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000032",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000033",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000034",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000035",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000036",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000037",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000038",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000039",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000040",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000041",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "The horizontal dimension is measurable from plan geometry with a confirmed scale or explicit dimensions; legal/contextual subtype still needs confirmation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000042",
+      "inputMode": "EXTRA_DOCUMENTATION",
+      "engineSupported": true,
+      "why": "Threshold height is vertical and cannot be inferred from an ordinary 2D floor-plan outline.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000043",
+      "inputMode": "EXTRA_DOCUMENTATION",
+      "engineSupported": true,
+      "why": "Ramp rise/slope is not established by its floor-plan run alone.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000044",
+      "inputMode": "EXTRA_DOCUMENTATION",
+      "engineSupported": true,
+      "why": "Door height requires a section, schedule, explicit elevation label or extra documentation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000045",
+      "inputMode": "PLAN_ANNOTATIONS",
+      "engineSupported": false,
+      "why": "Room-specific occupancy must be explicitly annotated and verified; it cannot be read from room area or Project.occupantCount.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000046",
+      "inputMode": "PLAN_ANNOTATIONS",
+      "engineSupported": false,
+      "why": "Room-specific occupancy must be explicitly annotated and verified; it cannot be read from room area or Project.occupantCount.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000047",
+      "inputMode": "PLAN_GRAPH",
+      "engineSupported": false,
+      "why": "Requires validated room/door/wall connectivity and a defined evacuation route; straight-line distance is insufficient.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000048",
+      "inputMode": "EXTRA_DOCUMENTATION",
+      "engineSupported": false,
+      "why": "Stair capacity needs served-floor and occupancy allocations outside a single floor-plan geometry.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000049",
+      "inputMode": "EXTRA_DOCUMENTATION",
+      "engineSupported": false,
+      "why": "Conditional slope requires rise and feasibility evidence beyond plan geometry.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000060",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "Horizontal clear landing length, not rise. Human must confirm this is a required rest landing of the long-ramp branch; do not infer the trigger solely from a partial floor plan.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000061",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "Horizontal extension into the building measured from the inner-door plane. It is not total vestibule depth, door width, or a vertical height.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000062",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "Actual circulation gap around furniture in a designated accessible workspace. Keep furniture footprints as obstacles; not raw room width. Geometry owner must confirm CORRIDOR as this circulation-region representation.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000063",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": true,
+      "why": "Clear gap of the access corridor guided by railings in a public-use office area. Railings and public-use designation require evidence; not every corridor is of this type.",
+      "missingCapabilities": []
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000064",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": false,
+      "why": "Two-dimensional geometry is necessary and in principle visible on the plan; current clearance/evaluator support is missing.",
+      "missingCapabilities": [
+        "Confirmed clear landing polygon and obstacles",
+        "Reviewed orientation/dimensional meaning of both 150/170 cm axes",
+        "Rectangle-fit evaluator; two unrelated length readings are insufficient"
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000065",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": false,
+      "why": "Two-dimensional geometry is necessary and in principle visible on the plan; current clearance/evaluator support is missing.",
+      "missingCapabilities": [
+        "Confirmed cabin polygon, door orientation and internal clear boundaries",
+        "Geometry agreement on representing the enclosed cabin as ROOM subtype",
+        "Reviewed 110/140 cm rectangle evaluator with axis convention"
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000066",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": false,
+      "why": "Two-dimensional geometry is necessary and in principle visible on the plan; current clearance/evaluator support is missing.",
+      "missingCapabilities": [
+        "Door-to-approach-region linkage and true obstacle polygons",
+        "Confirmed horizontal clear 150/200 cm area from floor plan",
+        "Reviewed clearance evaluator; tactile treatment is outside this dimension check"
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000067",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": false,
+      "why": "Two-dimensional geometry is necessary and in principle visible on the plan; current clearance/evaluator support is missing.",
+      "missingCapabilities": [
+        "Confirmed WC interior boundary plus sanitary-equipment and door-swing obstacles",
+        "Confirmed scale and free-area derivation with local evidence",
+        "Circle-fit evaluator; a 1.5 m room bbox alone does not prove this clearance"
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000068",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": false,
+      "why": "Two-dimensional geometry is necessary and in principle visible on the plan; current clearance/evaluator support is missing.",
+      "missingCapabilities": [
+        "Confirmed accessible workspace boundary and furniture/door-swing obstacles",
+        "Scale and actual free-region construction",
+        "Reviewed inscribed-circle evaluator with evidence; not bbox or room area alone"
+      ]
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000069",
+      "inputMode": "PLAN_GEOMETRY",
+      "engineSupported": false,
+      "why": "Two-dimensional geometry is necessary and in principle visible on the plan; current clearance/evaluator support is missing.",
+      "missingCapabilities": [
+        "Confirmed handle side, door plane and nearby wall/obstacle geometry",
+        "Validated horizontal side-clearance measurement; not door clear width",
+        "Reviewed side-clearance evaluator; automatic-door branch remains separate"
+      ]
+    }
+  ]
+}

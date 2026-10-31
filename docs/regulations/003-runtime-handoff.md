@@ -1,5 +1,7 @@
 # 003 — Prošireni katalog: 25 regulatornih pravila
 
+> Novije korisnikovo pojašnjenje ograničava prioritet na mere čitljive iz 2D tlocrta. Pogled 004 je u `004-floor-plan-handoff.md`: stroga lista ima 26 zapisa, dok je ceo istorijski registar proširen na 35. Ovaj dokument opisuje prethodni paket 003.
+
 ## Isporučeno
 
 Dodato je dvadeset pravila na prethodnih pet. To su zasebne dimenzione ili uslovne provere, ne tvrdnja da je automatizovano 25 različitih članova ili kompletna usklađenost objekta.

@@ -12,6 +12,7 @@ import {
   ProjectSchema,
   RecheckRequestSchema,
   RecheckResponseSchema,
+  RuleRequirementsSchema,
   StartAnalysisRequestSchema,
   StartAnalysisResponseSchema,
   UpdateProjectRequestSchema,
@@ -26,6 +27,7 @@ import {
   type MeasurementCorrectionRequest,
   type Project,
   type RecheckRequest,
+  type RuleRequirements,
   type StartAnalysisRequest,
   type UpdateProjectRequest,
   type UploadDrawingMetadata,
@@ -133,6 +135,10 @@ export class HttpArchillesApiClient {
 
   getCoverage(projectId: string): Promise<CoverageSummary> {
     return this.json("GET", `/api/projects/${id(projectId)}/coverage`, CoverageSummarySchema);
+  }
+
+  getRuleRequirements(): Promise<RuleRequirements> {
+    return this.json("GET", "/api/rules/requirements", RuleRequirementsSchema);
   }
 
   /** Stored agent events for a session, in order, resuming automatically after a dropped stream. */
