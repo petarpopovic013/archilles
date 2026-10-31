@@ -13,7 +13,7 @@ import fixtureData from "../../fixtures/regulations/rule-cases-002.json";
 import review from "../../fixtures/regulations/002-ai-review.json";
 import sourceCheck from "../../fixtures/regulations/002-source-check.json";
 import additionalData from "../../fixtures/regulations/rules-002.json";
-import { assertProvisionApproval, assertRuleApproval } from "./approval-fixtures";
+import { assertActiveRegistry, assertProvisionApproval, assertRuleApproval } from "./approval-fixtures";
 
 const originals = additionalData.map((rule) => ComplianceRuleSchema.parse(rule));
 const now = "2026-10-30T17:00:00Z";
@@ -59,7 +59,7 @@ test("002 respects the newer explicitly scoped human approval across both source
   assert.equal(new Set(originals.map((rule) => rule.sourceId)).size, 2);
   assert.equal(review.humanApproved, false);
   assert.deepEqual(review.ruleIds, originals.map((rule) => rule.id));
-  assert.deepEqual(getActiveRules("2026-10-30"), []);
+  assertActiveRegistry(getActiveRules("2026-10-30"));
   for (const rule of originals) {
     assertRuleApproval(rule, "AI_REVIEWED");
     for (const id of rule.provisionIds) {
@@ -70,8 +70,13 @@ test("002 respects the newer explicitly scoped human approval across both source
     }
     const ctx = contextFor(fixtureData.bundles.find((b) => b.ruleId === rule.id)!, fixtureData.bundles[0].cases[0]);
     const result = evaluateRules([rule], ctx);
-    assert.deepEqual(result.results, []);
-    assert.deepEqual(result.rejected.map((rejection) => rejection.reasonCode), ["RULE_NOT_ACTIVE"]);
+    if (rule.lifecycle === "ACTIVE") {
+      assert.deepEqual(result.rejected, []);
+      assert.equal(result.results[0].evaluation.status, "PASS");
+    } else {
+      assert.deepEqual(result.results, []);
+      assert.deepEqual(result.rejected.map((rejection) => rejection.reasonCode), ["RULE_NOT_ACTIVE"]);
+    }
   }
 });
 
@@ -102,6 +107,11 @@ for (const bundle of fixtureData.bundles) {
       assert.deepEqual(result.rejected, []);
       assert.equal(result.results.length, 1);
       assert.equal(result.results[0].evaluation.status, item.expected);
+      if (rule.lifecycle === "ACTIVE") {
+        const actual = evaluateRules([rule], ctx);
+        assert.deepEqual(actual.rejected, []);
+        assert.equal(actual.results[0].evaluation.status, item.expected);
+      }
       assertRuleApproval(rule, "AI_REVIEWED");
     });
   }

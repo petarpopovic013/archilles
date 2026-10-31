@@ -19,7 +19,7 @@ import { startRuntime, type RuntimeApp } from "../../runtime/app";
 import { latestSessionForProject, listSessionRuns } from "../../runtime/db/repo";
 import { listSessionEvents } from "../../runtime/participants/observer";
 import { rule } from "../engine/fixtures";
-import { corridorPlan, fakeGeometry, fakeInference, fakeRegistry, fakeVision } from "./fakes";
+import { corridorPlan, fakeGeometry, fakeInference, fakeQuestion, fakeRegistry, fakeVision } from "./fakes";
 import { call, removeDataDir, testConfig, waitFor } from "./helpers";
 
 /** TEST-ONLY synthetic rule: corridor clear width at least 1.2 m. Not a legal requirement. */
@@ -76,7 +76,8 @@ test("Geometry and Regulation overlap, refine selection, and Review consumes the
 
   assert.equal(snapshot.session.status, "COMPLETE");
   assert.equal(vision.calls, 1);
-  assert.equal(inference.calls, 1, "one Review explanation batch");
+  assert.equal(inference.roleCalls.REVIEW, 1, "one Review explanation batch");
+  assert.equal(inference.roleCalls.REGULATION, 1, "one missing-fact question call");
 
   // Real overlap: Regulation's first run started and finished while Geometry was extracting.
   const runs = listSessionRuns(app.ctx.db, sessionId);
@@ -95,7 +96,12 @@ test("Geometry and Regulation overlap, refine selection, and Review consumes the
   assert.ok(order.indexOf("geometry.extraction.completed") < order.indexOf("rule.evaluation.completed"));
   assert.ok(order.indexOf("rule.evaluation.completed") < order.indexOf("review.finding.created"));
   assert.ok(order.includes("geometry.measurement.missing"));
-  assert.ok(order.includes("regulation.input.required"));
+  // Selection is deterministic; the Regulation agent's model call only phrases the missing-fact question.
+  const question = events.find((event) => event.type === "regulation.input.required")!;
+  assert.deepEqual(question.payload, { field: "occupantCount", reason: fakeQuestion("occupantCount"), affectedRuleIds: [] });
+  assert.equal(regulation[0].model, "claude-opus-5-5");
+  assert.ok(regulation[0].inputTokens! > 0 && regulation[0].estimatedCostUsd! > 0, "the question call is metered");
+  assert.equal(regulation[1].inputTokens, undefined, "the refinement asks nothing new, so it makes no call");
   assert.equal(order.filter((type) => type === "rule.evaluation.completed").length, 1);
   assert.ok(events.every((event) => event.producerId !== app.participants.api || event.type === "analysis.started"));
 
@@ -137,6 +143,8 @@ test("every activity event names its source agent, and cited evidence is retriev
 });
 
 test("a confirmed correction creates a revision and re-evaluates from stored geometry", async () => {
+  const selectionCalls = inference.roleCalls.REGULATION;
+  const controllerCalls = inference.roleCalls.GEOMETRY;
   const corrected = await call(app.url, "PATCH", `/api/elements/${first.corridorId}/measurements`, {
     baseRevision: 2, metric: "CLEAR_WIDTH_M", value: 1.05, unit: "m", evidenceIds: [],
   });
@@ -153,6 +161,8 @@ test("a confirmed correction creates a revision and re-evaluates from stored geo
   assert.equal(snapshot.evaluations[0].status, "FAIL");
   assert.equal(snapshot.evaluations[0].observed, 1.05);
   assert.equal(vision.calls, 1, "no new Vision call after a correction");
+  assert.equal(inference.roleCalls.REGULATION, selectionCalls, "dimension-only correction reuses the registry proposal");
+  assert.equal(inference.roleCalls.GEOMETRY, controllerCalls, "stored geometry requires no controller call");
 
   const oldFindings = AnalysisSnapshotSchema.parse((await call(app.url, "GET", `/api/analyses/${first.sessionId}`)).body).findings;
   assert.ok(oldFindings.every((finding) => finding.stale));

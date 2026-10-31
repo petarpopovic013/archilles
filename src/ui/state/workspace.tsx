@@ -14,6 +14,7 @@ import type {
   Metric,
   Project,
   RuleEvaluation,
+  RuleRequirements,
   UpdateProjectRequest,
 } from "../../domain";
 import { unitForMetric } from "../../domain";
@@ -38,6 +39,8 @@ export interface WorkspaceValue {
   page: number;
   snapshot: AnalysisSnapshot | null;
   coverage: CoverageSummary | null;
+  /** Subtypes, measurements, and classifications the rule registry uses; null until loaded. */
+  requirements: RuleRequirements | null;
   activity: AgentEvent[];
   selection: Selection | null;
   selectedFinding: ComplianceFinding | null;
@@ -122,6 +125,7 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [snapshot, setSnapshot] = useState<AnalysisSnapshot | null>(null);
   const [coverage, setCoverage] = useState<CoverageSummary | null>(null);
+  const [requirements, setRequirements] = useState<RuleRequirements | null>(null);
   const [activity, setActivity] = useState<AgentEvent[]>([]);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [evidence, setEvidence] = useState<ReadonlyMap<string, Evidence>>(new Map());
@@ -129,6 +133,12 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   const [busy, setBusy] = useState<Busy | null>(null);
   const [error, setError] = useState<string | null>(null);
   const requested = useRef(new Set<string>());
+
+  useEffect(() => {
+    let cancelled = false;
+    client.getRuleRequirements().then((value) => { if (!cancelled) setRequirements(value); }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [client]);
 
   // Restore the last project after a reload; the server remains the source of truth.
   useEffect(() => {
@@ -249,6 +259,7 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
     page,
     snapshot,
     coverage,
+    requirements,
     activity,
     selection,
     selectedFinding: selection?.kind === "finding" ? snapshot?.findings.find((finding) => finding.id === selection.id) ?? null : null,

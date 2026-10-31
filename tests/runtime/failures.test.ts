@@ -48,13 +48,19 @@ test("a failed Review model call leaves template findings and a PARTIAL session,
   const { sessionId } = await startSession();
   const snapshot = await settled(sessionId);
   assert.equal(snapshot.session.status, "PARTIAL");
-  assert.equal(inference.calls, 1);
+  assert.equal(inference.roleCalls.REVIEW, 1);
   const review = listSessionRuns(app.ctx.db, sessionId).find((run) => run.role === "REVIEW")!;
   assert.equal(review.status, "FAILED");
   assert.equal(review.errorCode, "PROVIDER_UNAVAILABLE");
   assert.equal(snapshot.findings[0].status, "UNKNOWN");
   assert.match(snapshot.findings[0].explanation, /cannot be decided/);
   assert.ok(listSessionEvents(app.ctx.db, sessionId, 0).some((event) => event.type === "agent.run.failed"));
+
+  // The Regulation question call failed too: the architect still gets the template question.
+  const regulation = listSessionRuns(app.ctx.db, sessionId).find((run) => run.role === "REGULATION")!;
+  assert.equal(regulation.errorCode, "PROVIDER_UNAVAILABLE");
+  const question = listSessionEvents(app.ctx.db, sessionId, 0).find((event) => event.type === "regulation.input.required")!;
+  assert.equal((question.payload as { reason: string }).reason, "Koliko korisnika ima objekat?");
 });
 
 test("Vision being unavailable ends in a visible PARTIAL session that claims no checks", async () => {
@@ -63,7 +69,9 @@ test("Vision being unavailable ends in a visible PARTIAL session that claims no 
   const snapshot = await settled(sessionId);
   visionMode = "ok";
   assert.equal(snapshot.session.status, "PARTIAL");
-  const failed = listSessionEvents(app.ctx.db, sessionId, 0).find((event) => event.type === "agent.run.failed")!;
+  const geometryRun = listSessionRuns(app.ctx.db, sessionId).find((run) => run.role === "GEOMETRY")!;
+  const failed = listSessionEvents(app.ctx.db, sessionId, 0)
+    .find((event) => event.type === "agent.run.failed" && (event.payload as { agentRunId: string }).agentRunId === geometryRun.id)!;
   assert.deepEqual((failed.payload as { errorCode: string; retryable: boolean }), {
     agentRunId: (failed.payload as { agentRunId: string }).agentRunId, errorCode: "VISION_UNAVAILABLE", retryable: true,
   });
@@ -101,11 +109,13 @@ test("the budget cap blocks new AI calls before they are made", async () => {
   app.ctx.db.prepare("INSERT INTO agent_runs (id, session_id, role, status, estimated_cost_usd, data) VALUES (?, ?, 'GEOMETRY', 'COMPLETED', ?, '{}')")
     .run(randomUUID(), seed, config.aiBudgetUsd);
   const callsBefore = vision.calls;
+  const inferenceBefore = inference.calls;
 
   const { sessionId } = await startSession();
   const snapshot = await settled(sessionId);
   assert.ok(vision.calls - before >= 1);
   assert.equal(vision.calls, callsBefore, "no Vision call once the budget is spent");
+  assert.equal(inference.calls, inferenceBefore, "controller inference is also blocked before provider access");
   const geometry = listSessionRuns(app.ctx.db, sessionId).find((run) => run.role === "GEOMETRY")!;
   assert.equal(geometry.errorCode, "BUDGET_EXCEEDED");
   assert.equal(snapshot.session.status, "PARTIAL");

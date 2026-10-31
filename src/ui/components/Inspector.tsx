@@ -1,17 +1,42 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { ElementTypeSchema, type ArchitecturalElement, type ComplianceFinding, type ElementType, type Measurement, type Metric } from "../../domain";
+import { ElementTypeSchema, unitForMetric, type ArchitecturalElement, type ComplianceFinding, type ElementType, type Measurement, type Metric } from "../../domain";
 import { useWorkspace } from "../state/workspace";
 import { eventDetail, eventLabel, formatValue, metricLabel, requirementPrefix, statusLabel } from "../format";
 import { Button, Icon, Section, StatusBadge, SvgArrow, VerificationBadge, inputClass } from "./common";
 
-/** Subtypes a person can confirm. Only the registry decides which subtype a rule uses. */
-const subtypes: { value: string; label: string }[] = [
-  { value: "FIXED_FURNITURE_PASSAGE", label: "Passage between fixed furniture" },
-  { value: "OTHER", label: "Other" },
-];
-const WIDTH_TYPES = new Set<ElementType>(["CORRIDOR", "DOOR", "ENTRANCE", "EXIT", "RAMP", "STAIR", "OPENING"]);
+const lifecycleLabel = {
+  ACTIVE: "active check",
+  HUMAN_VERIFIED: "human verified, not yet active",
+  AI_REVIEWED: "AI reviewed, awaiting human verification",
+  CANDIDATE: "candidate, not executable",
+} as const;
+
+/** "Other" is a confirmed classification too: it makes subtype-scoped checks not applicable. */
+const OTHER_SUBTYPE = "OTHER";
+
+type Requirements = NonNullable<ReturnType<typeof useWorkspace>["requirements"]>;
+
+function rulesFor(requirements: Requirements | null, type: ElementType, subtype: string | undefined) {
+  if (!subtype) return [];
+  return requirements?.subtypes.find((entry) => entry.elementType === type && entry.subtype === subtype)?.rules ?? [];
+}
+
+/** Measurements to ask for. Candidate rules are not executable and their inputs are not defined yet. */
+function metricsFor(requirements: Requirements | null, type: ElementType, subtype: string | undefined): Metric[] {
+  return [...new Set(rulesFor(requirements, type, subtype).filter((rule) => rule.lifecycle !== "CANDIDATE").flatMap((rule) => rule.metrics))];
+}
+
+/** Ratios are entered and shown as percentages; the API always receives the 0.05-style ratio. */
+const isRatio = (metric: Metric) => unitForMetric(metric) === "ratio";
+const inputUnit = (metric: Metric) => (isRatio(metric) ? "%" : unitForMetric(metric) === "m" ? "m" : "");
+const toInput = (metric: Metric, value: number) => String(isRatio(metric) ? Math.round(value * 100 * 1000) / 1000 : value);
+const fromInput = (metric: Metric, text: string) => {
+  const value = Number(text);
+  if (text.trim() === "" || !Number.isFinite(value) || value < 0) return undefined;
+  return isRatio(metric) ? value / 100 : value;
+};
 
 export function Inspector() {
   const { selectedFinding, selectedElement } = useWorkspace();
@@ -109,13 +134,16 @@ function currentMeasurements(measurements: Measurement[], elementId: string): Me
 }
 
 function ElementDetail({ element }: { element: ArchitecturalElement }) {
-  const { snapshot, confirmElement, busy } = useWorkspace();
+  const { snapshot, confirmElement, busy, requirements } = useWorkspace();
   const [type, setType] = useState<ElementType>(element.type);
   const [subtype, setSubtype] = useState(element.subtype ?? "");
   const measurements = useMemo(() => currentMeasurements(snapshot?.measurements ?? [], element.id), [snapshot, element.id]);
   const suggested = element.extraction === "AI_SUGGESTED";
   const changed = type !== element.type || subtype !== (element.subtype ?? "");
-  const missingWidth = WIDTH_TYPES.has(element.type) && !measurements.some((item) => item.metric === "CLEAR_WIDTH_M");
+  const options = requirements?.subtypes.filter((entry) => entry.elementType === type) ?? [];
+  const unlocked = rulesFor(requirements, type, subtype || undefined);
+  const required = metricsFor(requirements, element.type, element.subtype);
+  const missing = required.filter((metric) => !measurements.some((item) => item.metric === metric));
 
   const confirm = (event: FormEvent) => {
     event.preventDefault();
@@ -132,25 +160,39 @@ function ElementDetail({ element }: { element: ArchitecturalElement }) {
         <span className={`text-[11px] ${suggested ? "text-amber-300" : "text-emerald-300"}`}>{suggested ? "AI suggestion" : "Confirmed"}</span>
       </div>
       <form onSubmit={confirm} className="space-y-2 rounded border border-slate-800 bg-slate-950/40 p-2">
-        <div className="grid grid-cols-2 gap-2">
-          <label className="block space-y-1 text-[11px] text-slate-300">
-            <span>Type</span>
-            <select value={type} onChange={(e) => setType(e.target.value as ElementType)} className={inputClass}>
-              {ElementTypeSchema.options.map((option) => <option key={option} value={option}>{option}</option>)}
-            </select>
-          </label>
-          <label className="block space-y-1 text-[11px] text-slate-300">
-            <span>Subtype</span>
-            <select value={subtype} onChange={(e) => setSubtype(e.target.value)} className={inputClass}>
-              <option value="">No subtype</option>
-              {subtypes.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-              {element.subtype && !subtypes.some((option) => option.value === element.subtype) && (
-                <option value={element.subtype}>{element.subtype}</option>
-              )}
-            </select>
-          </label>
-        </div>
-        <p className="text-[11px] text-slate-500">Classification determines which rules apply and must be confirmed by a person.</p>
+        <label className="block space-y-1 text-[11px] text-slate-300">
+          <span>Type</span>
+          <select value={type} onChange={(e) => { setType(e.target.value as ElementType); setSubtype(""); }} className={inputClass}>
+            {ElementTypeSchema.options.map((option) => <option key={option} value={option}>{option}</option>)}
+          </select>
+        </label>
+        <label className="block space-y-1 text-[11px] text-slate-300">
+          <span>Review category (subtype)</span>
+          <select value={subtype} onChange={(e) => setSubtype(e.target.value)} className={inputClass}>
+            <option value="">Not specified</option>
+            {options.map((entry) => (
+              <option key={entry.subtype} value={entry.subtype}>
+                {entry.rules[0].title}{entry.rules.length > 1 ? ` (+${entry.rules.length - 1})` : ""}
+              </option>
+            ))}
+            <option value={OTHER_SUBTYPE}>None of the above</option>
+            {subtype && subtype !== OTHER_SUBTYPE && !options.some((entry) => entry.subtype === subtype) && (
+              <option value={subtype}>{subtype}</option>
+            )}
+          </select>
+        </label>
+        {unlocked.length > 0 && (
+          <ul className="space-y-1 text-[11px]">
+            {unlocked.map((rule) => (
+              <li key={rule.ruleId} className="text-slate-300">
+                {rule.title}
+                <span className={`block ${rule.lifecycle === "ACTIVE" ? "text-emerald-300" : "text-slate-500"}`}>{lifecycleLabel[rule.lifecycle]}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {subtype && <div className="font-mono text-[10px] text-slate-500">{subtype}</div>}
+        <p className="text-[11px] text-slate-500">The category determines which rules apply and must be confirmed by a person.</p>
         <Button type="submit" variant={suggested || changed ? "primary" : "secondary"} disabled={busy !== null || (!suggested && !changed)} className="w-full">
           {changed ? "Save classification" : suggested ? "Confirm classification" : "Classification confirmed"}
         </Button>
@@ -158,24 +200,30 @@ function ElementDetail({ element }: { element: ArchitecturalElement }) {
 
       <div className="space-y-1.5">
         <div className="text-[10px] uppercase text-slate-500">Measurements</div>
-        {measurements.map((measurement) => <MeasurementRow key={measurement.id} elementId={element.id} measurement={measurement} />)}
-        {missingWidth && <MeasurementRow elementId={element.id} metric="CLEAR_WIDTH_M" />}
-        {measurements.length === 0 && !missingWidth && <p className="text-[11px] text-slate-500">No measurements for this element.</p>}
+        {measurements.map((measurement) => (
+          <MeasurementRow key={measurement.id} elementId={element.id} metric={measurement.metric} measurement={measurement} />
+        ))}
+        {missing.map((metric) => <MeasurementRow key={metric} elementId={element.id} metric={metric} />)}
+        {measurements.length === 0 && missing.length === 0 && (
+          <p className="text-[11px] text-slate-500">
+            {element.subtype ? "No measurements are required for this category." : "Confirm the category to see which measurements the checks require."}
+          </p>
+        )}
       </div>
     </Section>
   );
 }
 
-function MeasurementRow({ elementId, measurement, metric = measurement!.metric }: { elementId: string; measurement?: Measurement; metric?: Metric }) {
+function MeasurementRow({ elementId, metric, measurement }: { elementId: string; metric: Metric; measurement?: Measurement }) {
   const { confirmMeasurement, busy } = useWorkspace();
-  const [value, setValue] = useState(measurement ? String(measurement.value) : "");
+  const [value, setValue] = useState(measurement ? toInput(metric, measurement.value) : "");
   const confirmed = measurement && measurement.verification !== "UNVERIFIED";
-  const unit = measurement?.unit ?? "m";
+  const unit = inputUnit(metric);
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    const parsed = Number(value);
-    if (Number.isFinite(parsed) && parsed >= 0) void confirmMeasurement(elementId, metric, parsed);
+    const parsed = fromInput(metric, value);
+    if (parsed !== undefined) void confirmMeasurement(elementId, metric, parsed);
   };
 
   return (
@@ -187,42 +235,66 @@ function MeasurementRow({ elementId, measurement, metric = measurement!.metric }
           : <span className="text-amber-300">no data</span>}
       </div>
       {measurement && <VerificationBadge verification={measurement.verification} source={measurement.source} />}
-      {measurement?.originalUnit && measurement.originalValue !== undefined && measurement.originalUnit !== unit && (
+      {measurement?.originalUnit && measurement.originalValue !== undefined && measurement.originalUnit !== measurement.unit && (
         <div className="text-[10px] text-slate-500">On the drawing: {measurement.originalValue} {measurement.originalUnit}</div>
       )}
       <div className="flex gap-1.5">
-        <label className="sr-only" htmlFor={`m-${elementId}-${metric}`}>{metricLabel[metric]} ({unit})</label>
-        <input id={`m-${elementId}-${metric}`} type="number" min={0} step="0.01" value={value} onChange={(e) => setValue(e.target.value)}
+        <label className="sr-only" htmlFor={`m-${elementId}-${metric}`}>{metricLabel[metric]}{unit && ` (${unit})`}</label>
+        <input id={`m-${elementId}-${metric}`} type="number" min={0} step="any" value={value} onChange={(e) => setValue(e.target.value)}
           placeholder={unit} className={inputClass} />
-        <Button type="submit" variant={confirmed ? "secondary" : "primary"} disabled={busy !== null || value === ""}>
+        <Button type="submit" variant={confirmed ? "secondary" : "primary"} disabled={busy !== null || fromInput(metric, value) === undefined}>
           {!measurement ? "Enter" : confirmed ? "Correct" : "Confirm"}
         </Button>
       </div>
+      {isRatio(metric) && <p className="text-[10px] text-slate-500">Enter slope as a percentage: 5 % is a ratio of 0.05.</p>}
       {!confirmed && <p className="text-[10px] text-slate-500">Check the dimension against the drawing. Only confirmed measurements can produce a pass or fail.</p>}
     </form>
   );
 }
 
 function RecheckForm({ element }: { element: ArchitecturalElement }) {
-  const { recheck, recheckResult, busy, snapshot } = useWorkspace();
+  const { recheck, recheckResult, busy, snapshot, requirements } = useWorkspace();
+  const metrics = useMemo(() => [...new Set<Metric>([
+    ...metricsFor(requirements, element.type, element.subtype),
+    ...currentMeasurements(snapshot?.measurements ?? [], element.id).map((item) => item.metric),
+  ])], [requirements, element, snapshot]);
+  const [chosen, setChosen] = useState<Metric | "">("");
+  const metric = chosen && metrics.includes(chosen) ? chosen : metrics[0];
   const [value, setValue] = useState("");
-  const metric: Metric = "CLEAR_WIDTH_M";
   const result = recheckResult?.elementId === element.id ? recheckResult : null;
   const titles = new Map(snapshot?.findings.map((finding) => [finding.ruleId, finding.title]) ?? []);
 
+  if (!metric) {
+    return (
+      <Section title="Hypothetical check (Fix & Recheck)">
+        <p className="text-[11px] text-slate-500">There are no measurements to recheck for this element.</p>
+      </Section>
+    );
+  }
+
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    const parsed = Number(value);
-    if (Number.isFinite(parsed) && parsed >= 0) void recheck(element.id, metric, parsed);
+    const parsed = fromInput(metric, value);
+    if (parsed !== undefined) void recheck(element.id, metric, parsed);
   };
 
   return (
     <Section title="Hypothetical check (Fix & Recheck)">
-      <form onSubmit={submit} className="flex gap-1.5">
-        <label className="sr-only" htmlFor={`recheck-${element.id}`}>Proposed {metricLabel[metric].toLowerCase()} in metres</label>
-        <input id={`recheck-${element.id}`} type="number" min={0} step="0.01" value={value} onChange={(e) => setValue(e.target.value)}
-          placeholder={`${metricLabel[metric]} (m)`} className={inputClass} />
-        <Button type="submit" disabled={busy !== null || value === ""}>Check</Button>
+      <form onSubmit={submit} className="space-y-1.5">
+        {metrics.length > 1 && (
+          <label className="block space-y-1 text-[11px] text-slate-300">
+            <span>Measurement</span>
+            <select value={metric} onChange={(e) => { setChosen(e.target.value as Metric); setValue(""); }} className={inputClass}>
+              {metrics.map((option) => <option key={option} value={option}>{metricLabel[option]}</option>)}
+            </select>
+          </label>
+        )}
+        <div className="flex gap-1.5">
+          <label className="sr-only" htmlFor={`recheck-${element.id}`}>Proposed value: {metricLabel[metric]}{inputUnit(metric) && ` (${inputUnit(metric)})`}</label>
+          <input id={`recheck-${element.id}`} type="number" min={0} step="any" value={value} onChange={(e) => setValue(e.target.value)}
+            placeholder={`${metricLabel[metric]}${inputUnit(metric) && ` (${inputUnit(metric)})`}`} className={inputClass} />
+          <Button type="submit" disabled={busy !== null || fromInput(metric, value) === undefined}>Check</Button>
+        </div>
       </form>
       <p className="text-[11px] text-slate-500">Recalculates dependent rules without an AI call or changes to the drawing or measurements.</p>
       {result && (
@@ -239,7 +311,7 @@ function RecheckForm({ element }: { element: ArchitecturalElement }) {
                     {before && <StatusBadge status={before.status} />}
                     <SvgArrow className="h-3.5 w-3.5 text-slate-400" />
                     <StatusBadge status={after.status} />
-                    <span className="ml-auto font-mono text-slate-400">{formatValue(result.proposedValue, "m")}</span>
+                    <span className="ml-auto font-mono text-slate-400">{formatValue(result.proposedValue, unitForMetric(result.metric))}</span>
                   </div>
                   <span className="sr-only">Before: {before ? statusLabel[before.status] : "unknown"}, after: {statusLabel[after.status]}</span>
                 </li>

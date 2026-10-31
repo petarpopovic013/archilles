@@ -165,4 +165,21 @@ export const migrations: readonly string[] = [
     PRIMARY KEY (element_id, revision)
   );
   `,
+  `
+  -- Allowlisted loop diagnostics only: no model context, tool arguments, or raw answers.
+  CREATE TABLE agent_loop_events (
+    sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id TEXT NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,
+    loop_id TEXT NOT NULL,
+    type TEXT NOT NULL,
+    occurred_at TEXT NOT NULL
+  );
+  CREATE INDEX loop_events_run ON agent_loop_events(run_id, sequence);
+  CREATE TABLE regulation_selection_cache (
+    fingerprint TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    data TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  `,
 ];

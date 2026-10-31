@@ -26,8 +26,8 @@ export const sourceLabel: Record<MeasurementSource, string> = {
 export const metricLabel: Record<Metric, string> = {
   CLEAR_WIDTH_M: "Clear width",
   HEIGHT_M: "Height",
-  RISE_M: "Riser height",
-  RUN_M: "Tread depth",
+  RISE_M: "Riser or threshold height",
+  RUN_M: "Depth (tread, landing, vestibule)",
   ROUTE_LENGTH_M: "Route length",
   FLOOR_COUNT: "Floor count",
   OCCUPANT_COUNT: "Occupant count",
@@ -86,7 +86,7 @@ export function eventDetail(event: AgentEvent): string | undefined {
       return Object.entries(payload.statusCounts as Record<EvaluationStatus, number>)
         .map(([status, count]) => `${statusLabel[status as EvaluationStatus]}: ${count}`).join(", ") || "no checks";
     case "regulation.input.required":
-      return String(payload.field);
+      return String(payload.reason);
     case "geometry.measurement.missing":
       return metricLabel[payload.metric as Metric] ?? String(payload.metric);
     case "agent.run.failed":

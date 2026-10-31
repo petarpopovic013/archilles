@@ -125,7 +125,14 @@ function patchOf(project: Project, draft: Draft): UpdateProjectRequest["patch"] 
 }
 
 function ProjectSummary({ project }: { project: Project }) {
-  const { updateProject, resetWorkspace, busy } = useWorkspace();
+  const { updateProject, resetWorkspace, busy, requirements, activity } = useWorkspace();
+  // Latest question per missing fact, phrased by the Regulation agent.
+  const questions = [...new Map(activity
+    .filter((event) => event.type === "regulation.input.required")
+    .map((event) => {
+      const payload = event.payload as { field: string; reason: string };
+      return [payload.field, payload.reason] as const;
+    })).entries()];
   const [draft, setDraft] = useState<Draft | null>(null);
   const editing = draft !== null;
 
@@ -145,8 +152,18 @@ function ProjectSummary({ project }: { project: Project }) {
         <dt>Phase</dt><dd className="text-slate-200">{phases[project.phase]}</dd>
         <dt>New build</dt>
         <dd className="text-slate-200">{project.characteristics.isNewBuild === undefined ? "unknown" : project.characteristics.isNewBuild ? "yes" : "no"}</dd>
+        <dt>Classification</dt><dd className="text-slate-200">{project.classification ?? "unknown"}</dd>
+        <dt>Building height</dt><dd className="text-slate-200">{project.buildingHeightM !== undefined ? `${project.buildingHeightM} m` : "unknown"}</dd>
         <dt>Occupant count</dt><dd className="text-slate-200">{project.occupantCount ?? "unknown"}</dd>
       </dl>
+      {questions.length > 0 && (
+        <div className="space-y-1 rounded border border-amber-800 bg-amber-950/30 p-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Required information</div>
+          <ul className="space-y-1">
+            {questions.map(([field, question]) => <li key={field} className="text-[11px] leading-snug text-amber-100">{question}</li>)}
+          </ul>
+        </div>
+      )}
       {!editing ? (
         <Button onClick={() => setDraft(draftOf(project))} disabled={busy !== null} className="w-full">Edit project details</Button>
       ) : (
@@ -158,8 +175,14 @@ function ProjectSummary({ project }: { project: Project }) {
             </select>
           </label>
           <label className="block space-y-1 text-xs text-slate-300">
-            <span>Classification</span>
-            <input value={draft.classification} maxLength={120} onChange={(e) => setDraft({ ...draft, classification: e.target.value })} className={inputClass} />
+            <span>Building classification</span>
+            <select value={draft.classification} onChange={(e) => setDraft({ ...draft, classification: e.target.value })} className={inputClass}>
+              <option value="">Unknown</option>
+              {[...new Set([...(requirements?.classifications ?? []), ...(draft.classification ? [draft.classification] : [])])].map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+            <span className="block text-[10px] text-slate-500">Values used by the rule registry; leave unknown unless confirmed.</span>
           </label>
           <div className="grid grid-cols-3 gap-2">
             {([["buildingHeightM", "Height (m)", "0.01"], ["floorCount", "Floors", "1"], ["occupantCount", "Occupants", "1"]] as const).map(([key, label, step]) => (

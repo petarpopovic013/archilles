@@ -274,6 +274,19 @@ export function insertReviewAction(db: Db, action: ReviewAction): void {
     .run(valid.id, valid.projectId, valid.baseRevision, json(valid));
 }
 
+/** The question already phrased for a missing fact in this project, so it is not asked of a model twice. */
+export function previousQuestion(db: Db, projectId: string, field: string): string | undefined {
+  return db.prepare(`
+    SELECT json_extract(p.data, '$.question') FROM pending_inputs p JOIN sessions s ON s.id = p.session_id
+    WHERE s.project_id = ? AND json_extract(p.data, '$.field') = ? AND json_extract(p.data, '$.question') IS NOT NULL
+    ORDER BY p.rowid DESC LIMIT 1
+  `).pluck().get(projectId, field) as string | undefined;
+}
+
+export function recordQuestion(db: Db, key: string, question: string): void {
+  db.prepare("UPDATE pending_inputs SET data = json_set(data, '$.question', ?) WHERE input_key = ?").run(question, key);
+}
+
 /** Claims a clarification key once per revision; returns false when it was already requested. */
 export function claimPendingInput(db: Db, key: string, sessionId: string, revision: number, data: unknown): boolean {
   return db.prepare("INSERT OR IGNORE INTO pending_inputs (input_key, session_id, project_revision, data) VALUES (?, ?, ?, ?)")
