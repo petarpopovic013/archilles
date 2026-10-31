@@ -34,10 +34,10 @@ test("geometry bounds and SVG paths use source pixels", () => {
 });
 
 test("requirements read as at-least or at-most from the engine reason, never from the numbers", () => {
-  assert.equal(requirementPrefix({ reasonCode: "BELOW_MINIMUM" }), "najmanje ");
-  assert.equal(requirementPrefix({ reasonCode: "MAX_SATISFIED" }), "najviše ");
+  assert.equal(requirementPrefix({ reasonCode: "BELOW_MINIMUM" }), "at least ");
+  assert.equal(requirementPrefix({ reasonCode: "MAX_SATISFIED" }), "at most ");
   assert.equal(requirementPrefix({ reasonCode: "BOOL_MATCH" }), "");
-  assert.equal(formatValue(1.05, "m"), "1,05 m");
+  assert.equal(formatValue(1.05, "m"), "1.05 m");
   assert.equal(formatValue(0.05, "ratio"), "5 %");
-  assert.equal(formatValue(undefined, "m"), "nije utvrđeno");
+  assert.equal(formatValue(undefined, "m"), "not established");
 });
