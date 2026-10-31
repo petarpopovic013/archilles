@@ -59,7 +59,8 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
     const request = ctx.db.prepare("SELECT project_revision FROM geometry_requests WHERE floor_id=?").pluck().get(state.floorId) as number | undefined;
     const completed = geometryReport(ctx.db, state.floorId, state.projectRevision);
     const pendingRefresh = request === state.projectRevision && !ctx.db.prepare("SELECT 1 FROM geometry_reports WHERE floor_id=? AND project_revision=?").get(state.floorId, state.projectRevision);
-    const reuse = !pendingRefresh && (hasObservations(ctx.db, state.floorId) || completed?.stage !== undefined && completed.stage !== "AWAITING_CONFIRMATION" || !!ctx.db.prepare("SELECT 1 FROM elements WHERE floor_id=? LIMIT 1").get(state.floorId) || inFlight.has(state.floorId));
+    const continuingOverview = completed?.stage === "AWAITING_CONFIRMATION";
+    const reuse = !pendingRefresh && !continuingOverview && (hasObservations(ctx.db, state.floorId) || completed?.stage !== undefined || !!ctx.db.prepare("SELECT 1 FROM elements WHERE floor_id=? LIMIT 1").get(state.floorId) || inFlight.has(state.floorId));
     const run = startRun(ctx, sessionId, agent.getId(), "GEOMETRY", reuse ? undefined : ctx.config.visionModel);
     const cacheKey = reuse
       ? `stored:${state.floorId}`
@@ -118,7 +119,16 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
                 return { elementCount: extracted.elements.length, elementTypes: [...new Set(extracted.elements.map(element => element.type))], measurementCount: extracted.measurements.length, missingInputCount: extracted.missingInputs.length };
               },
             });
-            if (controller.error) throw controller.error;
+            if (controller.error) {
+              // A provider failure in the final acknowledgement must not discard
+              // validated work already returned by the scoped extraction tool.
+              // Scope, tool-limit and stale-revision errors still reject the run.
+              if (!extracted || !controller.error.code.startsWith("PROVIDER_")) throw controller.error;
+              state.failed = true;
+              const warning = `Drawing geometry was saved, but the controller acknowledgement failed (${controller.error.code}).`;
+              extracted.warnings = [warning, ...extracted.warnings].slice(0, 30);
+              if (extracted.report) extracted.report.warnings = [warning, ...extracted.report.warnings].slice(0, 100);
+            }
             if (!extracted) throw new GeometryError("AGENT_TOOL_REQUIRED");
             return extracted;
           })().then((extraction) => {
@@ -129,7 +139,7 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
               const confirmed = floorView(ctx.db, state.floorId, state.projectRevision).elements.filter(e => e.extraction !== "AI_SUGGESTED");
               const accepted = extraction.elements.filter(e => !confirmed.some(c => (c.type === e.type || ["DOOR","ENTRANCE","EXIT","OPENING"].includes(c.type) && ["DOOR","ENTRANCE","EXIT","OPENING"].includes(e.type)) && iou(c.geometry,e.geometry) > .3));
               const ids = new Set(accepted.map(e=>e.id));
-              if (!hasObservations(ctx.db, state.floorId) || pendingRefresh) insertObservations(ctx.db, {elements:accepted, measurements:extraction.measurements.filter(m=>ids.has(m.elementId)), evidence:extraction.evidence});
+              if (!hasObservations(ctx.db, state.floorId) || pendingRefresh || continuingOverview) insertObservations(ctx.db, {elements:accepted, measurements:extraction.measurements.filter(m=>ids.has(m.elementId)), evidence:extraction.evidence});
               if (extraction.report) {
                 const remap=new Map(extraction.elements.filter(e=>!ids.has(e.id)).flatMap(e=>{const c=confirmed.find(c=>(c.type===e.type || ["DOOR","ENTRANCE","EXIT","OPENING"].includes(c.type)&&["DOOR","ENTRANCE","EXIT","OPENING"].includes(e.type))&&iou(c.geometry,e.geometry)>.3);return c?[[e.id,c.id] as const]:[];}));
                 for(const issue of extraction.report.issues)issue.elementIds=[...new Set(issue.elementIds.map(id=>remap.get(id)??id))];
@@ -164,6 +174,7 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
         : 0;
       finishRun(ctx, run.id, {
         status: "COMPLETED",
+        ...(controller?.error ? { errorCode: controller.error.code } : {}),
         ...(usage || controller ? { inputTokens: (usage?.inputTokens ?? 0) + (controller?.inputTokens ?? 0), outputTokens: (usage?.outputTokens ?? 0) + (controller?.outputTokens ?? 0) } : {}),
         estimatedCostUsd: cost + (controller?.estimatedCostUsd ?? 0),
       });

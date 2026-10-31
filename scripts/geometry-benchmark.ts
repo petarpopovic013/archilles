@@ -36,8 +36,13 @@ async function main(){
     const form=new FormData();form.append('file',new Blob([await readFile(plan)],{type:mime}),path.basename(plan));form.append('baseRevision','1');form.append('selectedPage',String(page));
     const r=await fetch(`${app.url}/api/projects/${project.id}/drawings`,{method:'POST',body:form});const {drawing}=UploadDrawingResponseSchema.parse(await r.json());
     const started=await json('POST',`/api/projects/${project.id}/analyses`,{projectRevision:2,drawingId:drawing.id,page});
-    const result=await settle(started.sessionId);
-    const runs=listSessionRuns(app.ctx.db,started.sessionId);
+    const overview=await settle(started.sessionId);
+    console.log(JSON.stringify({phase:'overview',status:overview.session.status,stage:overview.geometry?.stage,calls:overview.geometry?.calls}));
+    if(overview.geometry?.stage!=='AWAITING_CONFIRMATION'){const runs=listSessionRuns(app.ctx.db,started.sessionId);await writeFile(path.join(out,'failed-overview.json'),JSON.stringify({overview,runs},null,2),{mode:0o600});throw new Error(`OVERVIEW_FAILED:${runs.filter(r=>r.errorCode).map(r=>r.errorCode).join(',')}`);}
+    // Test-only acknowledgement of drawing conventions. Units remain unknown, no dimension approved.
+    const next=await json('PATCH',`/api/drawings/${drawing.id}/pages/${page}/geometry`,{baseRevision:2,unit:null,legendConfirmed:true,confirmedLegendIds:[]});
+    const result=await settle(next.sessionId);
+    const runs=[...listSessionRuns(app.ctx.db,started.sessionId),...listSessionRuns(app.ctx.db,next.sessionId)];
     const report=result.geometry;
     if(!report)throw new Error('GEOMETRY_REPORT_MISSING');
     await writeFile(path.join(out,'stages.json'),JSON.stringify(app.ctx.db.prepare('SELECT cache_key,data FROM geometry_stage_cache ORDER BY rowid').all().map(r=>{const row=r as {cache_key:string;data:string};return {key:row.cache_key,data:JSON.parse(row.data)};}),null,2),{mode:0o600});
@@ -52,6 +57,10 @@ async function main(){
     const reference=arg('--reference');
     if(reference){const expected=JSON.parse(await readFile(reference,'utf8')) as {provenance:string;rooms:Array<{label:string;geometry:typeof result.elements[number]['geometry']}>};metrics={provenance:expected.provenance,rooms:expected.rooms.map(e=>{const matches=result.elements.filter(a=>a.type==='ROOM'||a.type==='CORRIDOR').map(a=>({label:a.label,iou:iou(e.geometry,a.geometry)})).sort((a,b)=>b.iou-a.iou);return {reference:e.label,best:matches[0]??null};})};await writeFile(path.join(out,'metrics.json'),JSON.stringify(metrics,null,2),{mode:0o600});}
     console.log(JSON.stringify({phase:'result',directory:out,status:result.session.status,stage:report.stage,elements:result.elements.map((e,i)=>({number:i+1,type:e.type,label:e.label})),issues:report.issues.map(i=>i.code),calls:report.calls,costUsd:runs.reduce((n,r)=>n+(r.estimatedCostUsd??0),0),metrics}));
+    if(report.stage==='AWAITING_CONFIRMATION'||!report.regions.length||!report.regions.every(r=>r.processed)){
+      const failed=runs.find(r=>r.role==='GEOMETRY'&&r.status==='FAILED');
+      throw new Error(`DETAIL_READING_INCOMPLETE:${failed?.errorCode??report.stage}`);
+    }
   }finally{await app.close();await rm(dataDir,{recursive:true,force:true});}
 }
 main().catch((error:unknown)=>{console.error(error instanceof Error?error.message:'BENCHMARK_FAILED');process.exitCode=1;});

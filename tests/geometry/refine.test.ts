@@ -31,6 +31,19 @@ test('wall mask keeps thick dark and grey fills and drops thin strokes', () => {
   assert.equal(mask[145 * 400 + 200], 0, 'door gap');
 });
 
+test('dense overlapping hatch hypotheses stay bounded by the raster size', () => {
+  // At this resolution the old repeated-index array would require billions of
+  // entries for solid wall bands, even though there are only 3.35 million pixels.
+  const width=1800,height=1863,data=new Uint8Array(width*height).fill(255);
+  for(let y=30;y<130;y++)data.fill(0,y*width+30,y*width+1770);
+  for(let y=300;y<1800;y++)data.fill(110,y*width+50,y*width+150);
+  const mask=wallMask({data,width,height},undefined,true);
+  assert.equal(mask.length,width*height);
+  assert.equal(mask[80*width+900],1,'horizontal solid wall retained');
+  assert.equal(mask[1000*width+100],1,'vertical grey wall retained');
+  assert.equal(mask[200*width+900],0,'open floor remains open');
+});
+
 test('room sides move onto the inner faces of nearby walls, not furniture lines', () => {
   const output = refineGeometry({ elements: [element('a', 'ROOM', box(30, 25, 150, 240))], warnings: [] }, plan());
   assert.deepEqual(output.elements[0].geometry, box(12, 12, 182, 276));

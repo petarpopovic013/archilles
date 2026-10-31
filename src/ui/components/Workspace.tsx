@@ -17,7 +17,9 @@ function WorkspaceContent() {
   const { selection,planAction,snapshot } = useWorkspace();
   const [panel, setPanel] = useState<"project" | "plan" | "details">("plan");
   const [viewedSelection, setViewedSelection] = useState(selection);
-  const activePanel = (planAction || snapshot?.questions?.some(q=>q.automatic&&q.status==='PENDING')) ? "plan" : selection && selection !== viewedSelection ? "details" : panel;
+  const [viewedGeometrySession, setViewedGeometrySession] = useState<string|null>(null);
+  const awaitingGeometry = snapshot?.geometry?.stage === 'AWAITING_CONFIRMATION';
+  const activePanel = awaitingGeometry && viewedGeometrySession !== snapshot.session.id ? "project" : (planAction || snapshot?.questions?.some(q=>q.automatic&&q.status==='PENDING')) ? "plan" : selection && selection !== viewedSelection ? "details" : panel;
   if (!reviewing) return <LandingPage onOpenWorkspace={() => { setReviewing(true); window.scrollTo(0,0); }} />;
   return (
     <div className="review-workspace flex h-dvh flex-col overflow-hidden bg-slate-950 text-slate-100">
@@ -26,7 +28,7 @@ function WorkspaceContent() {
       <nav className="workspace-navigation" aria-label="Workspace views">
         {([["project", "Project & results"], ["plan", "Floor plan"], ["details", "Details & activity"]] as const).map(([id, label]) => (
           <button key={id} type="button" aria-pressed={activePanel === id} aria-controls={`workspace-${id}`}
-            onClick={() => { setPanel(id); setViewedSelection(selection); }}>{label}</button>
+            onClick={() => { setPanel(id); setViewedSelection(selection); setViewedGeometrySession(snapshot?.session.id??null); }}>{label}</button>
         ))}
       </nav>
       <div className="workspace-panels flex min-h-0 flex-1" data-active-panel={activePanel}>

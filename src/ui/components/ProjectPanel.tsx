@@ -1,5 +1,6 @@
 "use client";
 
+import { GeometryPanel } from "./GeometryPanel";
 import {FindingsSummary} from "./FindingsSummary";
 import {assessFindings} from "../../review/assessment";
 import { useState, type FormEvent } from "react";
@@ -27,6 +28,7 @@ export function ProjectPanel() {
         <>
           <ProjectSummary project={project} />
           <DrawingSection />
+          <GeometryPanel />
 
           <ResultsTabs />
         </>
@@ -280,6 +282,7 @@ function FindingsList() {
   const {snapshot,selection,select,setPlanAction,busy,analysisOutdated}=useWorkspace();
   const [showSummary,setShowSummary]=useState(false);
   if(!snapshot)return <Empty text="Run an analysis to see findings."/>;
+  if(snapshot.geometry?.stage==='AWAITING_CONFIRMATION')return <Empty text="Check the drawing conventions above, then continue detailed geometry reading."/>;
   const review=snapshot.assessment??assessFindings({status:snapshot.session.status,findings:snapshot.findings,evaluations:snapshot.evaluations,elements:snapshot.elements,questions:snapshot.questions??[]});
   if(review.phase==='ANALYSING')return <Empty text="Reading the drawing and preparing your findings…"/>;
   if(review.phase==='SETUP'){

@@ -230,3 +230,9 @@ DrawingSettings optionally records conventionsSource (AI/USER) and unitSource (D
 
 ### Findings readiness projection (ADR-15)
 `FindingsAssessment` is defined in src/domain/assessment.ts and derived from the current persisted session/evaluations/findings, identified elements and review questions. It references original finding IDs and retains GOOD/FAIL display results, estimated flags, up to five unresolved dependency groups and explicit exclusions. Existing canonical evaluation statuses remain unchanged. Summary counts and rating exist only for a nonempty, ready assessed set and exclude unperformed/not-applicable/stale checks. A review scope answer may record ReviewQuestion.resolution SELECTED or NOT_PRESENT without presenting it as verified physical evidence. A new migration repairs already-versioned databases missing review_rounds.
+
+
+### Geometry recovery records (ADR-16)
+No schema migration or status changes. A new `geometry-reading-v7` report uses the existing AWAITING_CONFIRMATION checkpoint before detailed regions are processed. Confirmation records USER drawing conventions and unit selection without approving any measurement or legal subtype. New stage-cache identities isolate restored prompts/provider keys from automatic-review answers. Existing reports/elements/evidence are retained; only an explicit reread starts a replacement extraction. A continuation preserves human-created/confirmed geometry and persists compatible new AI suggestions rather than treating any existing element as a complete read.
+
+A COMPLETED Geometry AgentRun may retain errorCode for a failed final provider acknowledgement when its tool output was validated and persisted. Its analysis remains PARTIAL and GeometryReport.warnings retains the diagnostic; no measurement verification changes.

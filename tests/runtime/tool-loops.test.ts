@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { before, after, test } from 'node:test';
-import { FunctionCallItem, ModelMessageItem, UserMessageItem, type InferenceInput } from '@mozaik-ai/core';
+import { FunctionCallItem, FunctionCallOutputItem, ModelMessageItem, UserMessageItem, type InferenceInput } from '@mozaik-ai/core';
 import { AnalysisSnapshotSchema, ProjectSchema, StartAnalysisResponseSchema, UploadDrawingResponseSchema } from '../../src/domain';
 import { startRuntime, type RuntimeApp } from '../../runtime/app';
 import { listSessionRuns } from '../../runtime/db/repo';
@@ -13,7 +13,7 @@ import { call, removeDataDir, testConfig, waitFor } from './helpers';
 const config = testConfig({ aiBudgetUsd: 20 });
 const base = fakeInference();
 const vision = fakeVision(() => corridorPlan(1.05), 40);
-let mode: 'normal' | 'omit' | 'repeat' | 'cross' | 'unknown' | 'controller-fail' | 'forged-rules' | 'regulation-fail' | 'multiple' | 'malformed' | 'late-review' = 'normal';
+let mode: 'normal' | 'omit' | 'repeat' | 'cross' | 'unknown' | 'controller-fail' | 'acknowledgement-fail' | 'forged-rules' | 'regulation-fail' | 'multiple' | 'malformed' | 'late-review' = 'normal';
 let app: RuntimeApp;
 let reviewSeen = false;
 let reviewGate: Promise<void> = Promise.resolve();
@@ -24,6 +24,7 @@ const runner = {
     const data = JSON.parse(user.content.text) as { task?: string; batchId: string };
     if (data.task === 'GEOMETRY') {
       if (mode === 'controller-fail') throw new Error('PROVIDER_UNAVAILABLE');
+      if (mode === 'acknowledgement-fail' && input.context.getItems().some(item=>item instanceof FunctionCallOutputItem)) throw new Error('PROVIDER_DNS_FAILED');
       if (mode === 'omit') return { items: [ModelMessageItem.rehydrate({ text: '{"completed":true}' })], tokenUsage, rowResponse: {} };
       const tool = input.tools![0];
       if (['repeat', 'cross', 'unknown', 'multiple', 'malformed'].includes(mode)) {
@@ -109,6 +110,18 @@ test('a new revision waits for stale extraction and completes independently', as
   assert.ok(snapshot.elements.every(element => element.revision === 3));
   assert.equal(listSessionRuns(app.ctx.db, sessionId).find(run => run.role === 'GEOMETRY')!.errorCode, 'REVISION_SUPERSEDED');
   assert.equal(listSessionRuns(app.ctx.db, started.sessionId).find(run => run.role === 'GEOMETRY')!.status, 'COMPLETED');
+});
+
+test('a provider failure after successful extraction preserves paid geometry and its diagnostic',async()=>{
+  mode='acknowledgement-fail';const before=vision.calls;
+  const {snapshot,runs}=await run();
+  assert.equal(snapshot.session.status,'PARTIAL');
+  assert.ok(snapshot.elements.length>0,'a failed acknowledgement cannot discard validated tool output');
+  assert.ok(snapshot.evaluations.length>0,'saved geometry still reaches the deterministic engine');
+  assert.equal(vision.calls-before,1,'recovery does not buy another extraction');
+  const runRecord=runs.find(run=>run.role==='GEOMETRY')!;
+  assert.equal(runRecord.status,'COMPLETED');
+  assert.equal(runRecord.errorCode,'PROVIDER_DNS_FAILED');
 });
 
 for (const [scenario, expected, expectedVision] of [

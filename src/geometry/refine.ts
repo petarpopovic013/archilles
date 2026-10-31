@@ -36,7 +36,9 @@ export function wallMask({ data, width: w, height: h }: GrayRaster, k = Math.max
   // when BOTH ends meet an existing thick wall; empty furniture boxes do not establish walls.
   const minRun=Math.max(12,Math.round(Math.max(w,h)*.025));
   const anchored=(x:number,y:number)=>{for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const X=x+dx,Y=y+dy;if(X>=0&&Y>=0&&X<w&&Y<h&&mask[Y*w+X])return true;}return false;};
-  const additions:number[]=[];
+  // A pixel can be supported by many overlapping wall hypotheses. Store it once;
+  // an array of repeated indices can grow beyond the JS array limit on dense plans.
+  const additions=new Uint8Array(w*h);
   for(const vertical of [false,true]) {
     const alongLimit=vertical?h:w,acrossLimit=vertical?w:h;
     const lines=Array.from({length:acrossLimit},(_,a)=>runs(0,alongLimit,i=>data[vertical?i*w+a:a*w+i]<WALL_LUMINANCE).filter(r=>r.end-r.start+1>=minRun));
@@ -57,7 +59,7 @@ export function wallMask({ data, width: w, height: h }: GrayRaster, k = Math.max
         paired=lines[other].some(o=>Math.min(o.end,r.end)-Math.max(o.start,r.start)+1>Math.max(o.end-o.start+1,r.end-r.start+1)*.85);
       }
       if(!paired)continue; // A single dimension line crossing the room is not a window/wall.
-      for(let i=r.start;i<=r.end;i++)additions.push(vertical?i*w+a:a*w+i);
+      for(let i=r.start;i<=r.end;i++)additions[vertical?i*w+a:a*w+i]=1;
     }
   }
   // Dense hatching inside a narrow pair of wall faces can lack a solid erosion core.
@@ -67,6 +69,9 @@ export function wallMask({ data, width: w, height: h }: GrayRaster, k = Math.max
   const minBand=Math.max(4,Math.round(Math.max(w,h)*.004)),maxBand=Math.max(minBand+1,Math.round(Math.max(w,h)*.025));
   for(const vertical of [false,true]){
     const alongLimit=vertical?h:w,acrossLimit=vertical?w:h;
+    // Accumulate overlapping spans by their endpoints, then visit each pixel once.
+    // Expanding every accepted hatch band separately is quadratic in band overlap.
+    const intervalStride=alongLimit+1,intervals=new Int32Array(acrossLimit*intervalStride);
     const lines=Array.from({length:acrossLimit},(_,a)=>runs(0,alongLimit,i=>data[vertical?i*w+a:a*w+i]<WALL_LUMINANCE).filter(r=>r.end-r.start+1>=minRun));
     for(let a=0;a<acrossLimit;a++)for(const first of lines[a])for(let b=a+minBand;b<Math.min(acrossLimit,a+maxBand);b++){
       for(const second of lines[b]){
@@ -77,13 +82,23 @@ export function wallMask({ data, width: w, height: h }: GrayRaster, k = Math.max
           if(density(from,to)<.35)continue;
           let uniform=true;for(let part=0;part<4;part++){const low=Math.floor(from+part*minRun/4),high=Math.floor(from+(part+1)*minRun/4);if(density(low,high)<.2){uniform=false;break;}}
           if(!uniform)continue;
-          for(let ac=a;ac<=b;ac++)for(let al=from;al<to;al++)additions.push(vertical?al*w+ac:ac*w+al);
+          for(let ac=a;ac<=b;ac++){
+            intervals[ac*intervalStride+from]++;
+            intervals[ac*intervalStride+to]--;
+          }
         }
+      }
+    }
+    for(let ac=0;ac<acrossLimit;ac++){
+      let active=0;
+      for(let al=0;al<alongLimit;al++){
+        active+=intervals[ac*intervalStride+al];
+        if(active>0)additions[vertical?al*w+ac:ac*w+al]=1;
       }
     }
   }
   }
-  for(const i of additions)mask[i]=1;
+  for(let i=0;i<mask.length;i++)if(additions[i])mask[i]=1;
   dropSpecks(mask, w, h, (Math.max(w, h) * 0.008) ** 2);
   return mask;
 }

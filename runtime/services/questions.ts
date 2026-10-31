@@ -54,7 +54,7 @@ function round(ctx:RuntimeContext,session:AnalysisSession){
 }
 
 export function reviewQuestions(ctx:RuntimeContext,session:AnalysisSession,evaluations:RuleEvaluation[],elements:ArchitecturalElement[],rules:ComplianceRule[],report?:GeometryReport,measurements:Measurement[]=[]):ReviewQuestion[] {
-  if(session.status==='RUNNING'||session.status==='FAILED'||getProject(ctx.db,session.projectId).revision!==session.projectRevision)return [];
+  if(session.status==='RUNNING'||session.status==='FAILED'||report?.stage==='AWAITING_CONFIRMATION'||getProject(ctx.db,session.projectId).revision!==session.projectRevision)return [];
   const r=round(ctx,session);
   const candidates=questionCandidates(evaluations,elements,rules,report,measurements);
   return ctx.db.transaction(()=>{
