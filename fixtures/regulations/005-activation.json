@@ -1,0 +1,136 @@
+{
+  "task": "005",
+  "authorizedAt": "2026-10-31T08:20:30Z",
+  "authorizationChannel": "Explicit user instruction in this conversation",
+  "authorizationStatement": "copy all human rules to active",
+  "humanReviewRecord": "004-human-review.json",
+  "scope": "Previously HUMAN_VERIFIED rules only. Activation requires source provenance, evaluator support and passing numerical/applicability fixture tests. Rules without an implemented evaluator remain HUMAN_VERIFIED.",
+  "previousLifecycle": "HUMAN_VERIFIED",
+  "lifecycle": "ACTIVE",
+  "activatedRules": [
+    {
+      "ruleId": "00100000-0000-4000-8000-000000000010",
+      "ruleVersion": 2
+    },
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000011",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000012",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00200000-0000-4000-8000-000000000013",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000030",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000031",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000032",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000033",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000034",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000035",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000036",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000037",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000038",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000039",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000040",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00300000-0000-4000-8000-000000000041",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000060",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000061",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000062",
+      "ruleVersion": 1
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000063",
+      "ruleVersion": 1
+    }
+  ],
+  "blockedRules": [
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000064",
+      "ruleVersion": 1,
+      "reasonCode": "EVALUATOR_UNAVAILABLE",
+      "evaluatorId": "rs.plan.ramp-landing-rectangle",
+      "evaluatorVersion": "1"
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000065",
+      "ruleVersion": 1,
+      "reasonCode": "EVALUATOR_UNAVAILABLE",
+      "evaluatorId": "rs.plan.accessible-lift-cabin-rectangle",
+      "evaluatorVersion": "1"
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000066",
+      "ruleVersion": 1,
+      "reasonCode": "EVALUATOR_UNAVAILABLE",
+      "evaluatorId": "rs.plan.accessible-lift-approach-rectangle",
+      "evaluatorVersion": "1"
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000067",
+      "ruleVersion": 1,
+      "reasonCode": "EVALUATOR_UNAVAILABLE",
+      "evaluatorId": "rs.plan.wc-turning-circle",
+      "evaluatorVersion": "1"
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000068",
+      "ruleVersion": 1,
+      "reasonCode": "EVALUATOR_UNAVAILABLE",
+      "evaluatorId": "rs.plan.workspace-turning-circle",
+      "evaluatorVersion": "1"
+    },
+    {
+      "ruleId": "00400000-0000-4000-8000-000000000069",
+      "ruleVersion": 1,
+      "reasonCode": "EVALUATOR_UNAVAILABLE",
+      "evaluatorId": "rs.plan.manual-door-side-clearance",
+      "evaluatorVersion": "1"
+    }
+  ]
+}

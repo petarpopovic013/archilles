@@ -1,5 +1,7 @@
 pusu# 004 — Provere merljive iz 2D tlocrta
 
+> Historical handoff (30 October 2026). For the subsequent activation of 20 supported rules and six remaining evaluator blocks, see [005-activation.md](005-activation.md). The original human approval record is unchanged.
+
 ## Dogovoreni fokus
 
 Korisnik je pojasnio da želi merljive zahteve koji se mogu pročitati iz tlocrta, a ne sve odredbe niti sve fizičke veličine iz propisa. Ovaj paket zato odvaja horizontalnu geometriju, putanje i anotacije od visina, nagiba i podataka o celoj zgradi.

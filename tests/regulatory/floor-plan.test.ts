@@ -8,7 +8,7 @@ import { getActiveFloorPlanRules, getFloorPlanCatalogue, getFloorPlanRules } fro
 import { evaluateRules } from "../../src/rules/engine";
 import cases from "../../fixtures/regulations/rule-cases-004.json";
 import review from "../../fixtures/regulations/004-human-review.json";
-import { assertRuleApproval } from "./approval-fixtures";
+import { assertActiveRegistry, assertRuleApproval } from "./approval-fixtures";
 
 test("floor-plan view audits all 35 rules and excludes vertical/building-only input requirements", () => {
   const catalogue = getFloorPlanCatalogue();
@@ -22,7 +22,7 @@ test("floor-plan view audits all 35 rules and excludes vertical/building-only in
   assert.equal(strict.length, 26);
   assert.equal(strict.filter((r) => r.evaluation.kind !== "REVIEWED_EVALUATOR").length, 20);
   assert.ok(strict.every((r) => r.requiredInputs.every((m) => !["HEIGHT_M", "RISE_M", "SLOPE_RATIO", "FLOOR_COUNT"].includes(m))));
-  assert.deepEqual(getActiveFloorPlanRules("2026-10-30"), []);
+  assertActiveRegistry(getActiveFloorPlanRules("2026-10-30"));
   assert.throws(() => getActiveFloorPlanRules("not-a-date"));
   strict[0].title = "caller mutation";
   assert.notEqual(getFloorPlanRules()[0].title, "caller mutation");
@@ -31,9 +31,10 @@ test("floor-plan view audits all 35 rules and excludes vertical/building-only in
 test("004 records exact source clauses and the explicit approval of floor-plan rules", () => {
   const added = complianceRules.filter((r) => r.id.startsWith("00400000"));
   assert.equal(added.length, 10);
-  assert.equal(added.filter((r) => r.lifecycle === "HUMAN_VERIFIED").length, 10);
+  assert.equal(added.filter((r) => r.lifecycle === "HUMAN_VERIFIED").length, 6);
+  assert.equal(added.filter((r) => r.lifecycle === "ACTIVE").length, 4);
   assert.equal(added.filter((r) => r.evaluation.kind === "REVIEWED_EVALUATOR").length, 6);
-  assert.equal(complianceRules.filter((r) => r.lifecycle === "HUMAN_VERIFIED").length, 26);
+  assert.equal(complianceRules.filter((r) => r.lifecycle === "HUMAN_VERIFIED").length, 6);
   const keys = regulationProvisions.map((p) => JSON.stringify([p.sourceId, p.sourceVersion, p.article, p.paragraph, p.item]));
   assert.equal(new Set(keys).size, keys.length);
   const text = readFileSync("fixtures/regulations/accessibility-current.txt", "utf8");
@@ -46,7 +47,7 @@ test("004 records exact source clauses and the explicit approval of floor-plan r
   }
 });
 
-test("Petar approval covers exactly the 26 strict floor-plan rules, never the other nine or activation", () => {
+test("historical Petar approval covers exactly 26 floor-plan rules and did not authorize activation", () => {
   const expectedIds = getFloorPlanRules().map((r) => r.id).sort();
   assert.equal(review.reviewer, "Petar Popovic");
   assert.equal(review.activationApproved, false);
@@ -58,7 +59,7 @@ test("Petar approval covers exactly the 26 strict floor-plan rules, never the ot
       assert.equal(rule.approvedAt, undefined);
       assert.notEqual(rule.lifecycle, "HUMAN_VERIFIED");
     }
-    assert.notEqual(rule.lifecycle, "ACTIVE");
+    if (!expectedIds.includes(rule.id)) assert.notEqual(rule.lifecycle, "ACTIVE");
   }
 });
 
@@ -86,7 +87,14 @@ for (const bundle of cases.bundles) {
       const outcome = evaluateRules([probe], ctx).results[0].evaluation;
       assert.equal(outcome.status, item.expected);
       if (item.name === "missing-evaluator") assert.equal(outcome.reasonCode, "EVALUATOR_UNAVAILABLE");
-      assert.deepEqual(evaluateRules([original], ctx).results, []);
+      const actual = evaluateRules([original], ctx);
+      if (original.lifecycle === "ACTIVE") {
+        assert.deepEqual(actual.rejected, []);
+        assert.equal(actual.results[0].evaluation.status, item.expected);
+      } else {
+        assert.deepEqual(actual.results, []);
+        assert.equal(actual.rejected[0].reasonCode, "RULE_NOT_ACTIVE");
+      }
     });
   }
 }

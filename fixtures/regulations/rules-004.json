@@ -11,7 +11,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Дужина означеног одморишта приступачне рампе",
-    "lifecycle": "HUMAN_VERIFIED",
+    "lifecycle": "ACTIVE",
     "elementType": "RAMP",
     "applicability": {
       "op": "ALL",
@@ -75,7 +75,7 @@
       "00400000-0000-4000-8000-000000006008"
     ],
     "interpretationNotes": [
-      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. Activation authorized separately; see 005-activation.json.",
       "Dimensions require drawing labels or a confirmed scale and verified element context. Missing drawing data is UNKNOWN, never guessed.",
       "Horizontal clear landing length, not rise. Human must confirm this is a required rest landing of the long-ramp branch; do not infer the trigger solely from a partial floor plan."
     ],
@@ -94,7 +94,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Продужетак приступачног ветробрана иза унутрашњих врата",
-    "lifecycle": "HUMAN_VERIFIED",
+    "lifecycle": "ACTIVE",
     "elementType": "ENTRANCE",
     "applicability": {
       "op": "ALL",
@@ -158,7 +158,7 @@
       "00400000-0000-4000-8000-000000006108"
     ],
     "interpretationNotes": [
-      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. Activation authorized separately; see 005-activation.json.",
       "Dimensions require drawing labels or a confirmed scale and verified element context. Missing drawing data is UNKNOWN, never guessed.",
       "Horizontal extension into the building measured from the inner-door plane. It is not total vestibule depth, door width, or a vertical height."
     ],
@@ -177,7 +177,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Ширина простора за кретање око намештаја у приступачном радном простору",
-    "lifecycle": "HUMAN_VERIFIED",
+    "lifecycle": "ACTIVE",
     "elementType": "CORRIDOR",
     "applicability": {
       "op": "ALL",
@@ -241,7 +241,7 @@
       "00400000-0000-4000-8000-000000006208"
     ],
     "interpretationNotes": [
-      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. Activation authorized separately; see 005-activation.json.",
       "Dimensions require drawing labels or a confirmed scale and verified element context. Missing drawing data is UNKNOWN, never guessed.",
       "Actual circulation gap around furniture in a designated accessible workspace. Keep furniture footprints as obstacles; not raw room width. Geometry owner must confirm CORRIDOR as this circulation-region representation."
     ],
@@ -260,7 +260,7 @@
       "00100000-0000-4000-8000-000000000305"
     ],
     "title": "Ширина приступног коридора усмереног оградом",
-    "lifecycle": "HUMAN_VERIFIED",
+    "lifecycle": "ACTIVE",
     "elementType": "CORRIDOR",
     "applicability": {
       "op": "ALL",
@@ -331,7 +331,7 @@
       "00400000-0000-4000-8000-000000006309"
     ],
     "interpretationNotes": [
-      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. No activation has been performed.",
+      "HUMAN_VERIFIED — approved by Petar Popovic; see 004-human-review.json. Activation authorized separately; see 005-activation.json.",
       "Dimensions require drawing labels or a confirmed scale and verified element context. Missing drawing data is UNKNOWN, never guessed.",
       "Clear gap of the access corridor guided by railings in a public-use office area. Railings and public-use designation require evidence; not every corridor is of this type."
     ],

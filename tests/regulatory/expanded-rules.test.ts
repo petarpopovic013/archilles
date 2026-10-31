@@ -14,7 +14,7 @@ import ruleData from "../../fixtures/regulations/rules-003.json";
 import caseData from "../../fixtures/regulations/rule-cases-003.json";
 import catalogue from "../../fixtures/regulations/rule-catalogue-003.json";
 import sourceCheck from "../../fixtures/regulations/003-source-check.json";
-import { assertProvisionApproval, assertRuleApproval } from "./approval-fixtures";
+import { assertActiveRegistry, assertProvisionApproval, assertRuleApproval } from "./approval-fixtures";
 
 const rules = ruleData.map((rule) => ComplianceRuleSchema.parse(rule));
 const now = "2026-10-30T18:00:00Z";
@@ -68,7 +68,7 @@ test("003 adds twenty distinct rules: fifteen bounded checks and five explicitly
   assert.equal(complianceRules.filter((r) => !r.id.startsWith("00400000")).length, 25);
   assert.equal(rules.filter((r) => r.evaluation.kind !== "REVIEWED_EVALUATOR").length, 15);
   assert.equal(rules.filter((r) => r.lifecycle === "CANDIDATE").length, 5);
-  assert.deepEqual(getActiveRules("2026-10-30"), []);
+  assertActiveRegistry(getActiveRules("2026-10-30"));
   const signatures = rules.map((r) => JSON.stringify([r.sourceId, r.provisionIds, r.applicability, r.evaluation]));
   assert.equal(new Set(signatures).size, 20);
   for (const rule of rules) {
@@ -119,12 +119,23 @@ for (const bundle of caseData.bundles) {
       assert.equal(result.results.length, 1);
       assert.equal(result.results[0].evaluation.status, item.expected);
       if (item.name === "missing-evaluator") assert.equal(result.results[0].evaluation.reasonCode, "EVALUATOR_UNAVAILABLE");
-      assert.notEqual(rule.lifecycle, "ACTIVE");
+      assertRuleApproval(rule, rule.evaluation.kind === "REVIEWED_EVALUATOR" ? "CANDIDATE" : "AI_REVIEWED");
+      if (rule.lifecycle === "ACTIVE") {
+        const actual = evaluateRules([rule], ctx);
+        assert.deepEqual(actual.rejected, []);
+        assert.equal(actual.results[0].evaluation.status, item.expected);
+      }
     });
   }
-  test(`003 ${bundle.ruleId.slice(-2)} shipped original is rejected and missing subtype remains unknown`, () => {
+  test(`003 ${bundle.ruleId.slice(-2)} shipped original respects lifecycle and missing subtype stays unknown`, () => {
     const ctx = context(rule, bundle, bundle.cases[0]);
-    assert.deepEqual(evaluateRules([rule], ctx).rejected.map((r) => r.reasonCode), ["RULE_NOT_ACTIVE"]);
+    const actual = evaluateRules([rule], ctx);
+    if (rule.lifecycle === "ACTIVE") {
+      assert.deepEqual(actual.rejected, []);
+      assert.equal(actual.results[0].evaluation.status, bundle.cases[0].expected);
+    } else {
+      assert.deepEqual(actual.rejected.map((r) => r.reasonCode), ["RULE_NOT_ACTIVE"]);
+    }
     assert.equal(checkRuleApplicability(ctx.project, { ...ctx.elements[0], subtype: undefined }, rule).truth, "UNKNOWN");
   });
 }
@@ -155,7 +166,9 @@ test("003 Runtime RegistryPort adapter returns isolated snapshots and preserves 
   const next = await registry.snapshot();
   assert.notEqual(next.rules[0].title, "caller mutation");
   assert.notEqual(next.sources[0].title, "caller mutation");
-  assert.deepEqual(await registry.getActiveRules("2026-10-30"), []);
-  assert.deepEqual((await registry.selectApplicableRules(contractFixture.project, [], next.rules)).ruleIds, []);
+  assertActiveRegistry(await registry.getActiveRules("2026-10-30"));
+  const selection = await registry.selectApplicableRules(contractFixture.project, [], next.rules);
+  assert.deepEqual(selection.ruleIds.sort(), getActiveRules("2026-10-30").map((rule) => rule.id).sort());
+  assert.ok(selection.missingContext.includes("element.type"));
   await assert.rejects(registry.getActiveRules("2026-02-30"));
 });
