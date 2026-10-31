@@ -1,0 +1,10 @@
+{
+  "provenance": "DRAFT visual annotations by the development agent, 31 October 2026. Not human-reviewed ground truth; no physical units or legal approval. Coordinates refer only to residential-dimensioned.png (1280x1112).",
+  "family": "residential-dimensioned/stan-2/stan-8",
+  "rooms": [
+    {"label":"bedroom 3", "geometry":{"kind":"POLYGON","points":[{"x":556,"y":460},{"x":968,"y":460},{"x":968,"y":705},{"x":556,"y":705}]}},
+    {"label":"bedroom 4", "geometry":{"kind":"POLYGON","points":[{"x":556,"y":730},{"x":962,"y":730},{"x":962,"y":1037},{"x":556,"y":1037}]}},
+    {"label":"bathroom", "geometry":{"kind":"POLYGON","points":[{"x":220,"y":462},{"x":411,"y":462},{"x":411,"y":761},{"x":220,"y":761}]}}
+  ],
+  "criticalCases": ["Untagged bathroom door", "Window next to bedroom 3 is not a door", "80/200 and 200/80 are nominal opening pairs", "Room 2 and the entrance circulation have an open connection"]
+}

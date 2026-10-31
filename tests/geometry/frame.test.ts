@@ -101,3 +101,9 @@ test('suggested categories are kept only when listed for that element type, or O
   assert.deepEqual(subtypes, [['a', 'ACCESSIBLE_INTERNAL_DOOR_ART22'], ['b', undefined], ['c', 'OTHER']]);
   assert.notEqual(runner.version, createClaudeVisionRunner(client, 'claude-sonnet-4-6').version, 'the category list is part of the cache identity');
 });
+
+test('closed-ring model polygons normalize without an artificial zero-length edge', () => {
+  const output=cleanVisionOutput({elements:[{ref:'r',type:'ROOM',geometry:{kind:'POLYGON',points:[{x:10,y:10},{x:100,y:10},{x:100,y:100},{x:10,y:100},{x:10,y:10}]},measurements:[]}],warnings:[]});
+  const g=output!.elements[0].geometry;
+  assert.equal(g.kind,'POLYGON');if(g.kind==='POLYGON')assert.equal(g.points.length,4);
+});

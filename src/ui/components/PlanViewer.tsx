@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
-import type { ArchitecturalElement, EvaluationStatus } from "../../domain";
+import type { ArchitecturalElement, EvaluationStatus, Point, ElementType } from "../../domain";
 import { useWorkspace } from "../state/workspace";
 import { statusLabel } from "../format";
 import { boundsOf, fitRect, panBy, pathOf, toSource, zoomAt, type Viewport } from "../viewer/transforms";
+import { simplePolygon } from "../../geometry/topology";
 import { layoutPlanLabels } from "../viewer/labels";
 import { Button, Icon, statusTone } from "./common";
 
@@ -19,14 +20,24 @@ interface PageImage {
 }
 
 export function PlanViewer() {
-  const { client, drawing, page, snapshot, select, selectedElement, selectedFinding, evidence, loadEvidence } = useWorkspace();
+  const { client, drawing, page, snapshot, select, selectedElement, selectedFinding, evidence, loadEvidence, confirmElement, createElement, busy, calibrationPicking, calibrationPoints, pickCalibrationPoint } = useWorkspace();
   const frame = useRef<HTMLDivElement>(null);
   const [image, setImage] = useState<PageImage | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [view, setView] = useState<Viewport>({ scale: 1, x: 0, y: 0 });
   const [frameSize, setFrameSize] = useState({ width: 0, height: 0 });
-  const [layers, setLayers] = useState({ elements: true, labels: true, evidence: true });
+  const [layers, setLayers] = useState({ elements: true, labels: true, evidence: true, rooms: true, openings: true, dimensions: false, issues: true });
   const drag = useRef<{ id: number; x: number; y: number; moved: number } | null>(null);
+  const [editing, setEditing] = useState<{id:string;points:Point[]}|null>(null);
+  const vertexDrag = useRef<number|null>(null);
+  const edit = editing?.id === "new" || editing?.id === selectedElement?.id ? editing : null;
+  const [newType, setNewType] = useState<ElementType>("ROOM");
+  const startEdit = () => {
+    if(!selectedElement) return;
+    const g=selectedElement.geometry;
+    const points=g.kind==='BBOX'?[{x:g.x,y:g.y},{x:g.x+g.width,y:g.y},{x:g.x+g.width,y:g.y+g.height},{x:g.x,y:g.y+g.height}]:g.points;
+    setEditing({id:selectedElement.id,points:points.map(p=>({...p}))});
+  };
   const pageKey = drawing ? `${drawing.id}:${page}` : null;
   const current = image && image.key === pageKey ? image : null;
 
@@ -133,6 +144,11 @@ export function PlanViewer() {
     drag.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: 0 };
   };
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if(vertexDrag.current !== null && edit && current) {
+      const box=event.currentTarget.getBoundingClientRect(), p=toSource({x:event.clientX-box.left,y:event.clientY-box.top},view);
+      const points=edit.points.map((v,i)=>i===vertexDrag.current?{x:Math.max(0,Math.min(current.width,p.x)),y:Math.max(0,Math.min(current.height,p.y))}:v);
+      setEditing({...edit,points}); return;
+    }
     const state = drag.current;
     if (!state || state.id !== event.pointerId) return;
     const dx = event.clientX - state.x;
@@ -146,8 +162,15 @@ export function PlanViewer() {
     state.y = event.clientY;
   };
   const endDrag = (event: PointerEvent<HTMLDivElement>) => {
+    if(vertexDrag.current!==null){vertexDrag.current=null;return;}
+    if(calibrationPicking && current) {
+      const box=event.currentTarget.getBoundingClientRect(),p=toSource({x:event.clientX-box.left,y:event.clientY-box.top},view);
+      if(p.x>=0&&p.y>=0&&p.x<=current.width&&p.y<=current.height)pickCalibrationPoint(p);
+      drag.current=null;return;
+    }
     const state = drag.current;
     drag.current = null;
+    if(edit?.id === "new" && current && (!state || state.moved <= CLICK_TOLERANCE_PX)) { const box=event.currentTarget.getBoundingClientRect(),p=toSource({x:event.clientX-box.left,y:event.clientY-box.top},view); if(p.x>=0&&p.y>=0&&p.x<=current.width&&p.y<=current.height)setEditing({...edit,points:[...edit.points,p]}); return; }
     if (!state || state.moved > CLICK_TOLERANCE_PX) return;
     // A click on empty plan clears the selection; element clicks stop propagation first.
     if (event.target === event.currentTarget || (event.target as Element).closest("[data-plan-background]")) select(null);
@@ -168,19 +191,23 @@ export function PlanViewer() {
         <Button variant="ghost" aria-label="Zoom out" onClick={() => zoomCentre(0.8)} disabled={!current}><Icon name="minus" /></Button>
         <Button variant="ghost" aria-label="Fit drawing to view" onClick={fit} disabled={!current}><Icon name="fit" /></Button>
         <Button variant="ghost" aria-label="Focus selected element" onClick={focusSelected} disabled={!current || !selectedElement}><Icon name="focus" /></Button>
+        <Button variant="ghost" disabled={!selectedElement || busy!==null || snapshot?.session.status==='RUNNING'} onClick={startEdit}>Edit boundary</Button>
+        {edit && <><Button disabled={busy!==null || !simplePolygon({kind:"POLYGON",points:edit.points})} onClick={()=>{const geometry={kind:"POLYGON" as const,points:edit.points}; void (edit.id === "new" ? createElement(newType,geometry) : confirmElement(edit.id,{geometry})).then(saved=>{if(saved)setEditing(null);});}}>Save boundary</Button><Button onClick={()=>setEditing(null)}>Cancel edit</Button></>}
+        <Button variant="ghost" disabled={!current || busy!==null || snapshot?.session.status==='RUNNING'} onClick={()=>setEditing({id:"new",points:[]})}>Add element</Button>
+        {edit?.id === "new" && <select aria-label="New element type" value={newType} onChange={e=>setNewType(e.target.value as ElementType)}>{(["ROOM","CORRIDOR","DOOR","OPENING","STAIR","RAMP"] as const).map(t=><option key={t} value={t}>{t.toLowerCase()}</option>)}</select>}
         <span className="ml-1 w-12 font-mono text-[11px] text-slate-400" aria-live="polite">{Math.round(view.scale * 100)}%</span>
         <div className="plan-layers ml-auto flex flex-wrap items-center gap-3 text-[11px] text-slate-300">
           {(Object.keys(layers) as (keyof typeof layers)[]).map((layer) => (
             <label key={layer} className="flex items-center gap-1">
               <input type="checkbox" checked={layers[layer]} onChange={() => setLayers({ ...layers, [layer]: !layers[layer] })} />
-              {{ elements: "Elements", labels: "Labels", evidence: "Evidence" }[layer]}
+              {{ elements: "Elements", labels: "Labels", evidence: "Evidence", rooms: "Rooms", openings: "Openings", dimensions: "Dimensions", issues: "Review" }[layer]}
             </label>
           ))}
         </div>
       </div>
 
       <div ref={frame} onPointerDown={onPointerDown} onPointerMove={(event) => { onPointerMove(event); trackCursor(event); }}
-        onPointerUp={endDrag} onPointerCancel={() => { drag.current = null; }} onPointerLeave={() => setCursor(null)}
+        onPointerUp={endDrag} onPointerCancel={() => { drag.current = null; vertexDrag.current=null; }} onPointerLeave={() => setCursor(null)}
         className="relative flex-1 touch-none select-none overflow-hidden"
         style={{ backgroundImage: "radial-gradient(#1e293b 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
         {!drawing ? (
@@ -194,20 +221,36 @@ export function PlanViewer() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={current.url} alt={`Page ${page} of ${drawing.originalName}`} draggable={false}
               className="absolute left-0 top-0 bg-white" style={{ width: current.width, height: current.height }} />
-            <svg className="absolute left-0 top-0 overflow-visible" width={current.width} height={current.height}
+            <svg style={{pointerEvents:calibrationPicking || edit?.id === "new" ? "none":undefined}} className="absolute left-0 top-0 overflow-visible" width={current.width} height={current.height}
               viewBox={`0 0 ${current.width} ${current.height}`}>
               <rect data-plan-background width={current.width} height={current.height} fill="transparent" />
               {layers.evidence && highlighted.map((record) => (
                 <path key={record.id} d={pathOf(record.geometry!)} fill="rgba(250, 204, 21, 0.12)" stroke="#facc15"
                   strokeDasharray="6 4" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none" />
               ))}
-              {layers.elements && snapshot?.elements.map((element) => (
+              {layers.elements && snapshot?.elements.filter(e=>["ROOM","CORRIDOR"].includes(e.type)?layers.rooms:["DOOR","ENTRANCE","EXIT","OPENING"].includes(e.type)?layers.openings:true).map((element) => (
                 <ElementShape key={element.id} element={element} status={worstStatus.get(element.id)}
                   selected={selectedElement?.id === element.id} onSelect={() => selectElement(element)} />
               ))}
+              {layers.dimensions && snapshot?.geometry?.annotations.map(a=><g key={a.id}>{a.span&&<path d={pathOf({kind:"POLYLINE",points:a.span})} stroke="#9333ea" strokeWidth={1.5} vectorEffect="non-scaling-stroke" pointerEvents="none"/>}<path d={pathOf(a.geometry)} fill="rgba(168,85,247,.08)" stroke="#9333ea" strokeWidth={1} vectorEffect="non-scaling-stroke" pointerEvents="none"><title>{a.text}</title></path></g>)}
+              {layers.issues && snapshot?.geometry?.issues.filter(i=>i.geometry).map((issue,i)=><path key={i} d={pathOf(issue.geometry!)} fill="none" stroke="#b45309" strokeDasharray="4 5" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none"><title>{issue.message}</title></path>)}
+              {edit && <g>{edit.points.length>=2&&<path d={pathOf({kind:'POLYGON',points:edit.points})} fill="rgba(8,145,178,.1)" stroke="#0891b2" strokeWidth={2} vectorEffect="non-scaling-stroke"
+                onPointerDown={e=>e.stopPropagation()} onPointerUp={e=>e.stopPropagation()}
+                onDoubleClick={event=>{
+                  const box=frame.current!.getBoundingClientRect(),p=toSource({x:event.clientX-box.left,y:event.clientY-box.top},view);
+                  let best=Infinity,after=0;
+                  edit.points.forEach((a,i)=>{const b=edit.points[(i+1)%edit.points.length],dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1))),d=Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);if(d<best){best=d;after=i;}});
+                  setEditing({...edit,points:[...edit.points.slice(0,after+1),p,...edit.points.slice(after+1)]});
+                }}/>}
+                {edit.points.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r={6/view.scale} fill="#fff" stroke="#0891b2" strokeWidth={2} vectorEffect="non-scaling-stroke" role="button" tabIndex={0} aria-label={`Corner ${i+1}; arrow keys move, Delete removes`} style={{cursor:'move'}}
+                  onPointerDown={event=>{event.stopPropagation();vertexDrag.current=i;frame.current?.setPointerCapture(event.pointerId);}}
+                  onDoubleClick={()=>{if(edit.points.length>3)setEditing({...edit,points:edit.points.filter((_,j)=>j!==i)});}}
+                  onKeyDown={event=>{const step=event.shiftKey?10:1;const delta:Record<string,Point>={ArrowLeft:{x:-step,y:0},ArrowRight:{x:step,y:0},ArrowUp:{x:0,y:-step},ArrowDown:{x:0,y:step}};if(delta[event.key]){event.preventDefault();const d=delta[event.key];setEditing({...edit,points:edit.points.map((v,j)=>j===i?{x:Math.max(0,Math.min(current.width,v.x+d.x)),y:Math.max(0,Math.min(current.height,v.y+d.y))}:v)});}if(event.key==='Delete'&&edit.points.length>3)setEditing({...edit,points:edit.points.filter((_,j)=>j!==i)});}}/>)}</g>}
+              {calibrationPoints.map((p,i)=><circle key={`cal-${i}`} cx={p.x} cy={p.y} r={6/view.scale} fill="#c026d3" pointerEvents="none"/>)}
+              {calibrationPoints.length===2&&<path d={pathOf({kind:'POLYLINE',points:calibrationPoints})} stroke="#c026d3" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none"/>}
             </svg>
           </div>
-          {layers.elements && layers.labels && (
+          {layers.elements && layers.labels && !calibrationPicking && edit?.id !== "new" && (
             <svg className="plan-label-overlay absolute inset-0" width={frameSize.width} height={frameSize.height}
               aria-label="Element labels">
               <g aria-hidden="true">
@@ -249,7 +292,7 @@ export function PlanViewer() {
         <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-slate-900/90 px-2 py-1 font-mono text-[11px] text-slate-300">
           {layers.elements && layers.labels && labelLayout.hiddenCount > 0
             ? <span role="status">{labelLayout.hiddenCount} more labels · zoom in to inspect</span>
-            : cursor ? `x ${Math.round(cursor.x)} · y ${Math.round(cursor.y)} px` : "Scroll to zoom · drag to pan"}
+            : calibrationPicking ? `Select calibration point ${calibrationPoints.length+1} of 2` : edit?.id === "new" ? "Click each corner on the plan, then save" : edit ? "Drag corners · double-click edge to add · Delete to remove" : cursor ? `x ${Math.round(cursor.x)} · y ${Math.round(cursor.y)} px` : "Scroll to zoom · drag to pan"}
         </div>
       </div>
     </main>
@@ -262,7 +305,7 @@ function ElementShape({ element, status, selected, onSelect }: {
   selected: boolean;
   onSelect(): void;
 }) {
-  const suggested = element.extraction === "AI_SUGGESTED";
+  const suggested = element.geometryVerification === "UNVERIFIED" || element.geometryVerification !== "USER_CONFIRMED" && element.extraction === "AI_SUGGESTED";
   const colour = status ? statusTone[status].stroke : suggested ? "#22d3ee" : "#38bdf8";
   const label = `${element.label ?? element.type}${status ? `: ${statusLabel[status]}` : ""}${suggested ? " (unconfirmed)" : ""}`;
   const onKeyDown = (event: KeyboardEvent<SVGGElement>) => {

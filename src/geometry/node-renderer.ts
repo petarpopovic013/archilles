@@ -12,7 +12,7 @@ function assertPage(page: number, count: number) {
   if (!Number.isInteger(page) || page < 1 || page > count) throw new GeometryError('INVALID_PAGE');
 }
 
-async function openPdf(bytes: Uint8Array) {
+export async function openPdf(bytes: Uint8Array) {
   // Legacy provides the typed-array polyfills needed on the supported Node 24 runtime.
   const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const task = getDocument({ data: Uint8Array.from(bytes), stopAtErrors: true, useSystemFonts: true, disableFontFace: true });
@@ -28,7 +28,7 @@ async function openPdf(bytes: Uint8Array) {
   }
 }
 
-async function selectPdfPage(document: PDFDocumentProxy, page: number) {
+export async function selectPdfPage(document: PDFDocumentProxy, page: number) {
   assertPage(page, document.numPages);
   const selected = await document.getPage(page);
   const source = selected.getViewport({ scale: 2 });

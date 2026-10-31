@@ -97,7 +97,7 @@ export function insertObservations(db: Db, observations: Observations): void {
 }
 
 export function hasObservations(db: Db, floorId: string): boolean {
-  return db.prepare("SELECT 1 FROM elements WHERE floor_id = ? LIMIT 1").pluck().get(floorId) !== undefined;
+  return db.prepare("SELECT 1 FROM elements WHERE floor_id = ? AND retired_revision IS NULL LIMIT 1").pluck().get(floorId) !== undefined;
 }
 
 /**
@@ -109,13 +109,13 @@ export function floorView(db: Db, floorId: string, revision: number): Observatio
     SELECT COALESCE((
       SELECT v.data FROM element_versions v WHERE v.element_id = e.id AND v.revision <= ?
       ORDER BY v.revision DESC LIMIT 1
-    ), e.data) FROM elements e WHERE e.floor_id = ? AND e.revision <= ? ORDER BY e.rowid
-  `).pluck().all(revision, floorId, revision).map((row) => parse(ArchitecturalElementSchema, row));
+    ), e.data) FROM elements e WHERE e.floor_id = ? AND e.revision <= ? AND (e.retired_revision IS NULL OR e.retired_revision > ?) ORDER BY e.rowid
+  `).pluck().all(revision, floorId, revision, revision).map((row) => parse(ArchitecturalElementSchema, row));
   const ids = elements.map((element) => element.id);
   const measurements = ids.length === 0 ? [] : db.prepare(`
     SELECT m.data FROM measurements m JOIN elements e ON e.id = m.element_id
-    WHERE e.floor_id = ? AND m.revision <= ? ORDER BY m.rowid
-  `).pluck().all(floorId, revision).map((row) => parse(MeasurementSchema, row));
+    WHERE e.floor_id = ? AND m.revision <= ? AND (e.retired_revision IS NULL OR e.retired_revision > ?) ORDER BY m.rowid
+  `).pluck().all(floorId, revision, revision).map((row) => parse(MeasurementSchema, row));
   const evidenceIds = new Set([
     ...elements.flatMap((element) => element.evidenceIds),
     ...measurements.flatMap((measurement) => measurement.evidenceIds),
@@ -137,7 +137,7 @@ export function findElement(db: Db, elementId: string): ArchitecturalElement | u
   const row = db.prepare(`
     SELECT COALESCE((
       SELECT v.data FROM element_versions v WHERE v.element_id = e.id ORDER BY v.revision DESC LIMIT 1
-    ), e.data) FROM elements e WHERE e.id = ?
+    ), e.data) FROM elements e WHERE e.id = ? AND e.retired_revision IS NULL
   `).pluck().get(elementId);
   return row === undefined ? undefined : parse(ArchitecturalElementSchema, row);
 }

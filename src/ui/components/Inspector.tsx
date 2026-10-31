@@ -142,7 +142,8 @@ function currentMeasurements(measurements: Measurement[], elementId: string): Me
 }
 
 function ElementDetail({ element }: { element: ArchitecturalElement }) {
-  const { snapshot, confirmElement, confirmElements, busy, requirements, evidence, loadEvidence } = useWorkspace();
+  const { snapshot, confirmElement, confirmElements, retireElement, busy, requirements, evidence, loadEvidence } = useWorkspace();
+  const [removing,setRemoving]=useState(false);
   const [type, setType] = useState<ElementType>(element.type);
   const [subtype, setSubtype] = useState(element.subtype ?? "");
   const measurements = useMemo(() => currentMeasurements(snapshot?.measurements ?? [], element.id), [snapshot, element.id]);
@@ -210,6 +211,10 @@ function ElementDetail({ element }: { element: ArchitecturalElement }) {
         </details>
       </form>
 
+      <div className="space-y-1 text-[11px] text-slate-400">
+        {snapshot?.geometry?.annotations.filter(a=>a.elementId===element.id).map(a=><p key={a.id}>{a.text} · {a.kind.toLowerCase().replaceAll('_',' ')}{a.unit?` · ${a.unit}`:''}</p>)}
+        {removing?<div className="flex gap-2"><Button disabled={Boolean(busy)} onClick={()=>void retireElement(element.id)}>Remove this element</Button><Button onClick={()=>setRemoving(false)}>Keep</Button></div>:<Button disabled={Boolean(busy)} onClick={()=>setRemoving(true)}>Remove incorrect element</Button>}
+      </div>
       <div className="space-y-1.5">
         <div className="text-[10px] uppercase text-slate-500">Measurements</div>
         {measurements.map((measurement) => (
@@ -227,11 +232,11 @@ function ElementDetail({ element }: { element: ArchitecturalElement }) {
 }
 
 function MeasurementRow({ elementId, metric, measurement, marks }: { elementId: string; metric: Metric; measurement?: Measurement; marks: string[] }) {
-  const { confirmMeasurement, busy } = useWorkspace();
+  const { confirmMeasurement, busy, snapshot } = useWorkspace();
   const [value, setValue] = useState(measurement ? toInput(metric, measurement.value) : "");
   const confirmed = measurement && measurement.verification !== "UNVERIFIED";
   const unit = inputUnit(metric);
-  const fromMark = !confirmed && markPrefills(metric) ? widthFromMark(marks) : undefined;
+  const fromMark = !confirmed && markPrefills(metric) ? widthFromMark(marks, snapshot?.geometry?.settings.unit) : undefined;
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -263,7 +268,7 @@ function MeasurementRow({ elementId, metric, measurement, marks }: { elementId: 
         <div className="space-y-1 rounded border border-cyan-900 bg-cyan-950/20 p-1.5 text-[11px] text-cyan-100">
           <div>The drawing mark “{fromMark.mark}” gives a {fromMark.centimetres} cm opening.</div>
           <Button variant="primary" disabled={busy !== null} onClick={() => void confirmMeasurement(elementId, metric, fromMark.centimetres / 100)}>
-            Use {fromMark.centimetres} cm
+            Confirm clear width is {fromMark.centimetres} cm
           </Button>
           <div className="text-[10px] text-slate-400">Marks give the nominal opening; the clear width can be a few centimetres smaller. Only use it if that is right for this door.</div>
         </div>

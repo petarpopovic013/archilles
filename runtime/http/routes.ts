@@ -1,5 +1,6 @@
 import {
   CreateProjectRequestSchema,
+  CreateElementRequestSchema,
   ElementUpdateRequestSchema,
   ElementsUpdateRequestSchema,
   IdSchema,
@@ -14,10 +15,12 @@ import type { RuntimeContext } from "../context";
 import { findEvidence, findSession } from "../db/repo";
 import { computeCoverage, getAnalysisSnapshot, startAnalysis } from "../services/analyses";
 import { readPageRaster, uploadDrawing } from "../services/drawings";
-import { confirmElement, confirmElements } from "../services/elements";
+import { confirmElement, confirmElements, createElement, retireElement } from "../services/elements";
 import { correctElementMeasurement, recheckProposal } from "../services/measurements";
 import { createProject, getProject, updateProject } from "../services/projects";
 import { ruleRequirements } from "../services/requirements";
+import { GeometrySetupRequestSchema, GeometryPageRequestSchema } from "../../src/domain";
+import { updateDrawingGeometry } from "../services/geometry";
 import { ApiFailure, invalidInput, notFound } from "./errors";
 import { Router } from "./server";
 import { readMultipart, streamSessionEvents } from "./streams";
@@ -26,6 +29,11 @@ import { readMultipart, streamSessionEvents } from "./streams";
 function idParam(value: string, entity: string): string {
   if (!IdSchema.safeParse(value).success) throw notFound(entity);
   return value;
+}
+
+function pageParam(value:string):number {
+  const page=PositiveIntegerSchema.safeParse(Number(value));
+  if(!page.success)throw notFound("Page");return page.data;
 }
 
 function sequenceParam(value: string | null | undefined): number {
@@ -78,6 +86,8 @@ export function createRouter(ctx: RuntimeContext): Router {
       res.end(raster.bytes);
     })
 
+    .add("PATCH", "/api/drawings/:id/pages/:page/geometry", async (req) => updateDrawingGeometry(ctx, idParam(req.params.id, "Drawing"), pageParam(req.params.page), await req.json(GeometrySetupRequestSchema)))
+    .add("POST", "/api/drawings/:id/pages/:page/geometry", async (req) => updateDrawingGeometry(ctx, idParam(req.params.id, "Drawing"), pageParam(req.params.page), await req.json(GeometryPageRequestSchema), true))
     .add("GET", "/api/evidence/:id", (req) => {
       const [evidence] = findEvidence(ctx.db, [idParam(req.params.id, "Evidence")]);
       if (!evidence) throw notFound("Evidence");
@@ -96,8 +106,10 @@ export function createRouter(ctx: RuntimeContext): Router {
       streamSessionEvents(ctx, sessionId, after, req.raw, res);
     })
 
+    .add("DELETE", "/api/elements/:id", async (req) => retireElement(ctx,idParam(req.params.id,"Element"),await req.json(GeometryPageRequestSchema)))
     .add("PATCH", "/api/elements/:id", async (req) =>
       confirmElement(ctx, idParam(req.params.id, "Element"), await req.json(ElementUpdateRequestSchema)))
+    .add("POST", "/api/projects/:id/elements", async (req) => createElement(ctx, idParam(req.params.id,"Project"), await req.json(CreateElementRequestSchema)))
     .add("PATCH", "/api/projects/:id/elements", async (req) =>
       confirmElements(ctx, idParam(req.params.id, "Project"), await req.json(ElementsUpdateRequestSchema)))
     .add("PATCH", "/api/elements/:id/measurements", async (req) =>

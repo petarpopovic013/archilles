@@ -9,6 +9,7 @@ import type {
   CoverageSummary,
   CreateProjectRequest,
   Drawing,
+  DrawingSettings, Geometry, Point,
   ElementType,
   Evidence,
   Metric,
@@ -63,9 +64,17 @@ export interface WorkspaceValue {
   setPage(page: number): void;
   runAnalysis(): Promise<void>;
   confirmMeasurement(elementId: string, metric: Metric, value: number): Promise<void>;
-  confirmElement(elementId: string, change: { type?: ElementType; subtype?: string | null }): Promise<void>;
+  confirmElement(elementId: string, change: { type?: ElementType; subtype?: string | null; geometry?: Geometry }): Promise<boolean>;
   /** One revision for several elements, e.g. the same category for every door. */
   confirmElements(updates: Array<{ elementId: string; type?: ElementType; subtype?: string | null }>): Promise<void>;
+  retireElement(elementId:string):Promise<void>;
+  createElement(type: ElementType, geometry: Geometry): Promise<boolean>;
+  saveDrawingSetup(settings: DrawingSettings): Promise<void>;
+  readGeometryAgain(): Promise<void>;
+  calibrationPicking: boolean;
+  calibrationPoints: Point[];
+  startCalibration(): void;
+  pickCalibrationPoint(point: Point): void;
   setProjectEditorOpen(open: boolean): void;
   recheck(elementId: string, metric: Metric, proposedValue: number): Promise<void>;
   loadEvidence(ids: readonly string[]): void;
@@ -139,6 +148,9 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   const [error, setError] = useState<string | null>(null);
   const [projectEditorOpen, setProjectEditorOpen] = useState(false);
   const requested = useRef(new Set<string>());
+  const activeSessionId = useRef<string|null>(null);
+  const [calibrationPicking, setCalibrationPicking] = useState(false);
+  const [calibrationPoints, setCalibrationPoints] = useState<Point[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -159,7 +171,7 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
         setPageCount(stored.pageCount ?? stored.drawing.pageCount);
         setPageState(stored.page ?? stored.drawing.selectedPage);
       }
-      if (stored.sessionId) setSessionId(stored.sessionId);
+      if (stored.sessionId) { activeSessionId.current=stored.sessionId; setSessionId(stored.sessionId); }
       return client.getCoverage(restored.id).then((value) => { if (!cancelled) setCoverage(value); });
     }).catch(() => writeStored(null));
     return () => { cancelled = true; };
@@ -171,7 +183,8 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
 
   const refreshSnapshot = useCallback(async (id: string) => {
     const next = await client.getAnalysis(id);
-    setSnapshot((current) => (current && current.session.id !== id ? current : next));
+    if(activeSessionId.current !== id) return next;
+    setSnapshot(next);
     setCoverage(next.coverage);
     return next;
   }, [client]);
@@ -225,6 +238,7 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   }, [client, project]);
 
   const clearAnalysis = useCallback(() => {
+    activeSessionId.current=null; setCalibrationPicking(false); setCalibrationPoints([]);
     setSessionId(null);
     setSnapshot(null);
     setActivity([]);
@@ -233,6 +247,7 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   }, []);
 
   const followSession = useCallback((next: string) => {
+    activeSessionId.current=next; setSnapshot(null);
     setActivity([]);
     setSessionId(next);
   }, []);
@@ -282,6 +297,31 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
     analysisOutdated: Boolean(snapshot && project && snapshot.session.projectRevision < project.revision),
     projectEditorOpen,
     setProjectEditorOpen,
+    calibrationPicking, calibrationPoints,
+    startCalibration: () => { setCalibrationPoints([]); setCalibrationPicking(!calibrationPicking); },
+    pickCalibrationPoint: (point) => { setCalibrationPoints([...calibrationPoints, point].slice(0,2)); if(calibrationPoints.length) setCalibrationPicking(false); },
+    retireElement: elementId => run("save",async()=>{
+      if(!project)return;await client.retireElement(elementId,project.revision);setSelection(null);await followRevision(project.id);
+    }),
+    createElement: async (type, geometry) => {
+      let saved=false;await run("save",async()=>{
+        if(!project || !drawing)return;
+        await client.createElement(project.id,{baseRevision:project.revision,drawingId:drawing.id,page,type,geometry});saved=true;
+        await followRevision(project.id);
+      });return saved;
+    },
+    saveDrawingSetup: (settings) => run("save", async () => {
+      if(!project || !drawing) return;
+      const result=await client.saveDrawingSetup(drawing.id,page,project.revision,settings);
+      setProject(await client.getProject(project.id)); setSnapshot(null); setSelection(null); setRecheckResult(null);
+      if(result.sessionId) followSession(result.sessionId);
+    }),
+    readGeometryAgain: () => run("analysis", async () => {
+      if(!project || !drawing) return;
+      const result=await client.readGeometryAgain(drawing.id,page,project.revision);
+      setProject(await client.getProject(project.id)); setSnapshot(null); setSelection(null); setRecheckResult(null);
+      if(result.sessionId) followSession(result.sessionId);
+    }),
 
     select: setSelection,
     dismissError: () => setError(null),
@@ -371,11 +411,13 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
       await followRevision(project.id);
     }),
 
-    confirmElement: (elementId, change) => run("save", async () => {
-      if (!project) return;
-      await client.updateElement(elementId, { baseRevision: project.revision, ...change });
-      await followRevision(project.id);
-    }),
+    confirmElement: async (elementId, change) => {
+      let saved=false;await run("save",async()=>{
+        if(!project)return;
+        await client.updateElement(elementId,{baseRevision:project.revision,...change});saved=true;
+        await followRevision(project.id);
+      });return saved;
+    },
 
     confirmElements: (updates) => run("save", async () => {
       if (!project || updates.length === 0) return;

@@ -8,3 +8,5 @@ const { updateElements } = apiContracts;
 export async function PATCH(request: Request, { params }: Context) {
   return proxyJson(request, runtimePath(updateElements.path, await params), updateElements);
 }
+
+export async function POST(request: Request, { params }: Context) { const c=apiContracts.createElement; return proxyJson(request, runtimePath(c.path, await params), c); }

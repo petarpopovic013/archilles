@@ -8,3 +8,7 @@ const { updateElement } = apiContracts;
 export async function PATCH(request: Request, { params }: Context) {
   return proxyJson(request, runtimePath(updateElement.path, await params), updateElement);
 }
+
+export async function DELETE(request: Request, { params }: Context) {
+  return proxyJson(request, runtimePath(apiContracts.retireElement.path, await params), apiContracts.retireElement);
+}

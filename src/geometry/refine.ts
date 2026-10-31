@@ -7,7 +7,7 @@ type Box = [x0: number, y0: number, x1: number, y1: number];
 type Side = 'top' | 'bottom' | 'left' | 'right';
 
 /** Walls are drawn as dark or grey fills; text, furniture and dimension lines are lighter or thinner. */
-const WALL_LUMINANCE = 150;
+const WALL_LUMINANCE = 185;
 /** A wall face must cover this share of a room side, leaving room for doors and windows. */
 const SIDE_COVERAGE = 0.25;
 const OPENING_TYPES = new Set(['DOOR', 'ENTRANCE', 'EXIT', 'OPENING']);
@@ -17,7 +17,7 @@ const SPACE_TYPES = new Set(['ROOM', 'CORRIDOR']);
  * Wall pixels: dark pixels that survive a morphological opening, which removes strokes thinner
  * than `k` pixels (text, furniture, dimension and hatch lines).
  */
-export function wallMask({ data, width: w, height: h }: GrayRaster, k = Math.max(3, Math.round(Math.max(w, h) / 300))): Uint8Array {
+export function wallMask({ data, width: w, height: h }: GrayRaster, k = Math.max(3, Math.round(Math.max(w, h) / 300)), recoverHatching = false): Uint8Array {
   const stride = w + 1;
   const dark = new Int32Array(stride * (h + 1)), core = new Int32Array(stride * (h + 1));
   const sum = (a: Int32Array, x0: number, y0: number, x1: number, y1: number) => a[y1 * stride + x1] - a[y0 * stride + x1] - a[y1 * stride + x0] + a[y0 * stride + x0];
@@ -32,6 +32,58 @@ export function wallMask({ data, width: w, height: h }: GrayRaster, k = Math.max
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     mask[y * w + x] = sum(core, Math.max(0, x - k + 1), Math.max(0, y - k + 1), x + 1, y + 1) > 0 ? 1 : 0;
   }
+  // A window often has only thin parallel strokes. Preserve a visible straight stroke
+  // when BOTH ends meet an existing thick wall; empty furniture boxes do not establish walls.
+  const minRun=Math.max(12,Math.round(Math.max(w,h)*.025));
+  const anchored=(x:number,y:number)=>{for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const X=x+dx,Y=y+dy;if(X>=0&&Y>=0&&X<w&&Y<h&&mask[Y*w+X])return true;}return false;};
+  const additions:number[]=[];
+  for(const vertical of [false,true]) {
+    const alongLimit=vertical?h:w,acrossLimit=vertical?w:h;
+    const lines=Array.from({length:acrossLimit},(_,a)=>runs(0,alongLimit,i=>data[vertical?i*w+a:a*w+i]<WALL_LUMINANCE).filter(r=>r.end-r.start+1>=minRun));
+    for(let a=0;a<acrossLimit;a++)for(const r of lines[a]) {
+      if(r.end-r.start+1<minRun)continue;
+      const p=vertical?{x:a,y:r.start}:{x:r.start,y:a},q=vertical?{x:a,y:r.end}:{x:r.end,y:a};
+      if(!anchored(p.x,p.y)||!anchored(q.x,q.y))continue;
+      const solidAt=(al:number)=>mask[vertical?al*w+a:a*w+al]===1;
+      let leading=0,trailing=0;
+      for(let al=r.start;al<=r.end&&solidAt(al);al++)leading++;
+      for(let al=r.end;al>=r.start&&solidAt(al);al--)trailing++;
+      // Perpendicular wall thickness at either end (e.g. a bathtub against two walls)
+      // is insufficient: the supporting wall must continue along this stroke.
+      if(Math.min(leading,trailing)<Math.max(12,k*4))continue;
+      let paired=false;
+      for(let other=Math.max(0,a-Math.round(Math.max(w,h)*.035));other<Math.min(acrossLimit,a+Math.max(w,h)*.035)&&!paired;other++){
+        if(Math.abs(other-a)<3)continue;
+        paired=lines[other].some(o=>Math.min(o.end,r.end)-Math.max(o.start,r.start)+1>Math.max(o.end-o.start+1,r.end-r.start+1)*.85);
+      }
+      if(!paired)continue; // A single dimension line crossing the room is not a window/wall.
+      for(let i=r.start;i<=r.end;i++)additions.push(vertical?i*w+a:a*w+i);
+    }
+  }
+  // Dense hatching inside a narrow pair of wall faces can lack a solid erosion core.
+  // Test the central band as well as its full length so solid ends cannot turn an
+  // otherwise empty cupboard into a wall. Broad furniture bands are excluded.
+  if(recoverHatching) {
+  const minBand=Math.max(4,Math.round(Math.max(w,h)*.004)),maxBand=Math.max(minBand+1,Math.round(Math.max(w,h)*.025));
+  for(const vertical of [false,true]){
+    const alongLimit=vertical?h:w,acrossLimit=vertical?w:h;
+    const lines=Array.from({length:acrossLimit},(_,a)=>runs(0,alongLimit,i=>data[vertical?i*w+a:a*w+i]<WALL_LUMINANCE).filter(r=>r.end-r.start+1>=minRun));
+    for(let a=0;a<acrossLimit;a++)for(const first of lines[a])for(let b=a+minBand;b<Math.min(acrossLimit,a+maxBand);b++){
+      for(const second of lines[b]){
+        const lo=Math.max(first.start,second.start),hi=Math.min(first.end,second.end)+1;if(hi-lo<minRun)continue;
+        const density=(from:number,to:number)=>(vertical?sum(dark,a+1,from,b,to):sum(dark,from,a+1,to,b))/((b-a-1)*(to-from));
+        const starts=new Set<number>([hi-minRun]);for(let from=lo;from+minRun<=hi;from+=Math.max(1,Math.floor(minRun/2)))starts.add(from);
+        for(const from of starts){const to=from+minRun;
+          if(density(from,to)<.35)continue;
+          let uniform=true;for(let part=0;part<4;part++){const low=Math.floor(from+part*minRun/4),high=Math.floor(from+(part+1)*minRun/4);if(density(low,high)<.2){uniform=false;break;}}
+          if(!uniform)continue;
+          for(let ac=a;ac<=b;ac++)for(let al=from;al<to;al++)additions.push(vertical?al*w+ac:ac*w+al);
+        }
+      }
+    }
+  }
+  }
+  for(const i of additions)mask[i]=1;
   dropSpecks(mask, w, h, (Math.max(w, h) * 0.008) ** 2);
   return mask;
 }
@@ -53,7 +105,7 @@ function dropSpecks(mask: Uint8Array, w: number, h: number, minArea: number) {
   }
 }
 
-class Walls {
+export class Walls {
   readonly maxDim: number;
   constructor(readonly mask: Uint8Array, readonly w: number, readonly h: number) { this.maxDim = Math.max(w, h); }
   at(x: number, y: number) { return x >= 0 && y >= 0 && x < this.w && y < this.h ? this.mask[y * this.w + x] : 0; }
@@ -143,7 +195,7 @@ function snapSpace(walls: Walls, g: Geometry): Geometry {
  * Moves an opening onto the nearest gap in a wall. Each line across the wall must show wall on
  * both sides of the same gap; a run of such lines is the wall thickness and must be wall-like.
  */
-function snapOpening(walls: Walls, g: Geometry): Geometry | undefined {
+export function snapOpening(walls: Walls, g: Geometry): Geometry | undefined {
   const [x0, y0, x1, y1] = bounds(g);
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, long = Math.max(x1 - x0, y1 - y0);
   const reach = Math.max(long, walls.maxDim * 0.06);
@@ -217,8 +269,8 @@ function overlap(a: Geometry, b: Geometry): number {
  * nearest wall face and openings onto the nearest wall gap. Shapes with no supporting wall stay as
  * the model drew them and are reported. No measurement is derived from pixels.
  */
-export function refineGeometry(output: VisionOutput, raster: GrayRaster): VisionOutput {
-  const walls = new Walls(wallMask(raster), raster.width, raster.height);
+export function refineGeometry(output: VisionOutput, raster: GrayRaster, mask?:Uint8Array): VisionOutput {
+  const walls = new Walls(mask??wallMask(raster), raster.width, raster.height);
   const unmatched: string[] = [];
   const elements = output.elements.map(element => {
     if (SPACE_TYPES.has(element.type)) return { ...element, geometry: snapSpace(walls, element.geometry) };
