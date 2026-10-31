@@ -6,20 +6,20 @@ import { useWorkspace } from "../state/workspace";
 import { statusLabel } from "../format";
 import { Button, Icon, Section, StatusBadge, inputClass } from "./common";
 
-const phases: Record<ProjectPhase, string> = { CONCEPT: "Idejno rešenje", DESIGN: "Projekat", RECONSTRUCTION: "Rekonstrukcija" };
+const phases: Record<ProjectPhase, string> = { CONCEPT: "Concept design", DESIGN: "Design", RECONSTRUCTION: "Reconstruction" };
 const characteristics: Record<CharacteristicKey, string> = {
-  isNewBuild: "Nova gradnja",
-  hasPublicAccess: "Javni pristup",
-  hasAccessibleRoute: "Pristupačna staza",
-  hasRamp: "Ima rampu",
-  hasExternalStair: "Spoljno stepenište",
+  isNewBuild: "New build",
+  hasPublicAccess: "Public access",
+  hasAccessibleRoute: "Accessible route",
+  hasRamp: "Has a ramp",
+  hasExternalStair: "External stairs",
 };
 const severity: EvaluationStatus[] = ["FAIL", "NEEDS_REVIEW", "UNKNOWN", "PASS", "NOT_APPLICABLE"];
 
 export function ProjectPanel() {
   const { project } = useWorkspace();
   return (
-    <aside aria-label="Projekat i nalazi" className="flex w-80 shrink-0 flex-col overflow-y-auto border-r border-slate-800 bg-slate-900">
+    <aside aria-label="Project and findings" className="flex w-80 shrink-0 flex-col overflow-y-auto border-r border-slate-800 bg-slate-900">
       {project ? (
         <>
           <ProjectSummary project={project} />
@@ -47,21 +47,21 @@ function NewProjectForm() {
   };
 
   return (
-    <Section title="Novi projekat">
+    <Section title="New project">
       <form onSubmit={submit} className="space-y-2">
         <label className="block space-y-1 text-xs text-slate-300">
-          <span>Naziv</span>
+          <span>Name</span>
           <input required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
         </label>
         <label className="block space-y-1 text-xs text-slate-300">
-          <span>Faza</span>
+          <span>Phase</span>
           <select value={phase} onChange={(e) => setPhase(e.target.value as ProjectPhase)} className={inputClass}>
             {Object.entries(phases).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
         </label>
-        <TriState label="Nova gradnja" value={isNewBuild} onChange={setIsNewBuild} />
-        <p className="text-[11px] text-slate-500">Poslovni objekat, Republika Srbija. Ostale podatke možete dodati kasnije; nepoznato ostaje nepoznato.</p>
-        <Button type="submit" variant="primary" disabled={busy !== null || !name.trim()} className="w-full">Kreiraj projekat</Button>
+        <TriState label="New build" value={isNewBuild} onChange={setIsNewBuild} />
+        <p className="text-[11px] text-slate-500">Office building, Republic of Serbia. Add other details later; unknown information stays unknown.</p>
+        <Button type="submit" variant="primary" disabled={busy !== null || !name.trim()} className="w-full">Create project</Button>
       </form>
     </Section>
   );
@@ -72,9 +72,9 @@ function TriState({ label, value, onChange }: { label: string; value: "" | "true
     <label className="flex items-center justify-between gap-2 text-xs text-slate-300">
       <span>{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value as "" | "true" | "false")} className={`${inputClass} w-28`}>
-        <option value="">Nepoznato</option>
-        <option value="true">Da</option>
-        <option value="false">Ne</option>
+        <option value="">Unknown</option>
+        <option value="true">Yes</option>
+        <option value="false">No</option>
       </select>
     </label>
   );
@@ -145,47 +145,47 @@ function ProjectSummary({ project }: { project: Project }) {
   };
 
   return (
-    <Section title="Projekat" aside={<Button variant="ghost" onClick={resetWorkspace}>Novi</Button>}>
+    <Section title="Project" aside={<Button variant="ghost" onClick={resetWorkspace}>New</Button>}>
       <div className="text-sm font-semibold text-slate-100">{project.name}</div>
       <dl className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[11px] text-slate-400">
-        <dt>Revizija</dt><dd className="font-mono text-slate-200">r{project.revision}</dd>
-        <dt>Faza</dt><dd className="text-slate-200">{phases[project.phase]}</dd>
-        <dt>Nova gradnja</dt>
-        <dd className="text-slate-200">{project.characteristics.isNewBuild === undefined ? "nepoznato" : project.characteristics.isNewBuild ? "da" : "ne"}</dd>
-        <dt>Klasifikacija</dt><dd className="text-slate-200">{project.classification ?? "nepoznato"}</dd>
-        <dt>Visina objekta</dt><dd className="text-slate-200">{project.buildingHeightM !== undefined ? `${project.buildingHeightM} m` : "nepoznato"}</dd>
-        <dt>Broj korisnika</dt><dd className="text-slate-200">{project.occupantCount ?? "nepoznato"}</dd>
+        <dt>Revision</dt><dd className="font-mono text-slate-200">r{project.revision}</dd>
+        <dt>Phase</dt><dd className="text-slate-200">{phases[project.phase]}</dd>
+        <dt>New build</dt>
+        <dd className="text-slate-200">{project.characteristics.isNewBuild === undefined ? "unknown" : project.characteristics.isNewBuild ? "yes" : "no"}</dd>
+        <dt>Classification</dt><dd className="text-slate-200">{project.classification ?? "unknown"}</dd>
+        <dt>Building height</dt><dd className="text-slate-200">{project.buildingHeightM !== undefined ? `${project.buildingHeightM} m` : "unknown"}</dd>
+        <dt>Occupant count</dt><dd className="text-slate-200">{project.occupantCount ?? "unknown"}</dd>
       </dl>
       {questions.length > 0 && (
         <div className="space-y-1 rounded border border-amber-800 bg-amber-950/30 p-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Potrebni podaci</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Required information</div>
           <ul className="space-y-1">
             {questions.map(([field, question]) => <li key={field} className="text-[11px] leading-snug text-amber-100">{question}</li>)}
           </ul>
         </div>
       )}
       {!editing ? (
-        <Button onClick={() => setDraft(draftOf(project))} disabled={busy !== null} className="w-full">Uredi podatke o projektu</Button>
+        <Button onClick={() => setDraft(draftOf(project))} disabled={busy !== null} className="w-full">Edit project details</Button>
       ) : (
         <form onSubmit={save} className="space-y-2 rounded border border-slate-800 bg-slate-950/40 p-2">
           <label className="block space-y-1 text-xs text-slate-300">
-            <span>Faza</span>
+            <span>Phase</span>
             <select value={draft.phase} onChange={(e) => setDraft({ ...draft, phase: e.target.value as ProjectPhase })} className={inputClass}>
               {Object.entries(phases).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </label>
           <label className="block space-y-1 text-xs text-slate-300">
-            <span>Klasifikacija objekta</span>
+            <span>Building classification</span>
             <select value={draft.classification} onChange={(e) => setDraft({ ...draft, classification: e.target.value })} className={inputClass}>
-              <option value="">Nepoznato</option>
+              <option value="">Unknown</option>
               {[...new Set([...(requirements?.classifications ?? []), ...(draft.classification ? [draft.classification] : [])])].map((value) => (
                 <option key={value} value={value}>{value}</option>
               ))}
             </select>
-            <span className="block text-[10px] text-slate-500">Vrednosti koje koriste pravila u registru; ostavite nepoznato ako nije potvrđeno.</span>
+            <span className="block text-[10px] text-slate-500">Values used by the rule registry; leave unknown unless confirmed.</span>
           </label>
           <div className="grid grid-cols-3 gap-2">
-            {([["buildingHeightM", "Visina (m)", "0.01"], ["floorCount", "Spratova", "1"], ["occupantCount", "Korisnika", "1"]] as const).map(([key, label, step]) => (
+            {([["buildingHeightM", "Height (m)", "0.01"], ["floorCount", "Floors", "1"], ["occupantCount", "Occupants", "1"]] as const).map(([key, label, step]) => (
               <label key={key} className="block space-y-1 text-[11px] text-slate-300">
                 <span>{label}</span>
                 <input type="number" min={key === "floorCount" ? 1 : 0} step={step} value={draft[key]}
@@ -197,10 +197,10 @@ function ProjectSummary({ project }: { project: Project }) {
             <TriState key={key} label={characteristics[key]} value={draft.characteristics[key]}
               onChange={(value) => setDraft({ ...draft, characteristics: { ...draft.characteristics, [key]: value } })} />
           ))}
-          <p className="text-[11px] text-slate-500">Čuvanje pravi novu reviziju projekta; postojeća analiza postaje zastarela.</p>
+          <p className="text-[11px] text-slate-500">Saving creates a new project revision; the existing analysis becomes outdated.</p>
           <div className="flex gap-2">
-            <Button type="submit" variant="primary" className="flex-1">Sačuvaj</Button>
-            <Button onClick={() => setDraft(null)} className="flex-1">Otkaži</Button>
+            <Button type="submit" variant="primary" className="flex-1">Save</Button>
+            <Button onClick={() => setDraft(null)} className="flex-1">Cancel</Button>
           </div>
         </form>
       )}
@@ -214,11 +214,11 @@ function DrawingSection() {
   const running = status === "RUNNING";
 
   return (
-    <Section title="Crtež i analiza">
+    <Section title="Drawing and analysis">
       <label className={`flex cursor-pointer items-center justify-center gap-2 rounded border border-dashed border-slate-600 px-3 py-2 text-xs text-slate-300 hover:border-cyan-500
         ${busy !== null ? "pointer-events-none opacity-50" : ""}`}>
         <Icon name="upload" />
-        <span>{busy === "upload" ? "Otpremanje..." : drawing ? "Zameni crtež (PDF, PNG, JPEG)" : "Otpremi crtež (PDF, PNG, JPEG)"}</span>
+        <span>{busy === "upload" ? "Uploading..." : drawing ? "Replace drawing (PDF, PNG, JPEG)" : "Upload drawing (PDF, PNG, JPEG)"}</span>
         <input type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" className="sr-only"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -231,24 +231,24 @@ function DrawingSection() {
           <div className="truncate text-xs text-slate-200" title={drawing.originalName}>{drawing.originalName}</div>
           {pageCount > 1 && (
             <label className="flex items-center justify-between gap-2 text-xs text-slate-300">
-              <span>Stranica</span>
+              <span>Page</span>
               <select value={page} onChange={(e) => setPage(Number(e.target.value))} className={`${inputClass} w-24`}>
                 {Array.from({ length: pageCount }, (_, index) => <option key={index + 1} value={index + 1}>{index + 1}</option>)}
               </select>
             </label>
           )}
           <Button variant="primary" className="w-full" disabled={busy !== null || running} onClick={() => void runAnalysis()}>
-            {running ? "Analiza u toku..." : snapshot ? "Pokreni analizu ponovo" : "Pokreni analizu"}
+            {running ? "Analysis in progress..." : snapshot ? "Run analysis again" : "Run analysis"}
           </Button>
           {status && (
             <p className="text-[11px] text-slate-400">
-              Status: <span className="text-slate-200">{({ DRAFT: "nacrt", RUNNING: "u toku", COMPLETE: "završena", PARTIAL: "delimično završena", FAILED: "neuspela" } as const)[status]}</span>
+              Status: <span className="text-slate-200">{({ DRAFT: "draft", RUNNING: "running", COMPLETE: "complete", PARTIAL: "partially complete", FAILED: "failed" } as const)[status]}</span>
               {snapshot?.session.errorCode && <> · <span className="font-mono">{snapshot.session.errorCode}</span></>}
             </p>
           )}
           {analysisOutdated && (
             <p className="rounded border border-amber-800 bg-amber-950/40 p-2 text-[11px] text-amber-200">
-              Prikazana analiza je za raniju reviziju. Pokrenite je ponovo za trenutne podatke.
+              This analysis uses an earlier revision. Run it again with the current project data.
             </p>
           )}
         </div>
@@ -259,10 +259,10 @@ function DrawingSection() {
 
 function ResultsTabs() {
   const [tab, setTab] = useState<"findings" | "elements" | "coverage">("findings");
-  const tabs = [["findings", "Nalazi"], ["elements", "Elementi"], ["coverage", "Pokrivenost"]] as const;
+  const tabs = [["findings", "Findings"], ["elements", "Elements"], ["coverage", "Coverage"]] as const;
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div role="tablist" aria-label="Rezultati" className="flex border-b border-slate-800">
+      <div role="tablist" aria-label="Results" className="flex border-b border-slate-800">
         {tabs.map(([id, label]) => (
           <button key={id} role="tab" type="button" aria-selected={tab === id} onClick={() => setTab(id)}
             className={`flex-1 px-2 py-2 text-xs font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 ${
@@ -280,9 +280,9 @@ function ResultsTabs() {
 
 function FindingsList() {
   const { snapshot, selection, select } = useWorkspace();
-  if (!snapshot) return <Empty text="Pokrenite analizu da biste videli nalaze." />;
+  if (!snapshot) return <Empty text="Run an analysis to see findings." />;
   if (snapshot.findings.length === 0) {
-    return <Empty text={snapshot.session.status === "RUNNING" ? "Agenti rade..." : "Nijedna aktivna provera nije primenjena na ovaj crtež."} />;
+    return <Empty text={snapshot.session.status === "RUNNING" ? "Agents are working..." : "No active checks were applied to this drawing."} />;
   }
   const elements = new Map(snapshot.elements.map((element) => [element.id, element]));
   const sorted = [...snapshot.findings].sort((a, b) => severity.indexOf(a.status) - severity.indexOf(b.status));
@@ -298,10 +298,10 @@ function FindingsList() {
                 active ? "border-cyan-500 bg-slate-800" : "border-slate-800 bg-slate-950/40 hover:border-slate-600"}`}>
               <div className="flex items-center justify-between gap-2">
                 <StatusBadge status={finding.status} />
-                {finding.stale && <span className="text-[10px] text-amber-300">zastarelo</span>}
+                {finding.stale && <span className="text-[10px] text-amber-300">outdated</span>}
               </div>
               <div className="text-xs text-slate-100">{finding.title}</div>
-              <div className="text-[11px] text-slate-400">{element ? element.label ?? element.type : "Ceo projekat"}</div>
+              <div className="text-[11px] text-slate-400">{element ? element.label ?? element.type : "Whole project"}</div>
             </button>
           </li>
         );
@@ -312,7 +312,7 @@ function FindingsList() {
 
 function ElementsList() {
   const { snapshot, selection, select } = useWorkspace();
-  if (!snapshot || snapshot.elements.length === 0) return <Empty text="Elementi će se pojaviti posle analize crteža." />;
+  if (!snapshot || snapshot.elements.length === 0) return <Empty text="Elements will appear after the drawing is analysed." />;
   return (
     <ul className="space-y-1.5">
       {snapshot.elements.map((element) => {
@@ -327,7 +327,7 @@ function ElementsList() {
                 <span className="font-mono text-[10px] text-slate-400">{element.type}</span>
               </div>
               <div className="mt-0.5 text-[11px] text-slate-400">
-                {element.extraction === "AI_SUGGESTED" ? "Predlog AI, nepotvrđeno" : "Potvrdio korisnik"}
+                {element.extraction === "AI_SUGGESTED" ? "AI suggestion, unconfirmed" : "User confirmed"}
                 {element.subtype && <> · {element.subtype}</>}
               </div>
             </button>
@@ -340,17 +340,17 @@ function ElementsList() {
 
 function CoverageView() {
   const { coverage } = useWorkspace();
-  if (!coverage) return <Empty text="Pokrivenost još nije učitana." />;
+  if (!coverage) return <Empty text="Coverage has not loaded yet." />;
   const rows: [string, number][] = [
-    ["Indeksirane odredbe", coverage.indexedProvisions],
-    ["Kandidat pravila", coverage.candidateRules],
-    ["Stručno potvrđena pravila", coverage.humanVerifiedRules],
-    ["Aktivna (izvršiva) pravila", coverage.activeRules],
-    ["Primenljiva pravila u analizi", coverage.applicableRules],
-    ["Izvršene provere (Ispunjeno/Nije)", coverage.executedChecks],
-    [`Blokirano (${statusLabel.UNKNOWN})`, coverage.blockedUnknown],
+    ["Indexed provisions", coverage.indexedProvisions],
+    ["Candidate rules", coverage.candidateRules],
+    ["Human-verified rules", coverage.humanVerifiedRules],
+    ["Active executable rules", coverage.activeRules],
+    ["Applicable rules in this analysis", coverage.applicableRules],
+    ["Executed checks (pass/fail)", coverage.executedChecks],
+    [`Blocked (${statusLabel.UNKNOWN})`, coverage.blockedUnknown],
     [statusLabel.NEEDS_REVIEW, coverage.needsReview],
-    ["Odredbe van automatske provere", coverage.outsideAutomatedCoverage],
+    ["Provisions outside automated coverage", coverage.outsideAutomatedCoverage],
   ];
   return (
     <div className="space-y-3">
@@ -364,13 +364,13 @@ function CoverageView() {
           ))}
         </tbody>
       </table>
-      <p className="text-[11px] text-slate-500">Nema ukupnog procenta usklađenosti: ispunjena provera važi samo za proveren uslov, ne za ceo objekat.</p>
+      <p className="text-[11px] text-slate-500">There is no overall compliance score. A passed check applies to the verified condition, not the whole building.</p>
       {coverage.sources.length > 0 && (
         <ul className="space-y-1.5">
           {coverage.sources.map((source) => (
             <li key={`${source.sourceId}-${source.sourceVersion}`} className="rounded border border-slate-800 p-2 text-[11px]">
               <div className="text-slate-200">{source.title}</div>
-              <div className="text-slate-500">{source.considered ? "Uzet u obzir" : "Nije uzet u obzir"}: {source.reason}</div>
+              <div className="text-slate-500">{source.considered ? "Considered" : "Not considered"}: {source.reason}</div>
             </li>
           ))}
         </ul>
