@@ -16,7 +16,12 @@ test("selector returns wire-compatible IDs and explanations, never evaluations",
   assert.deepEqual(selected.missingContext, []);
   assert.deepEqual(Object.keys(selected).sort(), ["explanations", "missingContext", "ruleIds"]);
   eventPayloadSchemas["regulation.rules.selected"].parse(selected);
-  assert.deepEqual(selectApplicableRules(project, [element], complianceRules).ruleIds, []);
+  const registrySelection = selectApplicableRules(project, [element], complianceRules);
+  assert.ok(registrySelection.ruleIds.includes(rule.id));
+  assert.ok(registrySelection.ruleIds.every((id) => complianceRules.some((entry) => entry.id === id && entry.lifecycle === "ACTIVE")));
+  // Other element types remain possible until their context is supplied.
+  assert.ok(registrySelection.missingContext.includes("element.type"));
+  assert.deepEqual(selectApplicableRules(project, [element], complianceRules.filter((entry) => entry.lifecycle !== "ACTIVE")).ruleIds, []);
 });
 
 test("known false conditions exclude, unknown metadata and absent elements stay possible", () => {

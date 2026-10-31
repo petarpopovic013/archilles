@@ -2,12 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRegulatoryRegistry } from '../../runtime/adapters/registry';
 import { contractFixture } from '../../src/domain';
+import { assertActiveRegistry } from '../regulatory/approval-fixtures';
 
-test('registry bridge exposes source coverage without promoting reviewed rules to ACTIVE', async () => {
+test('registry bridge exposes explicitly activated rules and retains blocked human review records', async () => {
   const registry = createRegulatoryRegistry(), snapshot = await registry.snapshot();
   assert.ok(snapshot.sources.length >= 2); assert.ok(snapshot.provisionCount > 0);
   assert.ok(snapshot.rules.some(rule => rule.lifecycle === 'HUMAN_VERIFIED'));
-  assert.deepEqual(await registry.getActiveRules('2026-10-30'), []);
+  assertActiveRegistry(await registry.getActiveRules('2026-10-30'));
+  assert.equal(snapshot.rules.filter(rule => rule.lifecycle === 'HUMAN_VERIFIED').length, 6);
   snapshot.rules.splice(0); assert.ok((await registry.snapshot()).rules.length > 0);
 });
 

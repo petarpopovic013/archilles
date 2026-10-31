@@ -1,0 +1,33 @@
+{
+  "image": "residential-dimensioned.png",
+  "sha256": "42db0c0d8f41e4c52b2b291a35a1d7713ed8b8bc0fa3a679e10a41721aa507bf",
+  "origin": "Original user-supplied image attached in this conversation; saved without redrawing or pixel changes.",
+  "sourceDimensions": {
+    "width": 1280,
+    "height": 1112
+  },
+  "provenance": "Reference image for extraction testing, not confirmed measurements or regulatory findings. No original author or legal approval is asserted.",
+  "visibleAnnotations": [
+    "V1",
+    "V2",
+    "90 / 205",
+    "80 / 200",
+    "200 / 80",
+    "652",
+    "325",
+    "366.5",
+    "351.5",
+    "120 / 40"
+  ],
+  "unitLegend": "No explicit physical unit legend is visible in the supplied crop. Do not assume centimetres.",
+  "scope": "Appears residential. This does not establish project metadata or applicability of the office-only active rule subset.",
+  "recognitionAcceptance": "NOT_PASSED",
+  "liveCheck": {
+    "model": "claude-sonnet-4-6",
+    "promptVersion": "geometry-v2-technical-plan",
+    "elements": 11,
+    "measurements": 0,
+    "estimatedCostUsd": 0.038217,
+    "assessment": "HTTP upload, private rendering, Mozaik and Vision completed. Visual inspection rejected geometry accuracy: multiple bounds are displaced and the apparent window opening beside bedroom 3 was suggested as DOOR. This is not acceptance of the extraction."
+  }
+}

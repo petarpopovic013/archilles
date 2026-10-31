@@ -7,10 +7,10 @@ import { eventDetail, eventLabel, formatValue, metricLabel, requirementPrefix, s
 import { Button, Icon, Section, StatusBadge, SvgArrow, VerificationBadge, inputClass } from "./common";
 
 const lifecycleLabel = {
-  ACTIVE: "aktivna provera",
-  HUMAN_VERIFIED: "stručno potvrđeno, još nije aktivno",
-  AI_REVIEWED: "AI pregled, čeka stručnu potvrdu",
-  CANDIDATE: "kandidat, nije izvršivo",
+  ACTIVE: "active check",
+  HUMAN_VERIFIED: "human verified, not yet active",
+  AI_REVIEWED: "AI reviewed, awaiting human verification",
+  CANDIDATE: "candidate, not executable",
 } as const;
 
 /** "Other" is a confirmed classification too: it makes subtype-scoped checks not applicable. */
@@ -41,10 +41,10 @@ const fromInput = (metric: Metric, text: string) => {
 export function Inspector() {
   const { selectedFinding, selectedElement } = useWorkspace();
   return (
-    <aside aria-label="Detalji i provera" className="flex w-96 shrink-0 flex-col border-l border-slate-800 bg-slate-900">
-      <div className="min-h-0 flex-1 overflow-y-auto">
+    <aside id="workspace-details" aria-label="Details and review" className="inspector-panel flex min-w-0 shrink-0 flex-col border-l border-slate-800 bg-slate-900">
+      <div className="inspector-content min-h-0 flex-1 overflow-y-auto">
         {!selectedFinding && !selectedElement && (
-          <p className="p-6 text-center text-xs text-slate-500">Izaberite nalaz ili element da biste videli dokaze, izvor i opcije provere.</p>
+          <p className="p-6 text-center text-xs text-slate-500">Select a finding or element to see evidence, sources and review options.</p>
         )}
         {selectedFinding && <FindingDetail finding={selectedFinding} />}
         {selectedElement && <ElementDetail key={`${selectedElement.id}:${selectedElement.revision}`} element={selectedElement} />}
@@ -61,7 +61,7 @@ function FindingDetail({ finding }: { finding: ComplianceFinding }) {
   useEffect(() => loadEvidence(finding.evidenceIds), [finding.evidenceIds, loadEvidence]);
 
   return (
-    <Section title="Nalaz" aside={finding.stale ? <span className="text-[11px] text-amber-300">zastarelo</span> : undefined}>
+    <Section title="Finding" aside={finding.stale ? <span className="text-[11px] text-amber-300">outdated</span> : undefined}>
       <div className="space-y-1">
         <StatusBadge status={finding.status} />
         <h3 className="text-sm font-semibold text-slate-100">{finding.title}</h3>
@@ -69,43 +69,43 @@ function FindingDetail({ finding }: { finding: ComplianceFinding }) {
       {evaluation && (
         <dl className="grid grid-cols-2 gap-2 rounded border border-slate-800 bg-slate-950/50 p-2 text-xs">
           <div>
-            <dt className="text-[10px] uppercase text-slate-500">Uočeno</dt>
+            <dt className="text-[10px] uppercase text-slate-500">Observed</dt>
             <dd className="font-mono text-slate-100">{formatValue(evaluation.observed, evaluation.unit)}</dd>
           </div>
           <div>
-            <dt className="text-[10px] uppercase text-slate-500">Zahtevano</dt>
+            <dt className="text-[10px] uppercase text-slate-500">Required</dt>
             <dd className="font-mono text-slate-100">
-              {evaluation.required === undefined ? "nije utvrđeno" : `${requirementPrefix(evaluation)}${formatValue(evaluation.required, evaluation.unit)}`}
+              {evaluation.required === undefined ? "not established" : `${requirementPrefix(evaluation)}${formatValue(evaluation.required, evaluation.unit)}`}
             </dd>
           </div>
           {evaluation.missingInputs.length > 0 && (
             <div className="col-span-2">
-              <dt className="text-[10px] uppercase text-slate-500">Nedostaje</dt>
+              <dt className="text-[10px] uppercase text-slate-500">Missing</dt>
               <dd className="text-amber-200">{evaluation.missingInputs.map((metric) => metricLabel[metric]).join(", ")}</dd>
             </div>
           )}
-          <div className="col-span-2 text-[10px] text-slate-500">Razlog: <span className="font-mono">{evaluation.reasonCode}</span></div>
+          <div className="col-span-2 text-[10px] text-slate-500">Reason: <span className="font-mono">{evaluation.reasonCode}</span></div>
         </dl>
       )}
       <p className="text-xs leading-relaxed text-slate-300">{finding.explanation}</p>
       {finding.suggestedAction && (
         <p className="rounded border border-cyan-900 bg-cyan-950/30 p-2 text-xs text-cyan-100">
-          <span className="font-semibold">Predlog: </span>{finding.suggestedAction}
+          <span className="font-semibold">Suggestion: </span>{finding.suggestedAction}
         </p>
       )}
       {finding.requiresHumanReview && (
         <p className="flex items-start gap-2 rounded border border-orange-900 bg-orange-950/30 p-2 text-[11px] text-orange-200">
           <Icon name="alert" className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Preliminarni nalaz: potrebna je provera odgovornog projektanta ili stručnjaka.
+          Preliminary finding: review by the responsible architect or specialist is required.
         </p>
       )}
       <div className="space-y-1 text-[11px] text-slate-400">
-        <div>Izvor: <span className="font-mono text-slate-300">{finding.sourceVersion}</span></div>
-        <div>Pravilo v{finding.ruleVersion} · odredbi: {finding.provisionIds.length}</div>
+        <div>Source: <span className="font-mono text-slate-300">{finding.sourceVersion}</span></div>
+        <div>Rule v{finding.ruleVersion} · provisions: {finding.provisionIds.length}</div>
       </div>
       {finding.evidenceIds.length > 0 && (
         <div className="space-y-1">
-          <div className="text-[10px] uppercase text-slate-500">Dokazi (označeni na planu)</div>
+          <div className="text-[10px] uppercase text-slate-500">Evidence (highlighted on the plan)</div>
           <ul className="space-y-1">
             {finding.evidenceIds.map((id) => {
               const record = evidence.get(id);
@@ -113,10 +113,10 @@ function FindingDetail({ finding }: { finding: ComplianceFinding }) {
                 <li key={id} className="rounded border border-slate-800 p-1.5 text-[11px] text-slate-300">
                   {record ? (
                     <>
-                      <span className="text-slate-500">{{ DRAWING: "Crtež", USER: "Korisnik", REGULATION: "Propis" }[record.source]}{record.page ? `, str. ${record.page}` : ""}: </span>
-                      {record.text ?? "oblast na crtežu"}
+                      <span className="text-slate-500">{{ DRAWING: "Drawing", USER: "User", REGULATION: "Regulation" }[record.source]}{record.page ? `, p. ${record.page}` : ""}: </span>
+                      {record.text ?? "drawing region"}
                     </>
-                  ) : "Učitavanje..."}
+                  ) : "Loading..."}
                 </li>
               );
             })}
@@ -157,25 +157,25 @@ function ElementDetail({ element }: { element: ArchitecturalElement }) {
     <Section title="Element">
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-semibold text-slate-100">{element.label ?? element.type}</span>
-        <span className={`text-[11px] ${suggested ? "text-amber-300" : "text-emerald-300"}`}>{suggested ? "Predlog AI" : "Potvrđeno"}</span>
+        <span className={`text-[11px] ${suggested ? "text-amber-300" : "text-emerald-300"}`}>{suggested ? "AI suggestion" : "Confirmed"}</span>
       </div>
       <form onSubmit={confirm} className="space-y-2 rounded border border-slate-800 bg-slate-950/40 p-2">
         <label className="block space-y-1 text-[11px] text-slate-300">
-          <span>Vrsta</span>
+          <span>Type</span>
           <select value={type} onChange={(e) => { setType(e.target.value as ElementType); setSubtype(""); }} className={inputClass}>
             {ElementTypeSchema.options.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
         </label>
         <label className="block space-y-1 text-[11px] text-slate-300">
-          <span>Kategorija za provere (podtip)</span>
+          <span>Review category (subtype)</span>
           <select value={subtype} onChange={(e) => setSubtype(e.target.value)} className={inputClass}>
-            <option value="">Nije određeno</option>
+            <option value="">Not specified</option>
             {options.map((entry) => (
               <option key={entry.subtype} value={entry.subtype}>
                 {entry.rules[0].title}{entry.rules.length > 1 ? ` (+${entry.rules.length - 1})` : ""}
               </option>
             ))}
-            <option value={OTHER_SUBTYPE}>Nijedna od navedenih</option>
+            <option value={OTHER_SUBTYPE}>None of the above</option>
             {subtype && subtype !== OTHER_SUBTYPE && !options.some((entry) => entry.subtype === subtype) && (
               <option value={subtype}>{subtype}</option>
             )}
@@ -192,21 +192,21 @@ function ElementDetail({ element }: { element: ArchitecturalElement }) {
           </ul>
         )}
         {subtype && <div className="font-mono text-[10px] text-slate-500">{subtype}</div>}
-        <p className="text-[11px] text-slate-500">Kategorija određuje koja pravila se primenjuju, zato je potvrđuje osoba, ne AI.</p>
+        <p className="text-[11px] text-slate-500">The category determines which rules apply and must be confirmed by a person.</p>
         <Button type="submit" variant={suggested || changed ? "primary" : "secondary"} disabled={busy !== null || (!suggested && !changed)} className="w-full">
-          {changed ? "Sačuvaj klasifikaciju" : suggested ? "Potvrdi klasifikaciju" : "Klasifikacija je potvrđena"}
+          {changed ? "Save classification" : suggested ? "Confirm classification" : "Classification confirmed"}
         </Button>
       </form>
 
       <div className="space-y-1.5">
-        <div className="text-[10px] uppercase text-slate-500">Mere</div>
+        <div className="text-[10px] uppercase text-slate-500">Measurements</div>
         {measurements.map((measurement) => (
           <MeasurementRow key={measurement.id} elementId={element.id} metric={measurement.metric} measurement={measurement} />
         ))}
         {missing.map((metric) => <MeasurementRow key={metric} elementId={element.id} metric={metric} />)}
         {measurements.length === 0 && missing.length === 0 && (
           <p className="text-[11px] text-slate-500">
-            {element.subtype ? "Za ovu kategoriju nema potrebnih mera." : "Potvrdite kategoriju da biste videli koje mere provere traže."}
+            {element.subtype ? "No measurements are required for this category." : "Confirm the category to see which measurements the checks require."}
           </p>
         )}
       </div>
@@ -232,22 +232,22 @@ function MeasurementRow({ elementId, metric, measurement }: { elementId: string;
         <span className="text-slate-300">{metricLabel[metric]}</span>
         {measurement
           ? <span className="font-mono text-slate-100">{formatValue(measurement.value, measurement.unit)}</span>
-          : <span className="text-amber-300">nema podatka</span>}
+          : <span className="text-amber-300">no data</span>}
       </div>
       {measurement && <VerificationBadge verification={measurement.verification} source={measurement.source} />}
       {measurement?.originalUnit && measurement.originalValue !== undefined && measurement.originalUnit !== measurement.unit && (
-        <div className="text-[10px] text-slate-500">Na crtežu: {measurement.originalValue} {measurement.originalUnit}</div>
+        <div className="text-[10px] text-slate-500">On the drawing: {measurement.originalValue} {measurement.originalUnit}</div>
       )}
       <div className="flex gap-1.5">
         <label className="sr-only" htmlFor={`m-${elementId}-${metric}`}>{metricLabel[metric]}{unit && ` (${unit})`}</label>
         <input id={`m-${elementId}-${metric}`} type="number" min={0} step="any" value={value} onChange={(e) => setValue(e.target.value)}
           placeholder={unit} className={inputClass} />
         <Button type="submit" variant={confirmed ? "secondary" : "primary"} disabled={busy !== null || fromInput(metric, value) === undefined}>
-          {!measurement ? "Unesi" : confirmed ? "Ispravi" : "Potvrdi"}
+          {!measurement ? "Enter" : confirmed ? "Correct" : "Confirm"}
         </Button>
       </div>
-      {isRatio(metric) && <p className="text-[10px] text-slate-500">Unesite nagib u procentima: 5 % je odnos 0,05.</p>}
-      {!confirmed && <p className="text-[10px] text-slate-500">Proverite meru na crtežu; tek potvrđena mera daje ocenu Ispunjeno ili Nije ispunjeno.</p>}
+      {isRatio(metric) && <p className="text-[10px] text-slate-500">Enter slope as a percentage: 5 % is a ratio of 0.05.</p>}
+      {!confirmed && <p className="text-[10px] text-slate-500">Check the dimension against the drawing. Only confirmed measurements can produce a pass or fail.</p>}
     </form>
   );
 }
@@ -266,8 +266,8 @@ function RecheckForm({ element }: { element: ArchitecturalElement }) {
 
   if (!metric) {
     return (
-      <Section title="Hipotetička provera (Fix & Recheck)">
-        <p className="text-[11px] text-slate-500">Nema mera koje bi provere mogle ponovo da izračunaju za ovaj element.</p>
+      <Section title="Hypothetical check (Fix & Recheck)">
+        <p className="text-[11px] text-slate-500">There are no measurements to recheck for this element.</p>
       </Section>
     );
   }
@@ -279,41 +279,41 @@ function RecheckForm({ element }: { element: ArchitecturalElement }) {
   };
 
   return (
-    <Section title="Hipotetička provera (Fix & Recheck)">
+    <Section title="Hypothetical check (Fix & Recheck)">
       <form onSubmit={submit} className="space-y-1.5">
         {metrics.length > 1 && (
           <label className="block space-y-1 text-[11px] text-slate-300">
-            <span>Mera</span>
+            <span>Measurement</span>
             <select value={metric} onChange={(e) => { setChosen(e.target.value as Metric); setValue(""); }} className={inputClass}>
               {metrics.map((option) => <option key={option} value={option}>{metricLabel[option]}</option>)}
             </select>
           </label>
         )}
         <div className="flex gap-1.5">
-          <label className="sr-only" htmlFor={`recheck-${element.id}`}>Predložena vrednost: {metricLabel[metric]}{inputUnit(metric) && ` (${inputUnit(metric)})`}</label>
+          <label className="sr-only" htmlFor={`recheck-${element.id}`}>Proposed value: {metricLabel[metric]}{inputUnit(metric) && ` (${inputUnit(metric)})`}</label>
           <input id={`recheck-${element.id}`} type="number" min={0} step="any" value={value} onChange={(e) => setValue(e.target.value)}
             placeholder={`${metricLabel[metric]}${inputUnit(metric) && ` (${inputUnit(metric)})`}`} className={inputClass} />
-          <Button type="submit" disabled={busy !== null || fromInput(metric, value) === undefined}>Proveri</Button>
+          <Button type="submit" disabled={busy !== null || fromInput(metric, value) === undefined}>Check</Button>
         </div>
       </form>
-      <p className="text-[11px] text-slate-500">Bez AI i bez izmene crteža ili mera: samo zavisna pravila se ponovo računaju.</p>
+      <p className="text-[11px] text-slate-500">Recalculates dependent rules without an AI call or changes to the drawing or measurements.</p>
       {result && (
         result.after.length === 0 ? (
-          <p className="text-[11px] text-slate-400">Nijedno aktivno pravilo ne zavisi od ove mere za ovaj element.</p>
+          <p className="text-[11px] text-slate-400">No active rule depends on this measurement for this element.</p>
         ) : (
           <ul className="space-y-1.5">
             {result.after.map((after, index) => {
               const before = result.before[index];
               return (
                 <li key={after.id} className="rounded border border-slate-800 p-2 text-[11px]">
-                  <div className="text-slate-300">{titles.get(after.ruleId) ?? "Pravilo"}</div>
+                  <div className="text-slate-300">{titles.get(after.ruleId) ?? "Rule"}</div>
                   <div className="mt-1 flex items-center gap-1.5">
                     {before && <StatusBadge status={before.status} />}
                     <SvgArrow className="h-3.5 w-3.5 text-slate-400" />
                     <StatusBadge status={after.status} />
                     <span className="ml-auto font-mono text-slate-400">{formatValue(result.proposedValue, unitForMetric(result.metric))}</span>
                   </div>
-                  <span className="sr-only">Pre: {before ? statusLabel[before.status] : "nepoznato"}, posle: {statusLabel[after.status]}</span>
+                  <span className="sr-only">Before: {before ? statusLabel[before.status] : "unknown"}, after: {statusLabel[after.status]}</span>
                 </li>
               );
             })}
@@ -328,23 +328,23 @@ function ActivityFeed() {
   const { activity, snapshot } = useWorkspace();
   const names = new Map(snapshot?.participants?.map((participant) => [participant.id, participant.name]) ?? []);
   return (
-    <section aria-label="Aktivnost agenata" className="h-56 shrink-0 border-t border-slate-800 bg-slate-950/60">
-      <h2 className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Aktivnost agenata</h2>
+    <section aria-label="Agent activity" className="activity-feed flex shrink-0 flex-col border-t border-slate-800 bg-slate-950/60">
+      <h2 className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Agent activity</h2>
       {activity.length === 0 ? (
-        <p className="px-3 py-4 text-[11px] text-slate-500">Događaji iz analize pojaviće se ovde kako se dešavaju.</p>
+        <p className="px-3 py-4 text-[11px] text-slate-500">Analysis events will appear here as they happen.</p>
       ) : (
-        <ol className="h-[calc(100%-1.75rem)] space-y-0.5 overflow-y-auto px-3 py-1" aria-live="polite">
+        <ol className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-3 py-1" aria-live="polite">
           {activity.map((event) => {
             const detail = eventDetail(event);
             return (
-              <li key={event.id} className="grid grid-cols-[3.25rem_1fr] gap-x-2 text-[11px]">
+              <li key={event.id} className="activity-event grid gap-x-3 text-[11px]">
                 <time className="font-mono text-slate-500" dateTime={event.occurredAt}>
-                  {new Date(event.occurredAt).toLocaleTimeString("sr-Latn", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                  {new Date(event.occurredAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                 </time>
                 <span>
                   <span className={event.type === "agent.run.failed" ? "text-rose-300" : "text-slate-200"}>{eventLabel(event)}</span>
                   {detail && <span className="text-slate-400"> · {detail}</span>}
-                  <span className="block text-[10px] text-slate-500">{names.get(event.producerId) ?? "Učesnik"}</span>
+                  <span className="block text-[10px] text-slate-500">{names.get(event.producerId) ?? "Participant"}</span>
                 </span>
               </li>
             );

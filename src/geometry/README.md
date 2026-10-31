@@ -22,9 +22,13 @@ AI dimensions are always unverified. Missing-input keys are element/metric withi
 
 ## Synthetic demo
 
+For a user-supplied dimensioned working drawing and its live recognition assessment, see `fixtures/plans/residential-dimensioned.png` and `fixtures/plans/README.md`. Recognition on that reference has not passed visual acceptance; the synthetic examples below are technical fixtures, not a substitute for that test.
+
 Call `loadConfirmedFixture(parsedJson, context)` explicitly with either `fixtures/plans/office-a.json` or `office-b.json`. These are authored synthetic observations, not real architect approvals or regulatory requirements. Display the returned disclosure warning. The JSON geometry refers to the corresponding 800×600 PNG/JPG, not to the PDF render. The two-page PDF is an independent normalization fixture; its source frame is 1600×1200. Fixtures contain no findings or rule thresholds. The engine computes all outcomes.
 
 Optional asset regeneration uses `fixtures/plans/generate.mjs`. It uses the pinned direct `@napi-rs/canvas` dependency. Committed raster/PDF assets need no generator at runtime.
+
+The technical-plan prompt preserves independently located annotation evidence (`labels`) even when no canonical measurement can be assigned. Nominal opening sizes and uncertain associations are withheld from numeric measurements. A proposed physical value/unit must match an explicit quoted label; unitless annotations and width/height pairs require confirmation. These module-local additions do not change shared entity schemas. Prompt version `geometry-v2-technical-plan` invalidates extraction caches for fresh analysis; existing stored project observations remain historical and are reused by the runtime, so use a fresh upload/project to test new recognition behavior.
 
 ## Verification and remaining gates
 
@@ -35,7 +39,7 @@ Optional asset regeneration uses `fixtures/plans/generate.mjs`. It uses the pinn
 - Live smoke (30 October 2026) now passes with `claude-sonnet-4-6`: session COMPLETE, 5 suggested elements, 2 UNVERIFIED measurements, 3 reported input tokens, 427 output tokens, estimated cost USD 0.006414, and zero active rules. The HTTP/Mozaik/private-rendering path used only the synthetic office fixture. This verifies provider wiring and canonical output, not measurement accuracy or legal compliance.
 - Earlier HTTP 503 responses were diagnosed as Mozaik Cloud rejecting the previous default model `claude-opus-5-5`, not a confirmed service outage. Runtime/example defaults now use the gateway-verified Sonnet model. A known unsupported-model response reports `PROVIDER_MODEL_UNAVAILABLE` without retrying; unknown 503 responses still receive the bounded transient retry. Model-list HTTP 404 alone is not an availability check.
 - Browser visual rehearsal remains unverified because no browser connection was available. Native raster pixel alignment is tested, but UI zoom/pan and hit testing still require Team 1's viewer.
-- Production uses Team 4’s source/registry/applicability modules through `runtime/adapters/registry.ts`. No delivered rule is ACTIVE, so production still executes zero legal checks; reviewed rules retain their lifecycle gates. Coverage exposes the source and review counts; no test threshold is installed in the application.
+- Production uses Team 4’s source/registry/applicability modules through `runtime/adapters/registry.ts`. Twenty human-reviewed dimension rules are ACTIVE under `fixtures/regulations/005-activation.json`; six human-reviewed geometric rules remain blocked by missing evaluators. Applicability context, confirmed subtypes and measurements still gate numeric outcomes. The default smoke command deliberately uses an empty registry; production uses the active registry. See `docs/regulations/005-activation.md` for the current activation scope.
 
 
 ## Mozaik tool-loop integration

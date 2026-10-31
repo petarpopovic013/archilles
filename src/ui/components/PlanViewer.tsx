@@ -5,6 +5,7 @@ import type { ArchitecturalElement, EvaluationStatus } from "../../domain";
 import { useWorkspace } from "../state/workspace";
 import { statusLabel } from "../format";
 import { boundsOf, fitRect, panBy, pathOf, toSource, zoomAt, type Viewport } from "../viewer/transforms";
+import { layoutPlanLabels } from "../viewer/labels";
 import { Button, Icon, statusTone } from "./common";
 
 const severity: EvaluationStatus[] = ["FAIL", "NEEDS_REVIEW", "UNKNOWN", "PASS", "NOT_APPLICABLE"];
@@ -23,6 +24,7 @@ export function PlanViewer() {
   const [image, setImage] = useState<PageImage | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
   const [view, setView] = useState<Viewport>({ scale: 1, x: 0, y: 0 });
+  const [frameSize, setFrameSize] = useState({ width: 0, height: 0 });
   const [layers, setLayers] = useState({ elements: true, labels: true, evidence: true });
   const drag = useRef<{ id: number; x: number; y: number; moved: number } | null>(null);
   const pageKey = drawing ? `${drawing.id}:${page}` : null;
@@ -38,7 +40,7 @@ export function PlanViewer() {
       if (cancelled) return URL.revokeObjectURL(info.url);
       setPageError(null);
       setImage({ key: pageKey, url: info.url, width: info.widthPx, height: info.heightPx });
-    }).catch(() => { if (!cancelled) setPageError("Stranica crteža nije dostupna."); });
+    }).catch(() => { if (!cancelled) setPageError("The drawing page is unavailable."); });
     return () => {
       cancelled = true;
       if (url) URL.revokeObjectURL(url);
@@ -47,7 +49,7 @@ export function PlanViewer() {
 
   const fit = useCallback(() => {
     const box = frame.current?.getBoundingClientRect();
-    if (!box || !current) return;
+    if (!box || !current || box.width <= 0 || box.height <= 0) return;
     setView(fitRect(box.width, box.height, { x: 0, y: 0, width: current.width, height: current.height }, 24));
   }, [current]);
 
@@ -55,7 +57,11 @@ export function PlanViewer() {
   useEffect(() => {
     const element = frame.current;
     if (!element || !current) return;
-    const observer = new ResizeObserver(() => fit());
+    const observer = new ResizeObserver(() => {
+      const box = element.getBoundingClientRect();
+      setFrameSize({ width: box.width, height: box.height });
+      fit();
+    });
     observer.observe(element);
     return () => observer.disconnect();
   }, [current, fit]);
@@ -98,6 +104,23 @@ export function PlanViewer() {
     return result;
   }, [snapshot]);
 
+  const labelLayout = useMemo(() => layoutPlanLabels((snapshot?.elements ?? []).map((element, index) => {
+    const status = worstStatus.get(element.id);
+    const name = element.type.toLowerCase().replaceAll("_", " ");
+    const shortName = name.charAt(0).toUpperCase() + name.slice(1);
+    return {
+      id: element.id, bounds: boundsOf(element.geometry),
+      text: `${index + 1}. ${shortName}${status ? ` · ${statusLabel[status]}` : element.extraction === "AI_SUGGESTED" ? " · AI" : ""}`,
+      priority: status ? severity.indexOf(status) : severity.length,
+      selected: selectedElement?.id === element.id,
+    };
+  }), view, frameSize), [snapshot, worstStatus, selectedElement?.id, view, frameSize]);
+
+  const selectElement = (element: ArchitecturalElement) => {
+    const finding = snapshot?.findings.find((item) => item.elementId === element.id && item.status === worstStatus.get(element.id));
+    select(finding ? { kind: "finding", id: finding.id } : { kind: "element", id: element.id });
+  };
+
   const highlighted = selectedFinding
     ? selectedFinding.evidenceIds.flatMap((id) => {
       const record = evidence.get(id);
@@ -139,18 +162,18 @@ export function PlanViewer() {
   };
 
   return (
-    <main className="flex min-w-0 flex-1 flex-col bg-slate-950" aria-label="Pregled plana">
-      <div className="flex flex-wrap items-center gap-1 border-b border-slate-800 bg-slate-900 px-2 py-1.5">
-        <Button variant="ghost" aria-label="Uvećaj" onClick={() => zoomCentre(1.25)} disabled={!current}><Icon name="plus" /></Button>
-        <Button variant="ghost" aria-label="Umanji" onClick={() => zoomCentre(0.8)} disabled={!current}><Icon name="minus" /></Button>
-        <Button variant="ghost" aria-label="Prikaži ceo crtež" onClick={fit} disabled={!current}><Icon name="fit" /></Button>
-        <Button variant="ghost" aria-label="Fokusiraj izabrani element" onClick={focusSelected} disabled={!current || !selectedElement}><Icon name="focus" /></Button>
+    <main id="workspace-plan" className="plan-panel flex min-h-0 min-w-0 flex-1 flex-col bg-slate-950" aria-label="Plan viewer">
+      <div className="plan-toolbar flex shrink-0 flex-wrap items-center gap-1 border-b border-slate-800 bg-slate-900 px-2 py-1.5">
+        <Button variant="ghost" aria-label="Zoom in" onClick={() => zoomCentre(1.25)} disabled={!current}><Icon name="plus" /></Button>
+        <Button variant="ghost" aria-label="Zoom out" onClick={() => zoomCentre(0.8)} disabled={!current}><Icon name="minus" /></Button>
+        <Button variant="ghost" aria-label="Fit drawing to view" onClick={fit} disabled={!current}><Icon name="fit" /></Button>
+        <Button variant="ghost" aria-label="Focus selected element" onClick={focusSelected} disabled={!current || !selectedElement}><Icon name="focus" /></Button>
         <span className="ml-1 w-12 font-mono text-[11px] text-slate-400" aria-live="polite">{Math.round(view.scale * 100)}%</span>
-        <div className="ml-auto flex items-center gap-3 text-[11px] text-slate-300">
+        <div className="plan-layers ml-auto flex flex-wrap items-center gap-3 text-[11px] text-slate-300">
           {(Object.keys(layers) as (keyof typeof layers)[]).map((layer) => (
             <label key={layer} className="flex items-center gap-1">
               <input type="checkbox" checked={layers[layer]} onChange={() => setLayers({ ...layers, [layer]: !layers[layer] })} />
-              {{ elements: "Elementi", labels: "Oznake", evidence: "Dokazi" }[layer]}
+              {{ elements: "Elements", labels: "Labels", evidence: "Evidence" }[layer]}
             </label>
           ))}
         </div>
@@ -161,15 +184,15 @@ export function PlanViewer() {
         className="relative flex-1 touch-none select-none overflow-hidden"
         style={{ backgroundImage: "radial-gradient(#1e293b 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
         {!drawing ? (
-          <Placeholder text="Kreirajte projekat i otpremite crtež." />
+          <Placeholder text="Create a project and upload a drawing." />
         ) : !current ? (
-          <Placeholder text={pageError ?? "Učitavanje stranice..."} />
+          <Placeholder text={pageError ?? "Loading page..."} />
         ) : (
-          <div className="absolute left-0 top-0 origin-top-left"
+          <><div className="absolute left-0 top-0 origin-top-left"
             style={{ width: current.width, height: current.height, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>
             {/* The raster may be smaller than the source frame; it is stretched to source size so overlays align. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={current.url} alt={`Stranica ${page} crteža ${drawing.originalName}`} draggable={false}
+            <img src={current.url} alt={`Page ${page} of ${drawing.originalName}`} draggable={false}
               className="absolute left-0 top-0 bg-white" style={{ width: current.width, height: current.height }} />
             <svg className="absolute left-0 top-0 overflow-visible" width={current.width} height={current.height}
               viewBox={`0 0 ${current.width} ${current.height}`}>
@@ -180,35 +203,68 @@ export function PlanViewer() {
               ))}
               {layers.elements && snapshot?.elements.map((element) => (
                 <ElementShape key={element.id} element={element} status={worstStatus.get(element.id)}
-                  selected={selectedElement?.id === element.id} showLabel={layers.labels} scale={view.scale}
-                  onSelect={() => {
-                    const finding = snapshot.findings.find((item) => item.elementId === element.id && item.status === worstStatus.get(element.id));
-                    select(finding ? { kind: "finding", id: finding.id } : { kind: "element", id: element.id });
-                  }} />
+                  selected={selectedElement?.id === element.id} onSelect={() => selectElement(element)} />
               ))}
             </svg>
           </div>
+          {layers.elements && layers.labels && (
+            <svg className="plan-label-overlay absolute inset-0" width={frameSize.width} height={frameSize.height}
+              aria-label="Element labels">
+              <g aria-hidden="true">
+                {labelLayout.labels.map((label) => {
+                  const status = worstStatus.get(label.id);
+                  const colour = status ? statusTone[status].stroke : "#547143";
+                  const endX = Math.max(label.x + 8, Math.min(label.x + label.width - 8, label.anchor.x));
+                  const endY = label.anchor.y > label.y + label.height ? label.y + label.height : label.y;
+                  return <g key={label.id}>
+                    <path d={`M${label.anchor.x} ${label.anchor.y}L${endX} ${endY}`} stroke="#fff" strokeWidth={4} fill="none" />
+                    <path d={`M${label.anchor.x} ${label.anchor.y}L${endX} ${endY}`} stroke={colour} strokeWidth={1.5} fill="none" />
+                    <circle cx={label.anchor.x} cy={label.anchor.y} r={3} fill={colour} stroke="#fff" strokeWidth={1} />
+                  </g>;
+                })}
+              </g>
+              {labelLayout.labels.map((label) => {
+                const element = snapshot!.elements.find((item) => item.id === label.id)!;
+                const status = worstStatus.get(element.id);
+                const selected = selectedElement?.id === element.id;
+                const title = `${element.label ?? element.type} · ${status ? statusLabel[status] : "No evaluated finding"}${element.extraction === "AI_SUGGESTED" ? " · AI suggestion, unconfirmed" : ""}`;
+                return (
+                    <g key={label.id} className="plan-label" role="button" tabIndex={0} aria-label={title} aria-pressed={selected}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onPointerUp={(event) => event.stopPropagation()}
+                      onClick={(event) => { event.stopPropagation(); selectElement(element); }}
+                      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectElement(element); } }}>
+                      <title>{title}</title>
+                      <rect x={label.x} y={label.y} width={label.width} height={label.height} rx={6}
+                        fill={selected ? "#f0f4e9" : "#fff"} stroke={selected ? "#354625" : "#aeb8a3"} strokeWidth={selected ? 2 : 1} />
+                      <text x={label.x + 12} y={label.y + 19} fill="#26311c" fontSize={12} fontFamily="ui-monospace, monospace"
+                        textLength={label.text.length * 7.2 > label.width - 24 ? label.width - 24 : undefined} lengthAdjust="spacingAndGlyphs">{label.text}</text>
+                    </g>
+                );
+              })}
+            </svg>
+          )}
+          </>
         )}
         <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-slate-900/90 px-2 py-1 font-mono text-[11px] text-slate-300">
-          {cursor ? `x ${Math.round(cursor.x)} · y ${Math.round(cursor.y)} px` : "Točkić: zum · prevlačenje: pomeranje"}
+          {layers.elements && layers.labels && labelLayout.hiddenCount > 0
+            ? <span role="status">{labelLayout.hiddenCount} more labels · zoom in to inspect</span>
+            : cursor ? `x ${Math.round(cursor.x)} · y ${Math.round(cursor.y)} px` : "Scroll to zoom · drag to pan"}
         </div>
       </div>
     </main>
   );
 }
 
-function ElementShape({ element, status, selected, showLabel, scale, onSelect }: {
+function ElementShape({ element, status, selected, onSelect }: {
   element: ArchitecturalElement;
   status?: EvaluationStatus;
   selected: boolean;
-  showLabel: boolean;
-  scale: number;
   onSelect(): void;
 }) {
   const suggested = element.extraction === "AI_SUGGESTED";
   const colour = status ? statusTone[status].stroke : suggested ? "#22d3ee" : "#38bdf8";
-  const bounds = boundsOf(element.geometry);
-  const label = `${element.label ?? element.type}${status ? `: ${statusLabel[status]}` : ""}${suggested ? " (nepotvrđeno)" : ""}`;
+  const label = `${element.label ?? element.type}${status ? `: ${statusLabel[status]}` : ""}${suggested ? " (unconfirmed)" : ""}`;
   const onKeyDown = (event: KeyboardEvent<SVGGElement>) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -221,12 +277,7 @@ function ElementShape({ element, status, selected, showLabel, scale, onSelect }:
       onKeyDown={onKeyDown}>
       <path d={pathOf(element.geometry)} fill={selected ? `${colour}33` : `${colour}14`} stroke={colour}
         strokeWidth={selected ? 3 : 1.5} strokeDasharray={suggested ? "5 3" : undefined} vectorEffect="non-scaling-stroke" />
-      {showLabel && (
-        <text x={bounds.x} y={bounds.y - 4 / scale} fill={colour} fontSize={11 / scale} fontFamily="ui-monospace, monospace"
-          paintOrder="stroke" stroke="#020617" strokeWidth={3 / scale}>
-          {label}
-        </text>
-      )}
+      <title>{label}</title>
     </g>
   );
 }
