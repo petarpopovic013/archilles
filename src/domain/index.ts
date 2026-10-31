@@ -5,3 +5,4 @@ export * from "./review";
 export * from "./events";
 export * from "./api";
 export * from "./fixtures";
+export * from "./geometry";

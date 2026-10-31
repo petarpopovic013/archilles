@@ -64,13 +64,13 @@ export const BoundingBoxSchema = z.strictObject({
 });
 export const PolygonSchema = z.strictObject({
   kind: z.literal("POLYGON"), points: z.array(PointSchema).min(3),
-}).refine((value) => new Set(value.points.map((point) => `${point.x},${point.y}`)).size >= 3, {
-  message: "Polygon needs three distinct points",
+}).refine((value) => value.points.length <= 400 && new Set(value.points.map((point) => `${point.x},${point.y}`)).size >= 3, {
+  message: "Polygon needs three distinct points and at most 400 vertices",
   path: ["points"],
 });
 export const PolylineSchema = z.strictObject({
   kind: z.literal("POLYLINE"), points: z.array(PointSchema).min(2),
-});
+}).refine(value=>value.points.length<=400,{message:"Polyline supports at most 400 vertices",path:["points"]});
 export const GeometrySchema = z.union([BoundingBoxSchema, PolygonSchema, PolylineSchema]);
 export type Point = z.infer<typeof PointSchema>;
 export type Geometry = z.infer<typeof GeometrySchema>;
@@ -102,6 +102,7 @@ export const ArchitecturalElementSchema = z.strictObject({
   subtype: z.string().trim().min(1).max(100).optional(),
   label: z.string().trim().min(1).max(200).optional(),
   geometry: GeometrySchema,
+  geometryVerification: VerificationSchema.optional(),
   relationIds: z.array(IdSchema),
   extraction: z.enum(["AI_SUGGESTED", "USER_CONFIRMED", "USER_CREATED"]),
   evidenceIds: z.array(IdSchema),

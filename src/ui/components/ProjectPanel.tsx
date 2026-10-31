@@ -1,5 +1,6 @@
 "use client";
 
+import { GeometryPanel } from "./GeometryPanel";
 import { useState, type FormEvent } from "react";
 import type { CharacteristicKey, EvaluationStatus, Project, ProjectPhase, UpdateProjectRequest } from "../../domain";
 import { useWorkspace } from "../state/workspace";
@@ -25,6 +26,7 @@ export function ProjectPanel() {
         <>
           <ProjectSummary project={project} />
           <DrawingSection />
+          <GeometryPanel />
           <NeededChecklist />
           <ResultsTabs />
         </>

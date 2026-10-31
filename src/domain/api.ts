@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { GeometryReportSchema, GeometrySetupRequestSchema, GeometryPageRequestSchema, GeometryPageResponseSchema } from "./geometry";
 import {
   AnalysisStatusSchema,
   CharacteristicKeySchema,
@@ -17,6 +18,7 @@ import {
 import {
   ArchitecturalElementSchema,
   DrawingSchema,
+  GeometrySchema,
   EvidenceSchema,
   MeasurementSchema,
   ProjectSchema,
@@ -102,6 +104,7 @@ export const ElementUpdateRequestSchema = z.strictObject({
   baseRevision: PositiveIntegerSchema,
   type: ElementTypeSchema.optional(),
   subtype: z.string().trim().min(1).max(100).nullable().optional(),
+  geometry: GeometrySchema.optional(),
 });
 export const ElementUpdateResponseSchema = z.strictObject({
   revision: ProjectRevisionSchema,
@@ -116,7 +119,12 @@ export const ElementsUpdateRequestSchema = z.strictObject({
     elementId: IdSchema,
     type: ElementTypeSchema.optional(),
     subtype: z.string().trim().min(1).max(100).nullable().optional(),
+    geometry: GeometrySchema.optional(),
   })).min(1).max(150),
+});
+export const CreateElementRequestSchema = z.strictObject({
+  baseRevision: PositiveIntegerSchema, drawingId: IdSchema, page: PositiveIntegerSchema,
+  type: ElementTypeSchema, geometry: GeometrySchema, label: z.string().trim().min(1).max(200).optional(),
 });
 export const ElementsUpdateResponseSchema = z.strictObject({
   revision: ProjectRevisionSchema,
@@ -197,6 +205,7 @@ export const AnalysisSnapshotSchema = z.strictObject({
   session: AnalysisSessionSchema,
   elements: z.array(ArchitecturalElementSchema),
   measurements: z.array(MeasurementSchema),
+  geometry: GeometryReportSchema.optional(),
   evaluations: z.array(RuleEvaluationSchema),
   findings: z.array(ComplianceFindingSchema),
   coverage: CoverageSummarySchema,
@@ -218,6 +227,10 @@ export type ApiError = z.infer<typeof ApiErrorSchema>;
 
 /** One source of truth for JSON route shapes. The upload route also requires file bytes. */
 export const apiContracts = {
+  retireElement: { method: "DELETE", path: "/api/elements/:id", request: GeometryPageRequestSchema, response: ElementUpdateResponseSchema },
+  createElement: { method: "POST", path: "/api/projects/:id/elements", request: CreateElementRequestSchema, response: ElementUpdateResponseSchema },
+  geometrySetup: { method: "PATCH", path: "/api/drawings/:id/pages/:page/geometry", request: GeometrySetupRequestSchema, response: GeometryPageResponseSchema },
+  geometryReextract: { method: "POST", path: "/api/drawings/:id/pages/:page/geometry", request: GeometryPageRequestSchema, response: GeometryPageResponseSchema },
   createProject: { method: "POST", path: "/api/projects", request: CreateProjectRequestSchema, response: ProjectSchema },
   getProject: { method: "GET", path: "/api/projects/:id", response: ProjectSchema },
   updateProject: { method: "PATCH", path: "/api/projects/:id", request: UpdateProjectRequestSchema, response: UpdateProjectResponseSchema },

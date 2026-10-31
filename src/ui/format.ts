@@ -57,6 +57,7 @@ const eventLabels: Record<string, string> = {
   "drawing.uploaded": "Drawing uploaded",
   "analysis.started": "Analysis started",
   "geometry.extraction.started": "Drawing extraction started",
+  "geometry.stage.completed": "Drawing reading stage",
   "geometry.extraction.completed": "Elements extracted",
   "geometry.measurement.missing": "Measurement confirmation required",
   "geometry.measurement.updated": "Measurement updated",
@@ -78,6 +79,8 @@ export const eventLabel = (event: Pick<AgentEvent, "type">) => eventLabels[event
 export function eventDetail(event: AgentEvent): string | undefined {
   const payload = event.payload as Record<string, unknown>;
   switch (event.type) {
+    case "geometry.stage.completed":
+      return `${String(payload.stage).toLowerCase().replaceAll("_", " ")} · ${payload.calls} Vision calls`;
     case "geometry.extraction.completed":
       return `${(payload.elementIds as unknown[]).length} elements, ${(payload.measurementIds as unknown[]).length} measurements`;
     case "regulation.rules.selected":

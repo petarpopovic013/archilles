@@ -14,6 +14,7 @@ export const eventPayloadSchemas = {
   "project.created": z.strictObject({}),
   "drawing.uploaded": z.strictObject({ drawingId: IdSchema, page: PositiveIntegerSchema, sha256: z.string().regex(/^[a-f0-9]{64}$/) }),
   "analysis.started": z.strictObject({ drawingId: IdSchema, page: PositiveIntegerSchema, ruleSetVersion: z.string().min(1) }),
+  "geometry.stage.completed": z.strictObject({ stage: z.enum(["OVERVIEW", "AWAITING_CONFIRMATION", "DETAILS", "RECONSTRUCTION", "VALIDATION", "COMPLETE", "PARTIAL"]), calls: NonNegativeIntegerSchema, regionCount: NonNegativeIntegerSchema }),
   "geometry.extraction.started": z.strictObject({ agentRunId: IdSchema, cacheKey: z.string().min(1) }),
   "geometry.extraction.completed": z.strictObject({ elementIds: z.array(IdSchema), measurementIds: z.array(IdSchema), evidenceIds: z.array(IdSchema) }),
   "geometry.measurement.missing": z.strictObject({ elementId: IdSchema, metric: MetricSchema, reason: z.string().min(1) }),

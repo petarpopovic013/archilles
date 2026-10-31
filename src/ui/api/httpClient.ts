@@ -1,6 +1,8 @@
 import type { z } from "zod";
 import {
-  AnalysisSnapshotSchema,
+  AnalysisSnapshotSchema, CreateElementRequestSchema,
+  GeometrySetupRequestSchema, GeometryPageResponseSchema, GeometryPageRequestSchema,
+  type DrawingSettings,
   ApiErrorSchema,
   CoverageSummarySchema,
   CreateProjectRequestSchema,
@@ -94,6 +96,13 @@ export class HttpArchillesApiClient {
     return UploadDrawingResponseSchema.parse(await this.read(await this.send(`/api/projects/${id(projectId)}/drawings`, { method: "POST", body: form })));
   }
 
+  saveDrawingSetup(drawingId: string, page: number, baseRevision: number, settings: DrawingSettings) {
+    return this.json("PATCH", `/api/drawings/${id(drawingId)}/pages/${page}/geometry`, GeometryPageResponseSchema, GeometrySetupRequestSchema.parse({baseRevision,...settings}));
+  }
+  readGeometryAgain(drawingId: string, page: number, baseRevision: number) {
+    return this.json("POST", `/api/drawings/${id(drawingId)}/pages/${page}/geometry`, GeometryPageResponseSchema, {baseRevision});
+  }
+
   getDrawingPageUrl(drawingId: string, page: number): string {
     return `${this.baseUrl}/api/drawings/${id(drawingId)}/pages/${page}`;
   }
@@ -126,6 +135,14 @@ export class HttpArchillesApiClient {
   correctMeasurement(elementId: string, request: MeasurementCorrectionRequest) {
     return this.json("PATCH", `/api/elements/${id(elementId)}/measurements`, MeasurementCorrectionResponseSchema,
       MeasurementCorrectionRequestSchema.parse(request));
+  }
+
+  createElement(projectId: string, request: z.input<typeof CreateElementRequestSchema>) {
+    return this.json("POST", `/api/projects/${id(projectId)}/elements`, ElementUpdateResponseSchema, CreateElementRequestSchema.parse(request));
+  }
+
+  retireElement(elementId:string,baseRevision:number){
+    return this.json("DELETE",`/api/elements/${id(elementId)}`,ElementUpdateResponseSchema,GeometryPageRequestSchema.parse({baseRevision}));
   }
 
   updateElement(elementId: string, request: ElementUpdateRequest) {

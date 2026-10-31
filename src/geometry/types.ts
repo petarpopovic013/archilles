@@ -1,4 +1,5 @@
 import type { ArchitecturalElement, Drawing, Evidence, Floor, Measurement } from '../domain/project';
+import type { GeometryReport } from '../domain/geometry';
 import type { Metric } from '../domain/common';
 import type { Affine } from './transforms';
 export class GeometryError extends Error {
@@ -20,6 +21,7 @@ export interface PageRenderer {
 }
 export interface MissingInput { elementId: string; metric: Metric; reason: string }
 export interface GeometryExtraction {
+  report?: GeometryReport;
   elements: ArchitecturalElement[]; measurements: Measurement[]; evidence: Evidence[];
   missingInputs: MissingInput[]; warnings: string[];
   usage: { model: string; inputTokens: number; outputTokens: number; estimatedCostUsd?: number; cacheHit: boolean };

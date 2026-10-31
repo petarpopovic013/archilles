@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { AnalysisSnapshotSchema, ProjectSchema, StartAnalysisResponseSchema, UploadDrawingResponseSchema } from '../../src/domain';
 import { createNodePageRenderer } from '../../src/geometry/node-renderer';
-import { createClaudeVisionRunner } from '../../src/vision/claude';
+import { createDrawingVisionRunner } from '../../src/vision/pipeline';
 import { createPendingRegistry } from '../../runtime/adapters/pending-registry';
 import { ClaudeInferenceRunner } from '../../runtime/ai/inference';
 import { startRuntime, type RuntimeApp } from '../../runtime/app';
@@ -37,7 +37,7 @@ async function main() {
     const config = { ...base, port: 0, dataDir, databasePath: path.join(dataDir, 'smoke.sqlite'), aiBudgetUsd: Math.min(base.aiBudgetUsd, 1), aiHourlyLimitUsd: Math.min(base.aiHourlyLimitUsd, 1) };
     const client = new Anthropic({ maxRetries: 0 });
     const syntheticRule = process.argv.includes("--synthetic-rule");
-    app = await startRuntime({ config, registry: syntheticRule ? fakeRegistry([rule()]) : createPendingRegistry(), geometry: { renderer: createNodePageRenderer(), vision: createClaudeVisionRunner(client, config.visionModel) }, inferenceRunner: new ClaudeInferenceRunner(client) });
+    app = await startRuntime({ config, registry: syntheticRule ? fakeRegistry([rule()]) : createPendingRegistry(), geometry: { renderer: createNodePageRenderer(), vision: createDrawingVisionRunner(client, config.visionModel) }, inferenceRunner: new ClaudeInferenceRunner(client) });
     const created = await fetch(`${app.url}/api/projects`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: customPlan ? 'User-supplied drawing smoke' : 'Disclosed synthetic live smoke', purpose: customPlan ? 'OTHER' : 'OFFICE' }) });
     const project = ProjectSchema.parse(await created.json());
     const form = new FormData();
@@ -47,19 +47,25 @@ async function main() {
     if (upload.status !== 201) throw new Error('UPLOAD_SMOKE_FAILED');
     const { drawing } = UploadDrawingResponseSchema.parse(await upload.json());
     const started = await fetch(`${app.url}/api/projects/${project.id}/analyses`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ projectRevision: 2, drawingId: drawing.id, page }) });
-    const { sessionId } = StartAnalysisResponseSchema.parse(await started.json());
+    let { sessionId } = StartAnalysisResponseSchema.parse(await started.json());
+    let overviewSessionId:string|undefined;
     const deadline = Date.now() + 900_000;
     for (;;) {
       const snapshot = AnalysisSnapshotSchema.parse(await (await fetch(`${app.url}/api/analyses/${sessionId}`)).json());
       if (snapshot.session.status !== 'RUNNING') {
-        const runs = listSessionRuns(app.ctx.db, sessionId);
+        if(snapshot.geometry?.stage==='AWAITING_CONFIRMATION'){
+          overviewSessionId=sessionId;
+          const next=await fetch(`${app.url}/api/drawings/${drawing.id}/pages/${page}/geometry`,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({baseRevision:snapshot.session.projectRevision,unit:null,legendConfirmed:true,confirmedLegendIds:[]})});
+          const result=await next.json();if(!next.ok||!result.sessionId)throw new Error('SMOKE_SETUP_FAILED');sessionId=result.sessionId;continue;
+        }
+        const runs = [...(overviewSessionId?listSessionRuns(app.ctx.db,overviewSessionId):[]),...listSessionRuns(app.ctx.db, sessionId)];
         const geometry = runs.find(run => run.role === 'GEOMETRY');
         // Opt-in private report for inspecting actual observations. Never logs image bytes/prompts.
         const floorId = snapshot.elements[0]?.floorId;
         const observations = floorId ? floorView(app.ctx.db, floorId, snapshot.session.projectRevision) : undefined;
         if (reportPath) await writeFile(reportPath, JSON.stringify({ ...snapshot, observations }, null, 2), { flag: 'wx', mode: 0o600 });
         console.log(JSON.stringify({ syntheticRule, notice: syntheticRule ? 'TEST-ONLY threshold, no legal meaning or production activation' : 'Extraction wiring only. COMPLETE does not establish recognition accuracy or legal coverage.', loops: app.ctx.db.prepare('SELECT r.role, COUNT(DISTINCT e.loop_id) AS loops FROM agent_loop_events e JOIN agent_runs r ON r.id = e.run_id WHERE r.session_id = ? GROUP BY r.role').all(sessionId), status: snapshot.session.status, model: config.visionModel, elements: snapshot.elements.length, measurements: snapshot.measurements.length, unverified: snapshot.measurements.filter(m => m.verification === 'UNVERIFIED').length, activeRules: snapshot.coverage.activeRules, runs: runs.map(({ role, status, inputTokens, outputTokens, estimatedCostUsd, errorCode }) => ({ role, status, inputTokens, outputTokens, estimatedCostUsd, errorCode })) }));
-        if (geometry?.status !== 'COMPLETED' || snapshot.session.status !== 'COMPLETE') process.exitCode = 1;
+        if (geometry?.status !== 'COMPLETED' || !snapshot.geometry?.regions.every(r=>r.processed)) process.exitCode = 1;
         break;
       }
       if (Date.now() > deadline) throw new Error('LIVE_SMOKE_TIMEOUT');

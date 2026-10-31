@@ -43,11 +43,13 @@ test("the checklist groups every blocker into the actions that unblock it", () =
   assert.equal(checklistFor({ elements: [], evaluations: [] } as unknown as AnalysisSnapshot).done, true);
 });
 
-test("door marks suggest the smaller number as a width in centimetres", () => {
-  assert.deepEqual(widthFromMark(["V2", "80/200"]), { centimetres: 80, mark: "80/200" });
-  assert.deepEqual(widthFromMark(["200\n80"]), { centimetres: 80, mark: "200/80" });
-  assert.deepEqual(widthFromMark(["91/220"]), { centimetres: 91, mark: "91/220" });
-  assert.equal(widthFromMark(["366.5", "V1"]), undefined, "a single room dimension is not a door mark");
+test("door marks use explicitly confirmed units and stay nominal suggestions", () => {
+  assert.deepEqual(widthFromMark(["V2", "80/200"], "cm"), { centimetres: 80, mark: "80/200" });
+  assert.deepEqual(widthFromMark(["200\n80"], "cm"), { centimetres: 80, mark: "200/80" });
+  assert.deepEqual(widthFromMark(["91/220"], "cm"), { centimetres: 91, mark: "91/220" });
+  assert.equal(widthFromMark(["80/200"]), undefined, "unknown units cannot become centimetres");
+  assert.deepEqual(widthFromMark(["800/2000"], "mm"), { centimetres: 80, mark: "800/2000" });
+  assert.equal(widthFromMark(["366.5", "V1"], "cm"), undefined, "a single room dimension is not a door mark");
 });
 
 test("categories and building classes read as plain language", () => {
@@ -67,4 +69,11 @@ test("checks for things the drawing doesn't show need no action and raise no pro
   assert.deepEqual(stepsFor(absent, undefined, "STAIR"), [{ text: "No stair was found on this drawing, so this check cannot run here." }]);
   const list = checklistFor({ elements: [], evaluations: [absent] } as unknown as AnalysisSnapshot);
   assert.deepEqual([list.questions, list.notOnDrawing, list.done], [[], 1, true]);
+});
+
+test('an explicit annotation unit overrides drawing defaults without approving a measurement',()=>{
+  assert.equal(widthFromMark(['800/2000mm'],'cm')?.centimetres,80);
+  assert.equal(widthFromMark(['80/200 cm'],null)?.centimetres,80);
+  assert.equal(widthFromMark(['80/200 mm'],'cm'),undefined);
+  assert.equal(widthFromMark(['80/200 cm, 1m'],'cm'),undefined);
 });

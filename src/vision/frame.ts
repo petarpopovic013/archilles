@@ -23,7 +23,7 @@ export function visionFrame(model: string, width: number, height: number): Visio
   const { edge, area } = HIGH_RES_MODEL.test(model) ? { edge: 2576, area: 3_750_000 } : { edge: 1568, area: 1_150_000 };
   const fits = (scale: number) => {
     const w = Math.floor(width * scale) + 2 * MARGIN, h = Math.floor(height * scale) + 2 * MARGIN;
-    return Math.max(w, h) <= edge && w * h <= area;
+    return Math.ceil(w / 28) * 28 <= edge && Math.ceil(h / 28) * 28 <= edge && Math.ceil(w / 28) * Math.ceil(h / 28) <= (edge === 1568 ? 1568 : 4784) && w * h <= area;
   };
   let scale = Math.min(MAX_UPSCALE, (edge - 2 * MARGIN) / Math.max(width, height), Math.sqrt(area / (width * height)));
   while (scale > 0.01 && !fits(scale)) scale *= 0.99;
@@ -73,7 +73,7 @@ export function withinRaster(output: VisionOutput, width: number, height: number
     measurements: element.measurements.map(({ geometry, ...m }) => (geometry && fits(geometry) ? { ...m, geometry } : m)),
   }));
   const dropped = output.elements.length - elements.length;
-  return dropped ? { elements, warnings: [`${dropped} element(s) placed outside the drawing were discarded.`, ...output.warnings].slice(0, 30) } : output;
+  return { ...output, elements, ...(output.annotations ? { annotations: output.annotations.filter(a => fits(a.geometry)) } : {}), warnings: dropped ? [`${dropped} element(s) placed outside the drawing were discarded.`, ...output.warnings].slice(0,30) : output.warnings };
 }
 
 /** Maps model geometry from drawing-frame coordinates back to raster pixels. */

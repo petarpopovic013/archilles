@@ -1,4 +1,5 @@
 import type { AnalysisSnapshot, ArchitecturalElement, ElementType, Metric, RuleEvaluation, RuleRequirements } from "../domain";
+import {unitForDrawingAnnotation} from "../domain/geometry";
 import { metricLabel } from "./format";
 
 /** "Other" is a confirmed classification too: it makes subtype-scoped checks not applicable. */
@@ -161,12 +162,13 @@ export function checklistFor(snapshot: AnalysisSnapshot): Checklist {
  * number is taken as the width, in centimetres. It is only a suggestion: the mark is a nominal
  * opening size and a person confirms the actual clear width.
  */
-export function widthFromMark(texts: readonly string[]): { centimetres: number; mark: string } | undefined {
+export function widthFromMark(texts: readonly string[], unit?: "m" | "cm" | "mm" | null): { centimetres: number; mark: string } | undefined {
   for (const text of texts) {
-    const match = /(\d{2,3}(?:[.,]\d+)?)\s*(?:\/|\n|×|x)\s*(\d{2,3}(?:[.,]\d+)?)/.exec(text);
+    const labelUnit=unitForDrawingAnnotation(text,unit);if(!labelUnit)continue;
+    const match = /(\d{1,4}(?:[.,]\d+)?)\s*(?:\/|\n|×|x)\s*(\d{1,4}(?:[.,]\d+)?)/.exec(text);
     if (!match) continue;
     const [a, b] = [match[1], match[2]].map((value) => Number(value.replace(",", ".")));
-    const width = Math.min(a, b);
+    const width = Math.min(a, b) * (labelUnit === "m" ? 100 : labelUnit === "mm" ? .1 : 1);
     if (width >= 40 && width <= 400) return { centimetres: width, mark: match[0].replace(/\s*\n\s*/, "/") };
   }
   return undefined;

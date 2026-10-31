@@ -1,3 +1,4 @@
+import { geometryReport } from "./geometry";
 import { randomUUID } from "node:crypto";
 import type { z } from "zod";
 import {
@@ -68,7 +69,7 @@ export async function startAnalysis(
     page: request.page,
     ruleSetVersion,
     controllers: [TOOL_LOOP_VERSION, ctx.config.visionModel, ctx.config.reviewModel],
-    extraction: [PREPROCESSING_VERSION, PROMPT_VERSION, ctx.geometry.vision?.model ?? "none"],
+    extraction: [PREPROCESSING_VERSION, PROMPT_VERSION, ctx.geometry.vision?.model ?? "none", ctx.geometry.vision?.version ?? "legacy"],
   });
 
   const existing = findSessionByRunKey(ctx.db, runKey);
@@ -141,10 +142,12 @@ export async function getAnalysisSnapshot(ctx: RuntimeContext, sessionId: string
   if (!session || !location) throw notFound("Analysis");
   const floor = findFloor(ctx.db, location.drawingId, location.page);
   const view = floor ? floorView(ctx.db, floor.floor.id, session.projectRevision) : { elements: [], measurements: [] };
+  const report = floor ? geometryReport(ctx.db, floor.floor.id, session.projectRevision) : undefined;
   return AnalysisSnapshotSchema.parse({
     session,
     elements: view.elements,
     measurements: view.measurements,
+    geometry: report,
     evaluations: listSessionEvaluations(ctx.db, sessionId).map(({ evaluation }) => evaluation),
     findings: listSessionFindings(ctx.db, sessionId),
     coverage: await computeCoverage(ctx, session.projectId, session),

@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { createClaudeVisionRunner } from "../src/vision/claude";
+import { createDrawingVisionRunner } from "../src/vision/pipeline";
 import { createRegulatoryRegistry } from "./adapters/registry";
 import { createNodePageRenderer } from "../src/geometry/node-renderer";
 import { ClaudeInferenceRunner } from "./ai/inference";
@@ -24,7 +24,7 @@ async function main() {
     registry: regulatoryRegistry,
     geometry: {
       renderer: createNodePageRenderer(),
-      vision: createClaudeVisionRunner(client, config.visionModel, { categories }),
+      vision: createDrawingVisionRunner(client, config.visionModel, { categories }),
     },
     inferenceRunner: new ClaudeInferenceRunner(client),
   });

@@ -34,10 +34,10 @@ export interface ToolLoopResult {
   release(): void;
 }
 interface Task {
-  id: string; runId: string; model: string; current(): boolean;
+  id: string; runId: string; model: string; maxCostUsd: number; current(): boolean;
   invoke(): Promise<unknown>; resolve(result: ToolLoopResult): void;
   result: ToolLoopResult; reservations: Reservation[];
-  calls: number; inferences: number; error?: GeometryError; finished: boolean;
+  reservedUsd: number; calls: number; inferences: number; error?: GeometryError; finished: boolean;
 }
 
 /** One registered tool, one invocation and two inferences per private session context. */
@@ -121,12 +121,12 @@ export function createToolLoops(ctx: RuntimeContext, getAgent: () => Agent, name
     } },
   };
 
-  function run(input: { runId: string; model: string; instruction: string; data: Record<string, unknown>; current(): boolean; invoke(): Promise<unknown>; structuredOutput?: StructuredOutputFormat }): Promise<ToolLoopResult> {
+  function run(input: { runId: string; model: string; maxCostUsd?: number; instruction: string; data: Record<string, unknown>; current(): boolean; invoke(): Promise<unknown>; structuredOutput?: StructuredOutputFormat }): Promise<ToolLoopResult> {
     return new Promise(resolve => {
       const reservations: Reservation[] = [];
       const task: Task = {
-        id: randomUUID(), runId: input.runId, model: input.model, current: input.current, invoke: input.invoke,
-        resolve, reservations, calls: 0, inferences: 0, finished: false,
+        id: randomUUID(), runId: input.runId, model: input.model, maxCostUsd: input.maxCostUsd??Number.POSITIVE_INFINITY, current: input.current, invoke: input.invoke,
+        resolve, reservations, reservedUsd: 0, calls: 0, inferences: 0, finished: false,
         result: { answer: '', inputTokens: 0, outputTokens: 0, estimatedCostUsd: 0, release: () => reservations.forEach(reservation => reservation.settle()) },
       };
       tasks.set(task.id, task);
@@ -143,7 +143,9 @@ export function createToolLoops(ctx: RuntimeContext, getAgent: () => Agent, name
               if (!isPricedModel(task.model)) throw new GeometryError('UNPRICED_MODEL');
               const size = JSON.stringify(transition.input.context.getItems()).length;
               if (size > MAX_CONTEXT_CHARS) throw new GeometryError('AGENT_CONTEXT_LIMIT');
-              reservations.push(ctx.budget.reserve(2 * estimateCostUsd(task.model, size + 2_000, MAX_OUTPUT_TOKENS)));
+              const worst = 2 * estimateCostUsd(task.model, size + 2_000, MAX_OUTPUT_TOKENS);
+              if (task.reservedUsd + worst > task.maxCostUsd) throw new GeometryError("GEOMETRY_CONTROLLER_BUDGET");
+              reservations.push(ctx.budget.reserve(worst)); task.reservedUsd += worst;
             }
             if (transition.nextStateId === 'function_call') {
               let raw: unknown;

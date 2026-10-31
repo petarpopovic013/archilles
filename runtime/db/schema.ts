@@ -182,4 +182,26 @@ export const migrations: readonly string[] = [
     created_at TEXT NOT NULL
   );
   `,
+  `
+  ALTER TABLE elements ADD COLUMN retired_revision INTEGER;
+  CREATE TABLE geometry_reports (
+    floor_id TEXT NOT NULL REFERENCES floors(id) ON DELETE CASCADE,
+    project_revision INTEGER NOT NULL, data TEXT NOT NULL, created_at TEXT NOT NULL,
+    PRIMARY KEY(floor_id, project_revision)
+  );
+  CREATE TABLE drawing_settings (
+    floor_id TEXT NOT NULL REFERENCES floors(id) ON DELETE CASCADE,
+    project_revision INTEGER NOT NULL, data TEXT NOT NULL,
+    PRIMARY KEY(floor_id, project_revision)
+  );
+  CREATE TABLE geometry_stage_cache (
+    floor_id TEXT NOT NULL REFERENCES floors(id) ON DELETE CASCADE,
+    cache_key TEXT NOT NULL, data TEXT NOT NULL,
+    PRIMARY KEY(floor_id, cache_key)
+  );
+  CREATE TABLE geometry_requests (
+    floor_id TEXT PRIMARY KEY REFERENCES floors(id) ON DELETE CASCADE,
+    project_revision INTEGER NOT NULL
+  );
+  `,
 ];

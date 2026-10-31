@@ -13,7 +13,9 @@
     "test": "node --import tsx --test",
     "postinstall": "next typegen",
     "typecheck": "next typegen && tsc --noEmit",
-    "smoke:geometry": "node --env-file-if-exists=.env --import tsx tests/runtime/live-smoke.ts"
+    "smoke:geometry": "node --env-file-if-exists=.env --import tsx tests/runtime/live-smoke.ts",
+    "benchmark:geometry": "node --env-file-if-exists=.env --import tsx scripts/geometry-benchmark.ts",
+    "evaluate:geometry": "node --import tsx scripts/geometry-evaluate.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",
