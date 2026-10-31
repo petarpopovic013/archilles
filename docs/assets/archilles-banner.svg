@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="620" viewBox="0 0 1600 620" role="img" aria-labelledby="title description">
+  <title id="title">Archilles — Find the weakness before it becomes a risk</title>
+  <desc id="description">Architectural plan review for fire safety and accessibility. An illustrative floor plan accompanies the Archilles wordmark on a warm drafting-paper background.</desc>
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
+      <path d="M24 0H0V24" fill="none" stroke="#ded9d0" stroke-width="0.6"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="620" rx="20" fill="#f6f4ef"/>
+  <path d="M64 66H1536M64 554H1536M1500 32V588" stroke="#b7aea1" stroke-width="1"/>
+  <g fill="#777167" font-family="Arial, Helvetica, sans-serif" font-size="15" letter-spacing="3">
+    <text x="80" y="48">ZmAIevi / JIGJOY × NTP NOVI SAD HACKATHON</text>
+    <text x="80" y="591">FIRE SAFETY + ACCESSIBILITY</text>
+    <text x="1518" y="591" text-anchor="end">SERBIA / 2026</text>
+  </g>
+  <text x="78" y="213" font-family="Georgia, 'Times New Roman', serif" font-size="112" fill="#34332f" letter-spacing="-5">archilles.</text>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#45433d" font-size="34">
+    <text x="83" y="293">Find the weakness</text>
+    <text x="83" y="338">before it becomes a risk.</text>
+  </g>
+  <path d="M84 376H164" stroke="#cfaf55" stroke-width="4"/>
+  <g font-family="Arial, Helvetica, sans-serif" fill="#777167" font-size="20">
+    <text x="83" y="421">AI-assisted review of 2D floor plans.</text>
+    <text x="83" y="453">Every evaluated finding traces to its source.</text>
+  </g>
+  <g transform="translate(750 102)">
+    <rect width="702" height="408" rx="6" fill="#eeebe4"/>
+    <rect width="702" height="408" rx="6" fill="url(#grid)"/>
+    <g stroke="#4f4c44" stroke-width="8" fill="none" stroke-linecap="square">
+      <path d="M62 58H640V340H62Z"/>
+      <path d="M230 58V187M443 58V187M62 187H148M191 187H342M386 187H529M573 187H640"/>
+      <path d="M62 249H148M191 249H310M354 249H500M543 249H640M310 249V340M500 249V340"/>
+    </g>
+    <g stroke="#9a9285" stroke-width="1.4" fill="none">
+      <path d="M148 187V144A43 43 0 0 1 191 187M342 187V144A43 43 0 0 1 385 187M529 187V144A43 43 0 0 1 572 187M148 249V292A43 43 0 0 0 191 249M310 249V292A43 43 0 0 0 353 249M500 249V292A43 43 0 0 0 543 249"/>
+      <rect x="94" y="88" width="96" height="40" rx="2"/>
+      <path d="M142 88V128M117 134V151H135V134M154 134V151H172V134"/>
+      <rect x="279" y="89" width="115" height="45" rx="12"/>
+      <path d="M293 82V74H312V82M361 82V74H380V82M293 141V149H312V141M361 141V149H380V141"/>
+      <rect x="483" y="85" width="117" height="40" rx="2"/>
+      <path d="M541 85V125M502 132V149H521V132M560 132V149H579V132M344 275H470M344 285H470M344 295H470M344 305H470M344 315H470M407 265V329"/>
+      <path d="M62 35V18M640 35V18M62 25H640M43 58H25M43 340H25M33 58V340"/>
+      <path d="M58 21L66 29M636 21L644 29M29 54L37 62M29 336L37 344"/>
+    </g>
+    <g font-family="Arial, Helvetica, sans-serif" font-size="11" fill="#81796e" letter-spacing="1.4" text-anchor="middle">
+      <text x="146" y="174">WORKSPACE</text>
+      <text x="336" y="174">MEETING</text>
+      <text x="542" y="174">WORKSPACE</text>
+      <text x="182" y="322">STUDIO</text>
+      <text x="406" y="330">STAIR</text>
+      <text x="570" y="322">SERVICE</text>
+      <text x="351" y="387">ILLUSTRATIVE FLOOR PLAN</text>
+    </g>
+    <rect x="77" y="200" width="548" height="35" rx="3" fill="#cfaf55" fill-opacity="0.12" stroke="#b29a5a" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <path d="M108 217H590" stroke="#b29a5a" stroke-width="1.5" stroke-dasharray="4 5"/>
+    <circle cx="170" cy="187" r="15" fill="#e7d596" stroke="#9d884d"/>
+    <circle cx="601" cy="218" r="15" fill="#e7d596" stroke="#9d884d"/>
+    <g font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#554b34" text-anchor="middle">
+      <text x="170" y="191">01</text>
+      <text x="601" y="222">02</text>
+    </g>
+  </g>
+</svg>
