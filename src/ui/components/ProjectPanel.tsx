@@ -19,7 +19,7 @@ const severity: EvaluationStatus[] = ["FAIL", "NEEDS_REVIEW", "UNKNOWN", "PASS",
 export function ProjectPanel() {
   const { project } = useWorkspace();
   return (
-    <aside aria-label="Project and findings" className="flex w-80 shrink-0 flex-col overflow-y-auto border-r border-slate-800 bg-slate-900">
+    <aside id="workspace-project" aria-label="Project and findings" className="project-panel flex min-w-0 shrink-0 flex-col overflow-y-auto border-r border-slate-800 bg-slate-900">
       {project ? (
         <>
           <ProjectSummary project={project} />
@@ -71,7 +71,7 @@ function TriState({ label, value, onChange }: { label: string; value: "" | "true
   return (
     <label className="flex items-center justify-between gap-2 text-xs text-slate-300">
       <span>{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value as "" | "true" | "false")} className={`${inputClass} w-28`}>
+      <select value={value} onChange={(e) => onChange(e.target.value as "" | "true" | "false")} className={`${inputClass} tri-state-select`}>
         <option value="">Unknown</option>
         <option value="true">Yes</option>
         <option value="false">No</option>
@@ -261,7 +261,7 @@ function ResultsTabs() {
   const [tab, setTab] = useState<"findings" | "elements" | "coverage">("findings");
   const tabs = [["findings", "Findings"], ["elements", "Elements"], ["coverage", "Coverage"]] as const;
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="results-panel flex shrink-0 flex-col">
       <div role="tablist" aria-label="Results" className="flex border-b border-slate-800">
         {tabs.map(([id, label]) => (
           <button key={id} role="tab" type="button" aria-selected={tab === id} onClick={() => setTab(id)}

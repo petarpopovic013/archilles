@@ -41,8 +41,8 @@ const fromInput = (metric: Metric, text: string) => {
 export function Inspector() {
   const { selectedFinding, selectedElement } = useWorkspace();
   return (
-    <aside aria-label="Details and review" className="flex w-96 shrink-0 flex-col border-l border-slate-800 bg-slate-900">
-      <div className="min-h-0 flex-1 overflow-y-auto">
+    <aside id="workspace-details" aria-label="Details and review" className="inspector-panel flex min-w-0 shrink-0 flex-col border-l border-slate-800 bg-slate-900">
+      <div className="inspector-content min-h-0 flex-1 overflow-y-auto">
         {!selectedFinding && !selectedElement && (
           <p className="p-6 text-center text-xs text-slate-500">Select a finding or element to see evidence, sources and review options.</p>
         )}
@@ -328,16 +328,16 @@ function ActivityFeed() {
   const { activity, snapshot } = useWorkspace();
   const names = new Map(snapshot?.participants?.map((participant) => [participant.id, participant.name]) ?? []);
   return (
-    <section aria-label="Agent activity" className="h-56 shrink-0 border-t border-slate-800 bg-slate-950/60">
+    <section aria-label="Agent activity" className="activity-feed flex shrink-0 flex-col border-t border-slate-800 bg-slate-950/60">
       <h2 className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Agent activity</h2>
       {activity.length === 0 ? (
         <p className="px-3 py-4 text-[11px] text-slate-500">Analysis events will appear here as they happen.</p>
       ) : (
-        <ol className="h-[calc(100%-1.75rem)] space-y-0.5 overflow-y-auto px-3 py-1" aria-live="polite">
+        <ol className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-3 py-1" aria-live="polite">
           {activity.map((event) => {
             const detail = eventDetail(event);
             return (
-              <li key={event.id} className="grid grid-cols-[3.25rem_1fr] gap-x-2 text-[11px]">
+              <li key={event.id} className="activity-event grid gap-x-3 text-[11px]">
                 <time className="font-mono text-slate-500" dateTime={event.occurredAt}>
                   {new Date(event.occurredAt).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                 </time>
