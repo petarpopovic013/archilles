@@ -6,6 +6,7 @@ const EnvSchema = z.object({
   ARCHILLES_RUNTIME_URL: z.url().default("http://127.0.0.1:4317"),
   ARCHILLES_DATA_DIR: z.string().trim().min(1).default("./data"),
   ARCHILLES_AI_BUDGET_USD: z.coerce.number().nonnegative().default(20),
+  ARCHILLES_AI_HOURLY_LIMIT_USD: z.coerce.number().nonnegative().default(3),
   ARCHILLES_REVIEW_MODEL: z.string().trim().min(1).default("claude-sonnet-4-6"),
   ARCHILLES_VISION_MODEL: z.string().trim().min(1).default("claude-sonnet-4-6"),
 });
@@ -16,6 +17,8 @@ export interface RuntimeConfig {
   dataDir: string;
   databasePath: string;
   aiBudgetUsd: number;
+  /** Rolling one-hour spend cap; keeps the total budget from being burnt in one burst. */
+  aiHourlyLimitUsd: number;
   reviewModel: string;
   visionModel: string;
 }
@@ -33,6 +36,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): RuntimeConfig 
     dataDir,
     databasePath: path.join(dataDir, "archilles.sqlite"),
     aiBudgetUsd: parsed.ARCHILLES_AI_BUDGET_USD,
+    aiHourlyLimitUsd: parsed.ARCHILLES_AI_HOURLY_LIMIT_USD,
     reviewModel: parsed.ARCHILLES_REVIEW_MODEL,
     visionModel: parsed.ARCHILLES_VISION_MODEL,
   };

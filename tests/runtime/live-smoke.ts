@@ -20,7 +20,7 @@ async function main() {
   let app: RuntimeApp | undefined;
   try {
     const base = loadConfig();
-    const config = { ...base, port: 0, dataDir, databasePath: path.join(dataDir, 'smoke.sqlite'), aiBudgetUsd: Math.min(base.aiBudgetUsd, 1) };
+    const config = { ...base, port: 0, dataDir, databasePath: path.join(dataDir, 'smoke.sqlite'), aiBudgetUsd: Math.min(base.aiBudgetUsd, 1), aiHourlyLimitUsd: Math.min(base.aiHourlyLimitUsd, 1) };
     const client = new Anthropic({ maxRetries: 0 });
     const syntheticRule = process.argv.includes("--synthetic-rule");
     app = await startRuntime({ config, registry: syntheticRule ? fakeRegistry([rule()]) : createPendingRegistry(), geometry: { renderer: createNodePageRenderer(), vision: createClaudeVisionRunner(client, config.visionModel) }, inferenceRunner: new ClaudeInferenceRunner(client) });

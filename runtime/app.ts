@@ -62,7 +62,7 @@ export async function startRuntime(options: StartOptions): Promise<RuntimeApp> {
     hub,
     api,
     store: new PrivateStore(config.dataDir),
-    budget: new Budget(db, config.aiBudgetUsd),
+    budget: new Budget(db, { totalUsd: config.aiBudgetUsd, hourlyUsd: config.aiHourlyLimitUsd }, now),
     registry: options.registry,
     geometry: options.geometry,
     liveParticipantIds: [],

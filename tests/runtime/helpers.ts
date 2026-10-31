@@ -12,6 +12,7 @@ export function testConfig(overrides: Partial<RuntimeConfig> = {}): RuntimeConfi
     dataDir,
     databasePath: path.join(dataDir, "archilles.sqlite"),
     aiBudgetUsd: 5,
+    aiHourlyLimitUsd: overrides.aiBudgetUsd ?? 5,
     reviewModel: "claude-opus-5-5",
     visionModel: "claude-opus-5-5",
     ...overrides,
