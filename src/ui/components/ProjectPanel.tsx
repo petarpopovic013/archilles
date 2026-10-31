@@ -125,7 +125,14 @@ function patchOf(project: Project, draft: Draft): UpdateProjectRequest["patch"] 
 }
 
 function ProjectSummary({ project }: { project: Project }) {
-  const { updateProject, resetWorkspace, busy, requirements } = useWorkspace();
+  const { updateProject, resetWorkspace, busy, requirements, activity } = useWorkspace();
+  // Latest question per missing fact, phrased by the Regulation agent.
+  const questions = [...new Map(activity
+    .filter((event) => event.type === "regulation.input.required")
+    .map((event) => {
+      const payload = event.payload as { field: string; reason: string };
+      return [payload.field, payload.reason] as const;
+    })).entries()];
   const [draft, setDraft] = useState<Draft | null>(null);
   const editing = draft !== null;
 
@@ -149,6 +156,14 @@ function ProjectSummary({ project }: { project: Project }) {
         <dt>Visina objekta</dt><dd className="text-slate-200">{project.buildingHeightM !== undefined ? `${project.buildingHeightM} m` : "nepoznato"}</dd>
         <dt>Broj korisnika</dt><dd className="text-slate-200">{project.occupantCount ?? "nepoznato"}</dd>
       </dl>
+      {questions.length > 0 && (
+        <div className="space-y-1 rounded border border-amber-800 bg-amber-950/30 p-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Potrebni podaci</div>
+          <ul className="space-y-1">
+            {questions.map(([field, question]) => <li key={field} className="text-[11px] leading-snug text-amber-100">{question}</li>)}
+          </ul>
+        </div>
+      )}
       {!editing ? (
         <Button onClick={() => setDraft(draftOf(project))} disabled={busy !== null} className="w-full">Uredi podatke o projektu</Button>
       ) : (

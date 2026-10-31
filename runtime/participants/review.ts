@@ -1,23 +1,14 @@
-import { randomUUID } from "node:crypto";
-import {
-  DeveloperMessageItem,
-  ModelContext,
-  SituationSpecification,
-  createAgent,
-  type Agent,
-  type SituationContext,
-  type SituationHandler,
-} from "@mozaik-ai/core";
+import { createAgent, type Agent } from "@mozaik-ai/core";
 import { z } from "zod";
 import type { ComplianceFinding, ComplianceRule } from "../../src/domain";
 import { fingerprint } from "../../src/rules/engine";
 import { BudgetExceededError, type Reservation } from "../ai/budget";
-import { inferenceErrorCode } from "../ai/inference";
 import { estimateCostUsd, isPricedModel } from "../ai/pricing";
 import type { RuntimeContext } from "../context";
 import { findingForFingerprint, floorView, listSessionEvaluations, saveFinding } from "../db/repo";
 import { createAppEvent, defineAppHandler, emitAppEvent, errorCode, type EventScope } from "../mozaik/app-events";
-import { coordination, runLoop } from "../mozaik/runtime";
+import { createModelCalls, type ModelCallResult } from "../mozaik/model-calls";
+import { coordination } from "../mozaik/runtime";
 import { templateFinding } from "../services/findings";
 import { finishRun, finishSession, startRun } from "../services/runs";
 import { scopeOf } from "./geometry";
@@ -25,8 +16,6 @@ import { scopeOf } from "./geometry";
 const MAX_OUTPUT_TOKENS = 16_000;
 const MAX_FINDINGS_PER_BATCH = 30;
 const EXPLAINED_STATUSES = new Set(["FAIL", "UNKNOWN", "NEEDS_REVIEW"]);
-/** Models that accept `output_config.effort` with adaptive thinking. */
-const EFFORT_MODELS = new Set(["claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"]);
 
 const INSTRUCTION = [
   "You are the Compliance Review agent of Archilles, a preliminary 2D architectural compliance review tool.",
@@ -67,24 +56,12 @@ const explanationsJsonSchema = {
   },
 };
 
-interface Batch {
-  sessionId: string;
-  runId: string;
-  scope: EventScope;
-  model: string;
-  findings: Map<string, ComplianceFinding>;
-  reservation: Reservation;
-  inputTokens: number;
-  outputTokens: number;
-}
-
 /**
  * Compliance Review Agent. Turns persisted engine outcomes into findings (template text first, so
  * results never depend on AI), then runs one bounded explanation batch. It cannot change a status.
  */
 export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): Agent {
-  const batches = new Map<string, Batch>();
-  const loops = new Map<string, string>();
+  const calls = createModelCalls(() => agent.getId());
 
   async function review(sessionId: string, evaluationIds: readonly string[], scope: EventScope): Promise<void> {
     const state = coordination(sessionId);
@@ -143,9 +120,7 @@ export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): 
     rules: Map<string, ComplianceRule>,
   ): void {
     const model = ctx.config.reviewModel;
-    const batchId = randomUUID();
-    const message = JSON.stringify({
-      batchId,
+    const payload = {
       findings: findings.map((finding) => {
         const element = finding.elementId ? elements.get(finding.elementId) : undefined;
         const rule = rules.get(`${finding.ruleId}@${finding.ruleVersion}`);
@@ -159,13 +134,13 @@ export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): 
           elementLabel: element?.label,
         };
       }),
-    });
+    };
 
     const run = startRun(ctx, sessionId, agent.getId(), "REVIEW", model);
     let reservation: Reservation;
     try {
       if (!isPricedModel(model)) throw new Error("UNPRICED_MODEL");
-      reservation = ctx.budget.reserve(estimateCostUsd(model, Math.ceil(message.length / 3) + 2_000, MAX_OUTPUT_TOKENS));
+      reservation = ctx.budget.reserve(estimateCostUsd(model, Math.ceil(JSON.stringify(payload).length / 3) + 2_000, MAX_OUTPUT_TOKENS));
     } catch (error) {
       // Template findings stay; the explanation batch is skipped visibly.
       const code = error instanceof BudgetExceededError ? error.code : errorCode(error);
@@ -175,95 +150,53 @@ export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): 
       return;
     }
 
-    batches.set(batchId, {
-      sessionId, runId: run.id, scope, model, reservation,
-      findings: new Map(findings.map((finding) => [finding.id, finding])),
-      inputTokens: 0, outputTokens: 0,
-    });
-    runLoop(agent.getId(), message, {
+    calls.start({
       model,
-      context: ModelContext.create().addContextItem(DeveloperMessageItem.create(INSTRUCTION)),
+      instruction: INSTRUCTION,
+      payload,
+      schema: explanationsJsonSchema,
+      schemaName: "review_explanations",
       maxOutputTokens: MAX_OUTPUT_TOKENS,
-      ...(EFFORT_MODELS.has(model) ? { reasoningEffort: "low" } : {}),
-      structuredOutput: { name: "review_explanations", schema: explanationsJsonSchema, strict: true },
+      reservation,
+      onDone: (result) => completeBatch(sessionId, run.id, scope, new Map(findings.map((finding) => [finding.id, finding])), result),
     });
   }
 
-  function completeBatch(batchId: string, answer: string): void {
-    const batch = batches.get(batchId);
-    if (!batch) return;
-    batches.delete(batchId);
-    batch.reservation.settle();
-    const cost = estimateCostUsd(batch.model, batch.inputTokens, batch.outputTokens);
-    const usage = { inputTokens: batch.inputTokens, outputTokens: batch.outputTokens, estimatedCostUsd: cost };
-
-    const failure = inferenceErrorCode(answer);
-    const parsed = failure ? undefined : parseExplanations(answer);
+  function completeBatch(
+    sessionId: string,
+    runId: string,
+    scope: EventScope,
+    findings: Map<string, ComplianceFinding>,
+    result: ModelCallResult,
+  ): void {
+    const usage = { inputTokens: result.inputTokens, outputTokens: result.outputTokens, estimatedCostUsd: result.costUsd };
+    const parsed = result.errorCode ? undefined : parseExplanations(result.text);
     if (!parsed) {
-      const code = failure ?? "REVIEW_OUTPUT_INVALID";
-      finishRun(ctx, batch.runId, { status: "FAILED", errorCode: code, ...usage });
-      emitAppEvent(agent, createAppEvent("agent.run.failed", batch.scope, { agentRunId: batch.runId, errorCode: code, retryable: false }));
-      finishSession(ctx, batch.sessionId);
+      const code = result.errorCode ?? "REVIEW_OUTPUT_INVALID";
+      finishRun(ctx, runId, { status: "FAILED", errorCode: code, ...usage });
+      emitAppEvent(agent, createAppEvent("agent.run.failed", scope, { agentRunId: runId, errorCode: code, retryable: false }));
+      finishSession(ctx, sessionId);
       return;
     }
 
     const updated: ComplianceFinding[] = [];
     ctx.db.transaction(() => {
       for (const item of parsed.explanations) {
-        const finding = batch.findings.get(item.findingId);
+        const finding = findings.get(item.findingId);
         if (!finding) continue;
-        batch.findings.delete(item.findingId);
+        findings.delete(item.findingId);
         // Only prose changes; status, values, sources, and evidence stay exactly as the engine set them.
         const next = { ...finding, explanation: item.explanation, suggestedAction: item.suggestedAction };
         saveFinding(ctx.db, next);
         updated.push(next);
       }
     })();
-    finishRun(ctx, batch.runId, { status: "COMPLETED", ...usage });
+    finishRun(ctx, runId, { status: "COMPLETED", ...usage });
     for (const finding of updated) {
-      emitAppEvent(agent, createAppEvent("review.finding.updated", batch.scope, { findingId: finding.id, evaluationId: finding.evaluationId }));
+      emitAppEvent(agent, createAppEvent("review.finding.updated", scope, { findingId: finding.id, evaluationId: finding.evaluationId }));
     }
-    finishSession(ctx, batch.sessionId);
+    finishSession(ctx, sessionId);
   }
-
-  /** Mozaik loop events of this agent: map loop to batch, count tokens, finish on the answer. */
-  const loopHandler: SituationHandler = {
-    specification: new (class extends SituationSpecification {
-      isSatisfiedBy({ event, participant }: SituationContext) {
-        return event.producerId === participant.getId() &&
-          (event.type === "message_received.started" || event.type === "inference.completed" || event.type === "model.answer");
-      }
-    })(),
-    processor: {
-      apply({ event }) {
-        try {
-          const payload = event.payload as {
-            loopId: string;
-            content?: string;
-            tokenUsage?: { inputTokens: number; outputTokens: number };
-            answer?: { content: { text: string } };
-          };
-          if (event.type === "message_received.started") {
-            const { batchId } = JSON.parse(payload.content ?? "{}") as { batchId?: string };
-            if (batchId) loops.set(payload.loopId, batchId);
-            return;
-          }
-          const batchId = loops.get(payload.loopId);
-          const batch = batchId ? batches.get(batchId) : undefined;
-          if (!batchId || !batch) return;
-          if (event.type === "inference.completed") {
-            batch.inputTokens += payload.tokenUsage?.inputTokens ?? 0;
-            batch.outputTokens += payload.tokenUsage?.outputTokens ?? 0;
-            return;
-          }
-          loops.delete(payload.loopId);
-          completeBatch(batchId, payload.answer?.content.text ?? "");
-        } catch (error) {
-          console.error(`[runtime] review loop event failed: ${errorCode(error)}`);
-        }
-      },
-    },
-  };
 
   const agent: Agent = createAgent({
     name: "Compliance Review Agent",
@@ -280,7 +213,7 @@ export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): 
           finishSession(ctx, event.sessionId!, "PARTIAL", "REVIEW_FAILED");
         },
       }),
-      loopHandler,
+      calls.handler,
     ],
   });
   return agent;

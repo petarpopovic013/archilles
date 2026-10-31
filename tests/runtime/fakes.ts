@@ -65,22 +65,38 @@ export function fakeGeometry(vision: VisionRunner): GeometryPort {
   return { renderer: createPngPassthroughRenderer(), vision };
 }
 
-/** Mozaik InferenceRunner fake: answers the Review batch with schema-valid explanations. */
-export function fakeInference(mode: { fail?: boolean } = {}): InferenceRunner & { calls: number } {
+/** Answer text the fake gives for a Regulation question, so tests can recognise it. */
+export const fakeQuestion = (field: string) => `Test pitanje za ${field}?`;
+
+/**
+ * Mozaik InferenceRunner fake: answers Review explanation batches and Regulation question calls
+ * with schema-valid JSON, counting each kind of call.
+ */
+export function fakeInference(mode: { fail?: boolean } = {}): InferenceRunner & { calls: number; byKind: { review: number; questions: number } } {
   const runner = {
     calls: 0,
+    byKind: { review: 0, questions: 0 },
     async run(input: InferenceInput): Promise<InferenceOutput> {
       runner.calls += 1;
-      if (mode.fail) throw new Error("PROVIDER_UNAVAILABLE");
       const user = input.context.getItems().filter((item): item is UserMessageItem => item instanceof UserMessageItem).at(-1);
-      const { findings } = JSON.parse(user?.content.text ?? "{}") as { findings: { findingId: string; status: string }[] };
-      const explanations = findings.map((finding) => ({
-        findingId: finding.findingId,
-        explanation: `Reviewed explanation for a ${finding.status} outcome.`,
-        suggestedAction: "Confirm the dimension on the drawing.",
-      }));
+      const request = JSON.parse(user?.content.text ?? "{}") as {
+        findings?: { findingId: string; status: string }[];
+        fields?: { field: string }[];
+      };
+      const kind = request.fields ? "questions" : "review";
+      runner.byKind[kind] += 1;
+      if (mode.fail) throw new Error("PROVIDER_UNAVAILABLE");
+      const answer = kind === "questions"
+        ? { questions: request.fields!.map(({ field }) => ({ field, question: fakeQuestion(field) })) }
+        : {
+          explanations: (request.findings ?? []).map((finding) => ({
+            findingId: finding.findingId,
+            explanation: `Reviewed explanation for a ${finding.status} outcome.`,
+            suggestedAction: "Confirm the dimension on the drawing.",
+          })),
+        };
       return {
-        items: [ModelMessageItem.rehydrate({ text: JSON.stringify({ explanations }) })],
+        items: [ModelMessageItem.rehydrate({ text: JSON.stringify(answer) })],
         tokenUsage: new TokenUsage(1_200, 300, 1_500, new InputTokenDetails(0), new OutputTokenDetails(0)),
         rowResponse: {},
       };

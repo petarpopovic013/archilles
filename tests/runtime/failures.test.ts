@@ -48,13 +48,19 @@ test("a failed Review model call leaves template findings and a PARTIAL session,
   const { sessionId } = await startSession();
   const snapshot = await settled(sessionId);
   assert.equal(snapshot.session.status, "PARTIAL");
-  assert.equal(inference.calls, 1);
+  assert.equal(inference.byKind.review, 1);
   const review = listSessionRuns(app.ctx.db, sessionId).find((run) => run.role === "REVIEW")!;
   assert.equal(review.status, "FAILED");
   assert.equal(review.errorCode, "PROVIDER_UNAVAILABLE");
   assert.equal(snapshot.findings[0].status, "UNKNOWN");
   assert.match(snapshot.findings[0].explanation, /cannot be decided/);
   assert.ok(listSessionEvents(app.ctx.db, sessionId, 0).some((event) => event.type === "agent.run.failed"));
+
+  // The Regulation question call failed too: the architect still gets the template question.
+  const regulation = listSessionRuns(app.ctx.db, sessionId).find((run) => run.role === "REGULATION")!;
+  assert.equal(regulation.errorCode, "PROVIDER_UNAVAILABLE");
+  const question = listSessionEvents(app.ctx.db, sessionId, 0).find((event) => event.type === "regulation.input.required")!;
+  assert.equal((question.payload as { reason: string }).reason, "Koliko korisnika ima objekat?");
 });
 
 test("Vision being unavailable ends in a visible PARTIAL session that claims no checks", async () => {

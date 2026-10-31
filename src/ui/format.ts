@@ -86,7 +86,7 @@ export function eventDetail(event: AgentEvent): string | undefined {
       return Object.entries(payload.statusCounts as Record<EvaluationStatus, number>)
         .map(([status, count]) => `${statusLabel[status as EvaluationStatus]}: ${count}`).join(", ") || "bez provera";
     case "regulation.input.required":
-      return String(payload.field);
+      return String(payload.reason);
     case "geometry.measurement.missing":
       return metricLabel[payload.metric as Metric] ?? String(payload.metric);
     case "agent.run.failed":

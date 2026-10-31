@@ -19,7 +19,7 @@ import { startRuntime, type RuntimeApp } from "../../runtime/app";
 import { latestSessionForProject, listSessionRuns } from "../../runtime/db/repo";
 import { listSessionEvents } from "../../runtime/participants/observer";
 import { rule } from "../engine/fixtures";
-import { corridorPlan, fakeGeometry, fakeInference, fakeRegistry, fakeVision } from "./fakes";
+import { corridorPlan, fakeGeometry, fakeInference, fakeQuestion, fakeRegistry, fakeVision } from "./fakes";
 import { call, removeDataDir, testConfig, waitFor } from "./helpers";
 
 /** TEST-ONLY synthetic rule: corridor clear width at least 1.2 m. Not a legal requirement. */
@@ -76,7 +76,7 @@ test("Geometry and Regulation overlap, refine selection, and Review consumes the
 
   assert.equal(snapshot.session.status, "COMPLETE");
   assert.equal(vision.calls, 1);
-  assert.equal(inference.calls, 1, "one Review explanation batch");
+  assert.deepEqual(inference.byKind, { review: 1, questions: 1 }, "one explanation batch and one question call");
 
   // Real overlap: Regulation's first run started and finished while Geometry was extracting.
   const runs = listSessionRuns(app.ctx.db, sessionId);
@@ -95,7 +95,12 @@ test("Geometry and Regulation overlap, refine selection, and Review consumes the
   assert.ok(order.indexOf("geometry.extraction.completed") < order.indexOf("rule.evaluation.completed"));
   assert.ok(order.indexOf("rule.evaluation.completed") < order.indexOf("review.finding.created"));
   assert.ok(order.includes("geometry.measurement.missing"));
-  assert.ok(order.includes("regulation.input.required"));
+  // Selection is deterministic; the Regulation agent's model call only phrases the missing-fact question.
+  const question = events.find((event) => event.type === "regulation.input.required")!;
+  assert.deepEqual(question.payload, { field: "occupantCount", reason: fakeQuestion("occupantCount"), affectedRuleIds: [] });
+  assert.equal(regulation[0].model, "claude-opus-5-5");
+  assert.ok(regulation[0].inputTokens! > 0 && regulation[0].estimatedCostUsd! > 0, "the question call is metered");
+  assert.equal(regulation[1].inputTokens, undefined, "the refinement asks nothing new, so it makes no call");
   assert.equal(order.filter((type) => type === "rule.evaluation.completed").length, 1);
   assert.ok(events.every((event) => event.producerId !== app.participants.api || event.type === "analysis.started"));
 
