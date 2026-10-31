@@ -150,7 +150,7 @@ export function createRegulationAgent(ctx: RuntimeContext, geometryId: () => str
       return question ? [[field, question] as const] : [];
     }));
     const ask = fields.filter((field) => !known.has(field));
-    if (ask.length === 0) {
+    if (ask.length === 0 || coordination(scope.sessionId)?.reuseOnly) {
       finishRun(ctx, run.id, { status: "COMPLETED", estimatedCostUsd: 0 });
       publishQuestions(scope, fields, known, affected, keyOf);
       return;

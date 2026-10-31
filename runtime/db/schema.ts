@@ -226,4 +226,26 @@ export const migrations: readonly string[] = [
     PRIMARY KEY(floor_id,round_revision)
   );
   `,
+  `
+  CREATE TABLE geometry_extractions (
+    floor_id TEXT NOT NULL REFERENCES floors(id) ON DELETE CASCADE,
+    round_revision INTEGER NOT NULL,
+    source_key TEXT NOT NULL,
+    status TEXT NOT NULL CHECK(status IN ('STARTED','COMPLETED','PARTIAL','FAILED')),
+    run_id TEXT REFERENCES agent_runs(id), error_code TEXT,
+    overview_calls INTEGER NOT NULL DEFAULT 0, detail_batches INTEGER NOT NULL DEFAULT 0,
+    detail_regions INTEGER NOT NULL DEFAULT 0, focused_calls INTEGER NOT NULL DEFAULT 0,
+    attempts INTEGER NOT NULL DEFAULT 0, spent_usd REAL NOT NULL DEFAULT 0,
+    reserved_usd REAL NOT NULL DEFAULT 0,
+    PRIMARY KEY(floor_id,round_revision)
+  );
+  CREATE UNIQUE INDEX geometry_one_active_page ON geometry_extractions(floor_id) WHERE status='STARTED';
+  -- Previously attempted pages must not silently become eligible for another paid pass on upgrade.
+  INSERT INTO geometry_extractions(floor_id,round_revision,source_key,status,error_code)
+    SELECT f.id,COALESCE(g.project_revision,0),'legacy','FAILED','GEOMETRY_PREVIOUS_ATTEMPT'
+    FROM floors f LEFT JOIN geometry_requests g ON g.floor_id=f.id
+    WHERE EXISTS(SELECT 1 FROM geometry_reports r WHERE r.floor_id=f.id)
+       OR EXISTS(SELECT 1 FROM agent_runs a JOIN sessions s ON s.id=a.session_id
+                 WHERE s.drawing_id=f.drawing_id AND s.page=f.page AND a.role='GEOMETRY');
+  `,
 ];

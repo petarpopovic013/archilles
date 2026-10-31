@@ -30,6 +30,7 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
   const loops = createToolLoops(ctx, () => agent, "extract_drawing_page", "Extract observations from this task's selected private drawing page. No image bytes or filesystem paths are accepted as arguments.");
   const inFlight = new Map<string, Promise<GeometryExtraction>>();
   const projectWork = new Map<string, Promise<GeometryExtraction>>();
+  const workRevisions = new Map<string, number>();
 
   const extractionCache: ExtractionCache = {
     async get(key) {
@@ -47,6 +48,11 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
   async function extract(sessionId: string, scope: EventScope): Promise<void> {
     const state = coordination(sessionId);
     if (!state) return;
+    // A new revision must not subscribe to the old revision's doomed extraction.
+    // Wait for its ledger/cache cleanup before deciding whether stored work can be reused.
+    if (workRevisions.has(state.projectId) && workRevisions.get(state.projectId) !== state.projectRevision) {
+      await projectWork.get(state.projectId)?.catch(() => {});
+    }
     const record = findFloorById(ctx.db, state.floorId);
     if (!record) throw new GeometryError("FLOOR_NOT_FOUND");
     const vision = ctx.geometry.vision;
@@ -64,6 +70,7 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
     let usage: GeometryExtraction["usage"] | undefined;
     let controller: ToolLoopResult | undefined;
     try {
+      if (findProject(ctx.db, state.projectId)?.revision !== state.projectRevision) throw new GeometryError("REVISION_SUPERSEDED");
       if (!reuse) {
         if (!vision) throw new GeometryError("VISION_UNAVAILABLE", true);
         let task = inFlight.get(state.floorId);
@@ -133,10 +140,14 @@ export function createGeometryAgent(ctx: RuntimeContext): Agent {
             return extraction;
           }).finally(() => {
             inFlight.delete(state.floorId);
-            if (projectWork.get(state.projectId) === task) projectWork.delete(state.projectId);
+            if (projectWork.get(state.projectId) === task) {
+              projectWork.delete(state.projectId);
+              workRevisions.delete(state.projectId);
+            }
           });
           inFlight.set(state.floorId, task);
           projectWork.set(state.projectId, task);
+          workRevisions.set(state.projectId, state.projectRevision);
         }
         usage = (await task).usage;
       } else {

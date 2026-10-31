@@ -4,6 +4,8 @@ Archilles reviews architectural drawings against source-backed rules. Geometry a
 
 Install dependencies with `npm install`, configure server credentials in `.env` using `.env.example`, and run `npm run dev`. Open the local address printed by Next.js. The runtime migrates the local SQLite database automatically. Uploads and the database remain private under `data/`.
 
+On each laptop, run `npm run check:provider` to verify its credentials, endpoint and configured models with a tiny paid text request (no drawing is sent). `.env` is local and is not transferred by Git. For Mozaik gateway credentials, set `ANTHROPIC_BASE_URL=https://api.app.jigjoy.ai/gateway/anthropic`; a direct Anthropic key uses the default Anthropic endpoint. Restart `npm run dev` after changing `.env`. The check reports DNS, TLS, timeout and authentication failures without printing keys. `REVISION_SUPERSEDED` means the project changed during analysis; the old result is discarded, and a new revision's analysis waits for the old extraction to finish before proceeding.
+
 Upload a clean digital PDF, PNG or JPEG and select its page. The initial project questions are unchanged. Recognition runs automatically: the drawing legend stays internal and never blocks the interface. AI suggests categories, reads dimension annotations and uses explicit units or supported drawing spans where available.
 
 Findings distinguish confirmed outcomes from **AI estimates**. The deterministic engine can show a separate preliminary pass, potential issue or likely non-applicability using recorded assumptions. AI suggestions never become human confirmations. Unknown project facts, unresolved exceptions and unsupported evaluators remain unresolved.

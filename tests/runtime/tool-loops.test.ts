@@ -50,7 +50,7 @@ async function start() {
   const form = new FormData(); form.append('file', new Blob([await readFile('fixtures/plans/office-a.png')], { type: 'image/png' }), 'office-a.png'); form.append('baseRevision', '1');
   const { drawing } = UploadDrawingResponseSchema.parse(await (await fetch(`${app.url}/api/projects/${project.id}/drawings`, { method: 'POST', body: form })).json());
   const { sessionId } = StartAnalysisResponseSchema.parse((await call(app.url, 'POST', `/api/projects/${project.id}/analyses`, { projectRevision: 2, drawingId: drawing.id, page: 1 })).body);
-  return { sessionId, projectId: project.id };
+  return { sessionId, projectId: project.id, drawingId: drawing.id };
 }
 
 async function run() {
@@ -90,6 +90,25 @@ test('all participants produce real loop events and use isolated task contexts',
   assert.equal(new Set(contexts.values()).size, contexts.size, 'no two batches share context');
   const fields = app.ctx.db.prepare('PRAGMA table_info(agent_loop_events)').all() as { name: string }[];
   assert.deepEqual(fields.map(field => field.name), ['sequence', 'run_id', 'loop_id', 'type', 'occurred_at']);
+});
+
+test('a new revision waits for stale extraction and completes independently', async () => {
+  mode = 'normal';
+  const before = vision.calls;
+  const { sessionId, projectId, drawingId } = await start();
+  await waitFor(() => vision.calls > before ? true : undefined);
+  const updated = await call(app.url, 'PATCH', `/api/projects/${projectId}`, { baseRevision: 2, patch: { occupantCount: 25 } });
+  assert.equal(updated.status, 200);
+  const started = StartAnalysisResponseSchema.parse((await call(app.url, 'POST', `/api/projects/${projectId}/analyses`, { projectRevision: 3, drawingId, page: 1 })).body);
+  const snapshot = await waitFor(async () => {
+    const result = AnalysisSnapshotSchema.parse((await call(app.url, 'GET', `/api/analyses/${started.sessionId}`)).body);
+    return result.session.status === 'RUNNING' ? undefined : result;
+  });
+  assert.equal(snapshot.session.status, 'COMPLETE');
+  assert.ok(snapshot.elements.length > 0);
+  assert.ok(snapshot.elements.every(element => element.revision === 3));
+  assert.equal(listSessionRuns(app.ctx.db, sessionId).find(run => run.role === 'GEOMETRY')!.errorCode, 'REVISION_SUPERSEDED');
+  assert.equal(listSessionRuns(app.ctx.db, started.sessionId).find(run => run.role === 'GEOMETRY')!.status, 'COMPLETED');
 });
 
 for (const [scenario, expected, expectedVision] of [

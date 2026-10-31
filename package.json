@@ -14,6 +14,7 @@
     "postinstall": "next typegen",
     "typecheck": "next typegen && tsc --noEmit",
     "smoke:geometry": "node --env-file-if-exists=.env --import tsx tests/runtime/live-smoke.ts",
+    "check:provider": "node --env-file-if-exists=.env --import tsx scripts/check-provider.ts",
     "benchmark:geometry": "node --env-file-if-exists=.env --import tsx scripts/geometry-benchmark.ts",
     "evaluate:geometry": "node --import tsx scripts/geometry-evaluate.ts"
   },

@@ -13,6 +13,21 @@ test('provider error classification works across SDK module boundaries without e
   assert.equal(providerFailure({ status: '503' }).retryable, false);
 });
 
+test('connection failures report safe actionable causes across nested Node fetch errors', () => {
+  for (const [code, expected, retryable] of [
+    ['ENOTFOUND', 'PROVIDER_DNS_FAILED', false],
+    ['EAI_AGAIN', 'PROVIDER_DNS_FAILED', true],
+    ['SELF_SIGNED_CERT_IN_CHAIN', 'PROVIDER_TLS_FAILED', false],
+    ['CERT_HAS_EXPIRED', 'PROVIDER_TLS_FAILED', false],
+    ['ECONNREFUSED', 'PROVIDER_CONNECTION_REFUSED', true],
+    ['UND_ERR_CONNECT_TIMEOUT', 'PROVIDER_TIMEOUT', true],
+  ] as const) {
+    assert.deepEqual(providerFailure({ name: 'APIConnectionError', cause: { cause: { code, message: 'secret' } } }), { code: expected, retryable });
+  }
+  assert.equal(providerFailure({ name: 'APIConnectionTimeoutError' }).code, 'PROVIDER_TIMEOUT');
+  assert.equal(providerFailure({ name: 'APIConnectionError' }).code, 'PROVIDER_UNREACHABLE');
+});
+
 test('gateway 503 gets one retry; authentication and model errors do not', async () => {
   for (const [status, expectedCalls, code] of [[503, 2, 'VISION_UNAVAILABLE'], [401, 1, 'PROVIDER_AUTH'], [404, 1, 'PROVIDER_MODEL_OR_ENDPOINT_NOT_FOUND']] as const) {
     let calls = 0;

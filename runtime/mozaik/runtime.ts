@@ -21,6 +21,8 @@ export interface SessionCoordination {
   fingerprints: Set<string>;
   /** Any participant failure makes the session PARTIAL instead of COMPLETE. */
   failed: boolean;
+  /** Corrections reuse geometry and deterministic explanation templates, never paid loops. */
+  reuseOnly?: boolean;
 }
 
 export class ArchillesRuntimeState extends RuntimeState {

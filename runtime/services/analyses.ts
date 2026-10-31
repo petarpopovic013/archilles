@@ -29,7 +29,6 @@ import {
   listSessionEvaluations,
   listSessionFindings,
   listSessionParticipants,
-  retireRunKey,
 } from "../db/repo";
 import { notFound, revisionConflict } from "../http/errors";
 import { createAppEvent, emitAppEvent, type EventScope } from "../mozaik/app-events";
@@ -38,9 +37,18 @@ import { TOOL_LOOP_VERSION } from "../mozaik/tool-loop";
 import { ensureFloor } from "./drawings";
 import { getProject, saveProject } from "./projects";
 
+const starting=new WeakMap<RuntimeContext,Map<string,Promise<{sessionId:string;status:"RUNNING"}>>>();
+export function startAnalysis(ctx:RuntimeContext,projectId:string,request:StartAnalysisInput,options:StartOptions={}) {
+  let pending=starting.get(ctx);if(!pending){pending=new Map();starting.set(ctx,pending);}
+  const key=JSON.stringify([projectId,request.drawingId,request.page,request.projectRevision]);
+  const existing=pending.get(key);if(existing)return existing;
+  const work=startAnalysisOnce(ctx,projectId,request,options).finally(()=>pending!.delete(key));pending.set(key,work);return work;
+}
+
 type StartAnalysisInput = z.output<typeof StartAnalysisRequestSchema>;
 
 export interface StartOptions {
+  reuseOnly?: boolean;
   /** Events published (with the new session ID) before `analysis.started`, e.g. a correction. */
   precedingEvents?(sessionId: string): AppEvent[];
 }
@@ -49,7 +57,7 @@ export interface StartOptions {
  * Starts one analysis session for a revision/drawing page/rule set/extraction version.
  * Repeating the same request returns the existing session instead of new AI work.
  */
-export async function startAnalysis(
+async function startAnalysisOnce(
   ctx: RuntimeContext,
   projectId: string,
   request: StartAnalysisInput,
@@ -76,8 +84,7 @@ export async function startAnalysis(
 
   const existing = findSessionByRunKey(ctx.db, runKey);
   // The start contract only carries RUNNING; clients read the real status from the snapshot.
-  const paused=existing&&geometryReport(ctx.db,floor.id,project.revision)?.stage==="AWAITING_CONFIRMATION";
-  if (existing && existing.status !== "FAILED" && !paused) return { sessionId: existing.id, status: "RUNNING" };
+  if (existing) return { sessionId: existing.id, status: "RUNNING" };
 
   const current = getProject(ctx.db, projectId);
   if (current.revision !== project.revision) throw revisionConflict(current.revision, project.revision);
@@ -91,7 +98,6 @@ export async function startAnalysis(
     startedAt: ctx.now(),
   };
   ctx.db.transaction(() => {
-    if (existing) retireRunKey(ctx.db, existing.id);
     insertSession(ctx.db, session, runKey, { drawingId: drawing.id, page: request.page });
     saveProject(ctx.db, { ...current, analysisStatus: "RUNNING" });
   })();
@@ -109,6 +115,7 @@ export async function startAnalysis(
     selectedRuleIds: [],
     fingerprints: new Set(),
     failed: false,
+    reuseOnly: options.reuseOnly ?? !!(ctx.db.prepare("SELECT 1 FROM geometry_extractions WHERE floor_id=? LIMIT 1").get(floor.id) || geometryReport(ctx.db,floor.id,project.revision) || floorView(ctx.db,floor.id,project.revision).elements.length),
   });
 
   for (const event of options.precedingEvents?.(session.id) ?? []) emitAppEvent(ctx.api, event);
@@ -136,7 +143,7 @@ export async function reanalyseAfterRevision(
   }
   await startAnalysis(ctx, scope.projectId, {
     projectRevision: scope.projectRevision, drawingId: location.drawingId, page: location.page,
-  }, { precedingEvents: events });
+  }, { precedingEvents: events, reuseOnly: true });
 }
 
 export async function getAnalysisSnapshot(ctx: RuntimeContext, sessionId: string): Promise<AnalysisSnapshot> {

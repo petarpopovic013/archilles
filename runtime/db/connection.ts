@@ -42,6 +42,7 @@ export function recoverInterruptedWork(db: Db, now: string): { sessions: number;
         data = json_set(data, '$.status', 'FAILED', '$.errorCode', ?, '$.finishedAt', ?)
       WHERE status = 'STARTED'
     `).run(errorCode, now).changes;
+    db.prepare("UPDATE geometry_extractions SET status='FAILED',error_code=?,spent_usd=spent_usd+reserved_usd,reserved_usd=0 WHERE status='STARTED'").run(errorCode);
     return { sessions, runs };
   })();
 }

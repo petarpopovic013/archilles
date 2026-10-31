@@ -129,7 +129,7 @@ export function createReviewAgent(ctx: RuntimeContext, bridgeId: () => string): 
 
     const batchFindings = toExplain.slice(0, MAX_FINDINGS_PER_BATCH);
     const batchKey = `review:${fingerprint(batchFindings.map((finding) => finding.evaluationId).sort())}`;
-    if (batchFindings.length === 0 || state.fingerprints.has(batchKey)) {
+    if (state.reuseOnly || batchFindings.length === 0 || state.fingerprints.has(batchKey)) {
       finishSession(ctx, sessionId);
       return;
     }

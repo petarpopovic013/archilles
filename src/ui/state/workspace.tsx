@@ -191,15 +191,10 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   const refreshSnapshot = useCallback(async (id: string) => {
     const next = await client.getAnalysis(id);
     if(activeSessionId.current !== id) return next;
-    if(next.geometry?.stage==='AWAITING_CONFIRMATION' && project && drawing && next.session.status!=='RUNNING') {
-      const resumed=await client.startAnalysis(project.id,{projectRevision:next.session.projectRevision,drawingId:drawing.id,page});
-      if(activeSessionId.current===id){activeSessionId.current=resumed.sessionId;setActivity([]);setSessionId(resumed.sessionId);}
-      return next;
-    }
     setSnapshot(next);
     setCoverage(next.coverage);
     return next;
-  }, [client,project,drawing,page]);
+  }, [client]);
 
   // Follow the active session: stored events (with replay) drive refreshes; a slow poll only
   // catches the final status, which is not itself an event.
