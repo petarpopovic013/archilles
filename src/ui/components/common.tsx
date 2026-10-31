@@ -82,7 +82,7 @@ export function Button({ variant = "secondary", className = "", type = "button",
 
 export function Section({ title, children, aside }: { title: string; children: ReactNode; aside?: ReactNode }) {
   return (
-    <section className="space-y-2 border-b border-slate-800 p-3">
+    <section className="review-section shrink-0 space-y-2 border-b border-slate-800 p-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{title}</h2>
         {aside}
@@ -93,4 +93,4 @@ export function Section({ title, children, aside }: { title: string; children: R
 }
 
 export const inputClass =
-  "w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400";
+  "min-w-0 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1.5 text-xs text-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400";

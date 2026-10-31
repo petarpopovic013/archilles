@@ -14,13 +14,31 @@ export function Workspace() {
 
 function WorkspaceContent() {
   const [reviewing, setReviewing] = useState(false);
+  const { selection } = useWorkspace();
+  const [panel, setPanel] = useState<"project" | "plan" | "details">("plan");
+  const [viewedSelection, setViewedSelection] = useState(selection);
+  const activePanel = selection && selection !== viewedSelection ? "details" : panel;
   if (!reviewing) return <LandingPage onOpenWorkspace={() => { setReviewing(true); window.scrollTo(0,0); }} />;
-  return <div className="review-workspace flex h-dvh flex-col overflow-hidden bg-slate-950 text-slate-100"><Header onBack={() => setReviewing(false)} /><ErrorBanner /><div className="workspace-panels flex min-h-0 flex-1"><ProjectPanel /><PlanViewer /><Inspector /></div></div>;
+  return (
+    <div className="review-workspace flex h-dvh flex-col overflow-hidden bg-slate-950 text-slate-100">
+      <Header onBack={() => setReviewing(false)} />
+      <ErrorBanner />
+      <nav className="workspace-navigation" aria-label="Workspace views">
+        {([["project", "Project & results"], ["plan", "Floor plan"], ["details", "Details & activity"]] as const).map(([id, label]) => (
+          <button key={id} type="button" aria-pressed={activePanel === id} aria-controls={`workspace-${id}`}
+            onClick={() => { setPanel(id); setViewedSelection(selection); }}>{label}</button>
+        ))}
+      </nav>
+      <div className="workspace-panels flex min-h-0 flex-1" data-active-panel={activePanel}>
+        <ProjectPanel /><PlanViewer /><Inspector />
+      </div>
+    </div>
+  );
 }
 
 function Header({onBack}:{onBack():void}) {
   const { project, busy } = useWorkspace();
-  return <header className="review-header flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-3"><div className="flex items-center gap-4"><button onClick={onBack} className="flex items-center gap-2 text-xs" aria-label="Back to Archilles home"><SvgArrow direction="left" /> Home</button><span className="text-lg font-semibold tracking-tight">archilles.</span><span className="workspace-subtitle text-[11px] text-slate-400">2D architectural review</span></div><div className="flex items-center gap-3 text-[11px] text-slate-400">{busy && <span aria-live="polite">Working…</span>}{project && <span className="font-mono">{project.name} · r{project.revision}</span>}</div></header>;
+  return <header className="review-header flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-3"><div className="review-brand flex items-center gap-4"><button onClick={onBack} className="flex items-center gap-2 text-xs" aria-label="Back to Archilles home"><SvgArrow direction="left" /> Home</button><span className="text-lg font-semibold tracking-tight">archilles.</span><span className="workspace-subtitle text-[11px] text-slate-400">2D architectural review</span></div><div className="review-project flex items-center gap-3 text-[11px] text-slate-400">{busy && <span className="shrink-0" aria-live="polite">Working…</span>}{project && <span className="truncate font-mono" title={`${project.name} · r${project.revision}`}>{project.name} · r{project.revision}</span>}</div></header>;
 }
 
 function ErrorBanner() {
