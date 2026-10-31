@@ -17,6 +17,8 @@ import { reviewedEvaluators } from "./reviewed-evaluators";
 export const BOUNDARY_EPSILON = 1e-9;
 
 export interface EvaluationContext {
+  /** Internal scenario mode; original verification records are never changed. */
+  preliminaryMode?: boolean;
   project: Project;
   /** The project view at `project.revision` (latest non-superseded records). */
   elements: ArchitecturalElement[];
@@ -99,14 +101,14 @@ export function evaluateTarget(
   const gated = gate(rule, element, ctx);
   if (gated) return finish(rule, element, ctx, gated);
 
-  const exceptions = rule.exceptionConditions.map((condition) => evaluateCondition(condition, { project: ctx.project, element }));
+  const exceptions = rule.exceptionConditions.map((condition) => evaluateCondition(condition, { project: ctx.project, element, allowAiSubtype: ctx.preliminaryMode }));
   if (exceptions.some((result) => result.truth === "TRUE")) {
     return finish(rule, element, ctx, notApplicable("EXCEPTION_APPLIES", element));
   }
 
   const outcome = runEvaluator(rule, element, ctx);
   const unresolved = exceptions.filter((result) => result.truth === "UNKNOWN");
-  if (outcome.status === "FAIL" && unresolved.length > 0) {
+  if ((outcome.status === "FAIL" || ctx.preliminaryMode) && unresolved.length > 0) {
     // An exception that might apply is unproven: the failure cannot be asserted.
     return finish(rule, element, ctx, {
       ...outcome,
@@ -123,7 +125,7 @@ function gate(rule: ComplianceRule, element: ArchitecturalElement | undefined, c
   if ((rule.effectiveFrom && ctx.asOf < rule.effectiveFrom) || (rule.effectiveTo && ctx.asOf > rule.effectiveTo)) {
     return notApplicable("RULE_NOT_IN_EFFECT", element);
   }
-  const applicability = evaluateCondition(rule.applicability, { project: ctx.project, element });
+  const applicability = evaluateCondition(rule.applicability, { project: ctx.project, element, allowAiSubtype: ctx.preliminaryMode });
   if (applicability.truth === "FALSE") return notApplicable("APPLICABILITY_NOT_MET", element);
   if (applicability.truth === "UNKNOWN") {
     const unconfirmed = element?.extraction === "AI_SUGGESTED" && element.subtype !== undefined &&
@@ -150,7 +152,7 @@ function runEvaluator(rule: ComplianceRule, element: ArchitecturalElement | unde
       const inputs = metrics.map((metric) => ({ metric, measurement: currentMeasurement(ctx.measurements, element.id, metric) }));
       const present = inputs.flatMap(({ measurement }) => (measurement ? [measurement] : []));
       const missing = inputs.filter(({ measurement }) => !measurement).map(({ metric }) => metric);
-      const unverified = present.filter((measurement) => !isVerifiedMeasurement(measurement.verification)).map(({ metric }) => metric);
+      const unverified = present.filter((measurement) => !isVerifiedMeasurement(measurement.verification) && !ctx.preliminaryMode).map(({ metric }) => metric);
       const evidenceIds = unique([...element.evidenceIds, ...present.flatMap((measurement) => measurement.evidenceIds)]);
       const measurementIds = present.map((measurement) => measurement.id);
       const facts = present.map(({ id, metric, value, unit, verification }) => ({ id, metric, value, unit, verification }));
@@ -272,6 +274,19 @@ function finish(
     reasonCode: outcome.reasonCode,
     evaluatedAt: ctx.now,
   });
+  if (!ctx.preliminaryMode && evaluation.status === "UNKNOWN" && element) {
+    const scenario = evaluateTarget(rule, element, { ...ctx, preliminaryMode: true }).evaluation;
+    const assumptions: string[] = [];
+    if (element.extraction === "AI_SUGGESTED" && element.subtype) assumptions.push(`AI classification: ${element.subtype}${element.classificationReason?`: ${element.classificationReason}`:""}`);
+    for (const metric of rule.requiredInputs) {
+      const m = currentMeasurement(ctx.measurements, element.id, metric);
+      if (m?.verification === "UNVERIFIED") assumptions.push(`Unverified ${metric}: ${m.value} ${m.unit} (${m.assumption??m.source})`);
+    }
+    if (assumptions.length && ["PASS", "FAIL", "NOT_APPLICABLE"].includes(scenario.status)) {
+      evaluation.preliminary = { status: scenario.status, observed: scenario.observed, required: scenario.required,
+        unit: scenario.unit, reasonCode: scenario.reasonCode, assumptions, evidenceIds: scenario.evidenceIds };
+    }
+  }
   return {
     evaluation,
     measurementIds: outcome.measurementIds,
@@ -281,6 +296,7 @@ function finish(
       projectFacts: projectFacts(ctx.project),
       asOf: ctx.asOf,
       inputs: outcome.facts,
+      preliminary: evaluation.preliminary,
     }),
   };
 }

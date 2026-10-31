@@ -11,7 +11,7 @@ export const VisionLabelSchema=z.strictObject({
   association:z.enum(['SUGGESTED','UNRESOLVED']).optional(),
 });
 export const VisionElementSchema=z.strictObject({
-  ref:z.string().min(1).max(80), type:ElementTypeSchema, label:z.string().max(200).optional(), subtype:z.string().max(100).optional(),geometry:GeometrySchema, interiorPoint:PointSchema.optional(), openingKind:z.enum(['DOOR','WINDOW','UNKNOWN']).optional(), openingConflict:z.boolean().optional(),
+  ref:z.string().min(1).max(80), type:ElementTypeSchema, label:z.string().max(200).optional(), subtype:z.string().max(100).optional(),classificationReason:z.string().min(1).max(500).optional(),geometry:GeometrySchema, interiorPoint:PointSchema.optional(), openingKind:z.enum(['DOOR','WINDOW','UNKNOWN']).optional(), openingConflict:z.boolean().optional(),
   labels:z.array(VisionLabelSchema).max(40).optional(),
   measurements:z.array(z.strictObject({metric:MetricSchema,value:z.number().nonnegative().optional(),unit:z.string().max(30).optional(),rawLabel:z.string().max(1000),geometry:GeometrySchema.optional(),confidence:z.number().min(0).max(1),dimensionKind:z.enum(['MEASURED_SPAN','NOMINAL_OPENING','UNCERTAIN']).optional()})),
 });

@@ -47,18 +47,12 @@ async function main() {
     if (upload.status !== 201) throw new Error('UPLOAD_SMOKE_FAILED');
     const { drawing } = UploadDrawingResponseSchema.parse(await upload.json());
     const started = await fetch(`${app.url}/api/projects/${project.id}/analyses`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ projectRevision: 2, drawingId: drawing.id, page }) });
-    let { sessionId } = StartAnalysisResponseSchema.parse(await started.json());
-    let overviewSessionId:string|undefined;
+    const { sessionId } = StartAnalysisResponseSchema.parse(await started.json());
     const deadline = Date.now() + 900_000;
     for (;;) {
       const snapshot = AnalysisSnapshotSchema.parse(await (await fetch(`${app.url}/api/analyses/${sessionId}`)).json());
       if (snapshot.session.status !== 'RUNNING') {
-        if(snapshot.geometry?.stage==='AWAITING_CONFIRMATION'){
-          overviewSessionId=sessionId;
-          const next=await fetch(`${app.url}/api/drawings/${drawing.id}/pages/${page}/geometry`,{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify({baseRevision:snapshot.session.projectRevision,unit:null,legendConfirmed:true,confirmedLegendIds:[]})});
-          const result=await next.json();if(!next.ok||!result.sessionId)throw new Error('SMOKE_SETUP_FAILED');sessionId=result.sessionId;continue;
-        }
-        const runs = [...(overviewSessionId?listSessionRuns(app.ctx.db,overviewSessionId):[]),...listSessionRuns(app.ctx.db, sessionId)];
+        const runs = listSessionRuns(app.ctx.db, sessionId);
         const geometry = runs.find(run => run.role === 'GEOMETRY');
         // Opt-in private report for inspecting actual observations. Never logs image bytes/prompts.
         const floorId = snapshot.elements[0]?.floorId;

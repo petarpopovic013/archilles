@@ -13,6 +13,13 @@ import {
 
 const ObservedValueSchema = z.union([FiniteNumberSchema, z.string().min(1), z.boolean()]);
 
+export const PreliminaryResultSchema = z.strictObject({
+  status: EvaluationStatusSchema,
+  observed: ObservedValueSchema.optional(), required: ObservedValueSchema.optional(),
+  unit: z.string().optional(), reasonCode: z.string().min(1),
+  assumptions: z.array(z.string().min(1)).min(1), evidenceIds: z.array(IdSchema),
+});
+
 export const RuleEvaluationSchema = z.strictObject({
   id: IdSchema,
   projectId: IdSchema,
@@ -21,6 +28,7 @@ export const RuleEvaluationSchema = z.strictObject({
   ruleVersion: PositiveIntegerSchema,
   elementId: IdSchema.optional(),
   status: EvaluationStatusSchema,
+  preliminary: PreliminaryResultSchema.optional(),
   required: ObservedValueSchema.optional(),
   observed: ObservedValueSchema.optional(),
   unit: z.string().trim().min(1).optional(),
@@ -54,6 +62,7 @@ export const ComplianceFindingSchema = z.strictObject({
   elementId: IdSchema.optional(),
   status: EvaluationStatusSchema,
   priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+  preliminary: PreliminaryResultSchema.optional(),
   title: z.string().trim().min(1),
   explanation: z.string().trim().min(1),
   suggestedAction: z.string().trim().min(1).optional(),

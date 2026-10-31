@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { ElementTypeSchema, unitForMetric, type ArchitecturalElement, type ComplianceFinding, type ElementType, type Measurement, type Metric } from "../../domain";
+import { unitForMetric, type ArchitecturalElement, type ComplianceFinding, type ElementType, type Metric } from "../../domain";
+import { effectiveStatus, preliminaryLabel, questionForFinding } from "../review";
 import { useWorkspace } from "../state/workspace";
 import { eventDetail, eventLabel, formatValue, metricLabel, requirementPrefix, statusLabel } from "../format";
-import { Button, Icon, Section, StatusBadge, SvgArrow, VerificationBadge, inputClass } from "./common";
-import { OTHER_SUBTYPE, activeCategories, categoryHint, categoryLabel, markPrefills, ruleTypes, stepsFor, typeNoun, widthFromMark } from "../guidance";
+import { Button, Icon, Section, StatusBadge, SvgArrow, inputClass } from "./common";
+import { categoryLabel, ruleTypes, stepsFor, typeNoun } from "../guidance";
 
 type Requirements = NonNullable<ReturnType<typeof useWorkspace>["requirements"]>;
 
@@ -22,7 +23,6 @@ function metricsFor(requirements: Requirements | null, type: ElementType, subtyp
 /** Ratios are entered and shown as percentages; the API always receives the 0.05-style ratio. */
 const isRatio = (metric: Metric) => unitForMetric(metric) === "ratio";
 const inputUnit = (metric: Metric) => (isRatio(metric) ? "%" : unitForMetric(metric) === "m" ? "m" : "");
-const toInput = (metric: Metric, value: number) => String(isRatio(metric) ? Math.round(value * 100 * 1000) / 1000 : value);
 const fromInput = (metric: Metric, text: string) => {
   const value = Number(text);
   if (text.trim() === "" || !Number.isFinite(value) || value < 0) return undefined;
@@ -39,7 +39,7 @@ export function Inspector() {
         )}
         {selectedFinding && <FindingDetail finding={selectedFinding} />}
         {selectedElement && <ElementDetail key={`${selectedElement.id}:${selectedElement.revision}`} element={selectedElement} />}
-        {selectedElement && <RecheckForm key={`recheck:${selectedElement.id}`} element={selectedElement} />}
+
       </div>
       <ActivityFeed />
     </aside>
@@ -47,7 +47,7 @@ export function Inspector() {
 }
 
 function FindingDetail({ finding }: { finding: ComplianceFinding }) {
-  const { snapshot, evidence, loadEvidence, select, setProjectEditorOpen, requirements } = useWorkspace();
+  const { snapshot, evidence, loadEvidence, select, setProjectEditorOpen, requirements,setPlanAction } = useWorkspace();
   const evaluation = snapshot?.evaluations.find((item) => item.id === finding.evaluationId);
   const element = snapshot?.elements.find((item) => item.id === finding.elementId);
   const steps = evaluation ? stepsFor(evaluation, element, ruleTypes(requirements).get(finding.ruleId)) : [];
@@ -56,14 +56,15 @@ function FindingDetail({ finding }: { finding: ComplianceFinding }) {
   return (
     <Section title="Finding" aside={finding.stale ? <span className="text-[11px] text-amber-300">outdated</span> : undefined}>
       <div className="space-y-1">
-        <StatusBadge status={finding.status} />
+        <StatusBadge status={effectiveStatus(finding)} label={effectiveStatus(finding)==='PASS'?'Good':effectiveStatus(finding)==='FAIL'?'Fail':preliminaryLabel(finding)} />
+        {finding.preliminary&&<span className="text-[11px] text-amber-300">AI estimate · preliminary</span>}
         <h3 className="text-sm font-semibold text-slate-100">{finding.title}</h3>
       </div>
       {evaluation && (
         <dl className="grid grid-cols-2 gap-2 rounded border border-slate-800 bg-slate-950/50 p-2 text-xs">
           <div>
             <dt className="text-[10px] uppercase text-slate-500">Observed</dt>
-            <dd className="font-mono text-slate-100">{formatValue(evaluation.observed, evaluation.unit)}</dd>
+            <dd className="font-mono text-slate-100">{formatValue(evaluation.preliminary?.observed??evaluation.observed, evaluation.preliminary?.unit??evaluation.unit)}</dd>
           </div>
           <div>
             <dt className="text-[10px] uppercase text-slate-500">Required</dt>
@@ -79,7 +80,9 @@ function FindingDetail({ finding }: { finding: ComplianceFinding }) {
           )}
         </dl>
       )}
-      {steps.length > 0 && (
+      {finding.preliminary&&<ul className="text-[11px] text-amber-300">{finding.preliminary.assumptions.map(a=><li key={a}>{a}</li>)}</ul>}
+      {(snapshot?.questions??[]).filter(q=>questionForFinding(q,finding)).slice(0,1).map(q=><Button key={q.id} onClick={()=>setPlanAction({kind:'question',id:q.id})}>{q.title}</Button>)}
+      {!finding.preliminary && steps.length > 0 && (
         <div className="space-y-1.5 rounded border border-amber-900/70 bg-amber-950/20 p-2">
           <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">To get a result</div>
           {steps.map((step) => (
@@ -95,13 +98,13 @@ function FindingDetail({ finding }: { finding: ComplianceFinding }) {
           ))}
         </div>
       )}
-      <p className="text-xs leading-relaxed text-slate-300">{finding.explanation}</p>
+      <p className="text-xs leading-relaxed text-slate-300">{finding.preliminary?`Based on the drawing assumptions, this check is ${finding.preliminary.status==='PASS'?'good':'failed'}. Observed: ${formatValue(finding.preliminary.observed,finding.preliminary.unit)}; required: ${formatValue(finding.preliminary.required,finding.preliminary.unit)}.`:finding.explanation}</p>
       {finding.suggestedAction && (
         <p className="rounded border border-cyan-900 bg-cyan-950/30 p-2 text-xs text-cyan-100">
           <span className="font-semibold">Suggestion: </span>{finding.suggestedAction}
         </p>
       )}
-      {finding.requiresHumanReview && (
+      {finding.requiresHumanReview && !finding.preliminary && (
         <p className="flex items-start gap-2 rounded border border-orange-900 bg-orange-950/30 p-2 text-[11px] text-orange-200">
           <Icon name="alert" className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           Preliminary finding: review by the responsible architect or specialist is required.
@@ -135,155 +138,21 @@ function FindingDetail({ finding }: { finding: ComplianceFinding }) {
   );
 }
 
-/** The current value per metric: measurements that no other measurement supersedes. */
-function currentMeasurements(measurements: Measurement[], elementId: string): Measurement[] {
-  const superseded = new Set(measurements.flatMap((item) => (item.supersedesId ? [item.supersedesId] : [])));
-  return measurements.filter((item) => item.elementId === elementId && !superseded.has(item.id));
-}
-
 function ElementDetail({ element }: { element: ArchitecturalElement }) {
-  const { snapshot, confirmElement, confirmElements, retireElement, busy, requirements, evidence, loadEvidence } = useWorkspace();
-  const [removing,setRemoving]=useState(false);
-  const [type, setType] = useState<ElementType>(element.type);
-  const [subtype, setSubtype] = useState(element.subtype ?? "");
-  const measurements = useMemo(() => currentMeasurements(snapshot?.measurements ?? [], element.id), [snapshot, element.id]);
-  useEffect(() => loadEvidence(element.evidenceIds), [element.evidenceIds, loadEvidence]);
-  const suggested = element.extraction === "AI_SUGGESTED";
-  const typeChanged = type !== element.type;
-  const changed = typeChanged || subtype !== (element.subtype ?? "");
-  const choices = activeCategories(requirements, type);
-  const unlocked = rulesFor(requirements, type, subtype || undefined);
-  const required = metricsFor(requirements, element.type, element.subtype);
-  const missing = required.filter((metric) => !measurements.some((item) => item.metric === metric));
-  const noun = typeNoun(type);
-  // Same-type elements a person has not confirmed yet: they can take this answer in one revision.
-  const similar = (snapshot?.elements ?? []).filter((other) => other.type === type && other.extraction === "AI_SUGGESTED");
-  const marks = element.evidenceIds.map((id) => evidence.get(id)?.text).filter((text): text is string => Boolean(text));
-
-  const confirm = (event: FormEvent) => {
-    event.preventDefault();
-    void confirmElement(element.id, {
-      ...(typeChanged ? { type } : {}),
-      ...(subtype !== (element.subtype ?? "") ? { subtype: subtype || null } : {}),
-    });
-  };
-  const confirmAll = () => void confirmElements(similar.map((other) => ({ elementId: other.id, subtype: subtype || null })));
-
-  return (
-    <Section title={`${noun.charAt(0).toUpperCase()}${noun.slice(1)}${element.label ? ` · ${element.label}` : ""}`}>
-      <form onSubmit={confirm} className="space-y-2 rounded border border-slate-800 bg-slate-950/40 p-2">
-        {choices.length === 0 ? (
-          <p className="text-[11px] text-slate-400">No active checks apply to {noun}s yet, so nothing needs to be classified here.</p>
-        ) : (
-          <fieldset className="space-y-1.5">
-            <legend className="mb-1 text-xs font-semibold text-slate-100">What kind of {noun} is this?</legend>
-            {suggested && element.subtype && (
-              <p className="text-[11px] text-amber-300">The AI suggests “{categoryLabel(element.subtype, type)}”. Check it on the plan and confirm or change it.</p>
-            )}
-            {[...choices, OTHER_SUBTYPE].map((value) => (
-              <label key={value} className={`flex cursor-pointer items-start gap-2 rounded border p-1.5 text-[11px] ${subtype === value ? "border-cyan-600 bg-cyan-950/30" : "border-slate-800"}`}>
-                <input type="radio" name={`category-${element.id}`} value={value} checked={subtype === value} onChange={() => setSubtype(value)} className="mt-0.5" />
-                <span>
-                  <span className="block text-slate-100">{categoryLabel(value, type)}</span>
-                  {categoryHint(value) && <span className="block text-slate-500">{categoryHint(value)}</span>}
-                </span>
-              </label>
-            ))}
-          </fieldset>
-        )}
-        {unlocked.some((rule) => rule.lifecycle === "ACTIVE") && (
-          <p className="text-[11px] text-slate-400">Checks this enables: {unlocked.filter((rule) => rule.lifecycle === "ACTIVE").length}</p>
-        )}
-        <div className="flex gap-1.5">
-          <Button type="submit" variant={suggested || changed ? "primary" : "secondary"}
-            disabled={busy !== null || (!suggested && !changed) || (choices.length > 0 && !subtype)} className="flex-1">
-            {!suggested && !changed ? "Confirmed" : "Confirm"}
-          </Button>
-          {choices.length > 0 && subtype && !typeChanged && similar.length > 1 && (
-            <Button onClick={confirmAll} disabled={busy !== null} className="flex-1">Use for all {similar.length} {noun}s</Button>
-          )}
-        </div>
-        <details className="text-[11px] text-slate-400">
-          <summary className="cursor-pointer">Not a {noun}? Change the element type</summary>
-          <select value={type} onChange={(e) => { setType(e.target.value as ElementType); setSubtype(""); }} className={`${inputClass} mt-1`}>
-            {ElementTypeSchema.options.map((option) => <option key={option} value={option}>{typeNoun(option)}</option>)}
-          </select>
-        </details>
-      </form>
-
-      <div className="space-y-1 text-[11px] text-slate-400">
-        {snapshot?.geometry?.annotations.filter(a=>a.elementId===element.id).map(a=><p key={a.id}>{a.text} · {a.kind.toLowerCase().replaceAll('_',' ')}{a.unit?` · ${a.unit}`:''}</p>)}
-        {removing?<div className="flex gap-2"><Button disabled={Boolean(busy)} onClick={()=>void retireElement(element.id)}>Remove this element</Button><Button onClick={()=>setRemoving(false)}>Keep</Button></div>:<Button disabled={Boolean(busy)} onClick={()=>setRemoving(true)}>Remove incorrect element</Button>}
-      </div>
-      <div className="space-y-1.5">
-        <div className="text-[10px] uppercase text-slate-500">Measurements</div>
-        {measurements.map((measurement) => (
-          <MeasurementRow key={measurement.id} elementId={element.id} metric={measurement.metric} measurement={measurement} marks={marks} />
-        ))}
-        {missing.map((metric) => <MeasurementRow key={metric} elementId={element.id} metric={metric} marks={marks} />)}
-        {measurements.length === 0 && missing.length === 0 && (
-          <p className="text-[11px] text-slate-500">
-            {element.subtype ? "No measurements are needed for this category." : `Choose what kind of ${noun} this is to see which measurements the checks need.`}
-          </p>
-        )}
-      </div>
-    </Section>
-  );
+  const {setPlanAction,snapshot}=useWorkspace();
+  const measurements=snapshot?.measurements.filter(m=>m.elementId===element.id)??[];
+  return <Section title={element.label??typeNoun(element.type)}>
+    <p className="text-xs">{element.subtype?categoryLabel(element.subtype,element.type):'Category not established'}{element.extraction==='AI_SUGGESTED'?' · AI suggestion':''}</p>
+    {measurements.map(m=><p key={m.id} className="text-xs mt-2">{metricLabel[m.metric]}: {formatValue(m.value,m.unit)} · {m.verification==='UNVERIFIED'?'AI estimate':'Confirmed'}</p>)}
+    <div className="flex gap-2 mt-3"><Button onClick={()=>setPlanAction({kind:'element',id:element.id})}>Adjust on plan</Button><Button onClick={()=>setPlanAction({kind:'recheck',id:element.id})}>Fix & Recheck</Button></div>
+  </Section>;
 }
 
-function MeasurementRow({ elementId, metric, measurement, marks }: { elementId: string; metric: Metric; measurement?: Measurement; marks: string[] }) {
-  const { confirmMeasurement, busy, snapshot } = useWorkspace();
-  const [value, setValue] = useState(measurement ? toInput(metric, measurement.value) : "");
-  const confirmed = measurement && measurement.verification !== "UNVERIFIED";
-  const unit = inputUnit(metric);
-  const fromMark = !confirmed && markPrefills(metric) ? widthFromMark(marks, snapshot?.geometry?.settings.unit) : undefined;
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    const parsed = fromInput(metric, value);
-    if (parsed !== undefined) void confirmMeasurement(elementId, metric, parsed);
-  };
-
-  return (
-    <form onSubmit={submit} className="space-y-1.5 rounded border border-slate-800 p-2">
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="text-slate-300">{metricLabel[metric]}</span>
-        {measurement
-          ? <span className="font-mono text-slate-100">{formatValue(measurement.value, measurement.unit)}</span>
-          : <span className="text-amber-300">no data</span>}
-      </div>
-      {measurement && <VerificationBadge verification={measurement.verification} source={measurement.source} />}
-      {measurement?.originalUnit && measurement.originalValue !== undefined && measurement.originalUnit !== measurement.unit && (
-        <div className="text-[10px] text-slate-500">On the drawing: {measurement.originalValue} {measurement.originalUnit}</div>
-      )}
-      <div className="flex gap-1.5">
-        <label className="sr-only" htmlFor={`m-${elementId}-${metric}`}>{metricLabel[metric]}{unit && ` (${unit})`}</label>
-        <input id={`m-${elementId}-${metric}`} type="number" min={0} step="any" value={value} onChange={(e) => setValue(e.target.value)}
-          placeholder={unit} className={inputClass} />
-        <Button type="submit" variant={confirmed ? "secondary" : "primary"} disabled={busy !== null || fromInput(metric, value) === undefined}>
-          {!measurement ? "Enter" : confirmed ? "Correct" : "Confirm"}
-        </Button>
-      </div>
-      {fromMark && (
-        <div className="space-y-1 rounded border border-cyan-900 bg-cyan-950/20 p-1.5 text-[11px] text-cyan-100">
-          <div>The drawing mark “{fromMark.mark}” gives a {fromMark.centimetres} cm opening.</div>
-          <Button variant="primary" disabled={busy !== null} onClick={() => void confirmMeasurement(elementId, metric, fromMark.centimetres / 100)}>
-            Confirm clear width is {fromMark.centimetres} cm
-          </Button>
-          <div className="text-[10px] text-slate-400">Marks give the nominal opening; the clear width can be a few centimetres smaller. Only use it if that is right for this door.</div>
-        </div>
-      )}
-      {isRatio(metric) && <p className="text-[10px] text-slate-500">Enter slope as a percentage: 5 % is a ratio of 0.05.</p>}
-      {!confirmed && <p className="text-[10px] text-slate-500">Check the dimension against the drawing. Only confirmed measurements can produce a pass or fail.</p>}
-    </form>
-  );
-}
-
-function RecheckForm({ element }: { element: ArchitecturalElement }) {
+export function RecheckForm({ element }: { element: ArchitecturalElement }) {
   const { recheck, recheckResult, busy, snapshot, requirements } = useWorkspace();
   const metrics = useMemo(() => [...new Set<Metric>([
     ...metricsFor(requirements, element.type, element.subtype),
-    ...currentMeasurements(snapshot?.measurements ?? [], element.id).map((item) => item.metric),
+    ...(snapshot?.measurements??[]).filter(m=>m.elementId===element.id).map(item=>item.metric),
   ])], [requirements, element, snapshot]);
   const [chosen, setChosen] = useState<Metric | "">("");
   const metric = chosen && metrics.includes(chosen) ? chosen : metrics[0];

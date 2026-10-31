@@ -1,3 +1,5 @@
+import { ReviewAnswerSchema } from "../../src/domain";
+import { answerReviewQuestion } from "../services/questions";
 import {
   CreateProjectRequestSchema,
   CreateElementRequestSchema,
@@ -96,6 +98,7 @@ export function createRouter(ctx: RuntimeContext): Router {
 
     .add("POST", "/api/projects/:id/analyses", async (req) =>
       startAnalysis(ctx, idParam(req.params.id, "Project"), await req.json(StartAnalysisRequestSchema)), 202)
+    .add("POST", "/api/analyses/:id/questions/:questionId", async req => answerReviewQuestion(ctx,idParam(req.params.id,"Analysis"),idParam(req.params.questionId,"Question"),await req.json(ReviewAnswerSchema)))
     .add("GET", "/api/analyses/:id", (req) =>
       getAnalysisSnapshot(ctx, idParam(req.params.id, "Analysis")))
     .add("GET", "/api/analyses/:id/events", (req, res) => {

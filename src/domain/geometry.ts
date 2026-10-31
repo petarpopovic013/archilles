@@ -22,10 +22,13 @@ export const GeometryIssueSchema = z.strictObject({
 });
 export const DrawingSettingsSchema = z.strictObject({
   unit: DrawingUnitSchema.nullable(), legendConfirmed: z.boolean(), confirmedLegendIds: z.array(z.string().min(1).max(80)).max(40),
+  conventionsSource: z.enum(["AI", "USER"]).optional(),
+  unitSource: z.enum(["DRAWING", "USER"]).optional(),
   calibration: z.strictObject({ points: z.array(PointSchema).length(2), lengthM: z.number().positive().finite() }).optional(),
 });
 export const GeometryReportSchema = z.strictObject({
   metresPerPixel: z.number().positive().finite().optional(),
+  automaticScale: z.strictObject({ metresPerPixel: z.number().positive().finite(), annotationId: z.string(), }).optional(),
   sourceWidth: PositiveIntegerSchema, sourceHeight: PositiveIntegerSchema,
   version: z.string().min(1), stage: GeometryStageSchema, settings: DrawingSettingsSchema,
   legend: z.array(LegendItemSchema).max(40), annotations: z.array(DrawingAnnotationSchema).max(1000),

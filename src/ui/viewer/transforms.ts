@@ -69,3 +69,10 @@ export function pathOf(geometry: Geometry): string {
   const [first, ...rest] = geometry.points;
   return `M${first.x} ${first.y}${rest.map((point) => `L${point.x} ${point.y}`).join("")}${geometry.kind === "POLYGON" ? "Z" : ""}`;
 }
+
+/** Screen-space popover anchor: never scale text with the drawing. */
+export function reviewAnchor(point: { x: number; y: number }, viewport: { width: number; height: number }, width = 340, height = 235) {
+  const w = Math.min(width, Math.max(0, viewport.width - 16));
+  return { left: Math.max(8, Math.min(viewport.width - w - 8, point.x - w / 2)),
+    top: Math.max(8, Math.min(viewport.height - height - 8, point.y + 12)), width: w };
+}

@@ -204,4 +204,26 @@ export const migrations: readonly string[] = [
     project_revision INTEGER NOT NULL
   );
   `,
+  `
+  CREATE TABLE review_rounds (
+    floor_id TEXT NOT NULL REFERENCES floors(id) ON DELETE CASCADE,
+    round_revision INTEGER NOT NULL, dismissed INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(floor_id,round_revision)
+  );
+  CREATE TABLE review_questions (
+    floor_id TEXT NOT NULL REFERENCES floors(id) ON DELETE CASCADE,
+    round_revision INTEGER NOT NULL,
+    question_key TEXT NOT NULL,
+    data TEXT NOT NULL,
+    PRIMARY KEY(floor_id,round_revision,question_key)
+  );
+  `,
+  // Repair databases that already applied the initial assisted-review migration.
+  `
+  CREATE TABLE IF NOT EXISTS review_rounds (
+    floor_id TEXT NOT NULL REFERENCES floors(id) ON DELETE CASCADE,
+    round_revision INTEGER NOT NULL, dismissed INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(floor_id,round_revision)
+  );
+  `,
 ];

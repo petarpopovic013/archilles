@@ -14,10 +14,10 @@ export function Workspace() {
 
 function WorkspaceContent() {
   const [reviewing, setReviewing] = useState(false);
-  const { selection } = useWorkspace();
+  const { selection,planAction,snapshot } = useWorkspace();
   const [panel, setPanel] = useState<"project" | "plan" | "details">("plan");
   const [viewedSelection, setViewedSelection] = useState(selection);
-  const activePanel = selection && selection !== viewedSelection ? "details" : panel;
+  const activePanel = (planAction || snapshot?.questions?.some(q=>q.automatic&&q.status==='PENDING')) ? "plan" : selection && selection !== viewedSelection ? "details" : panel;
   if (!reviewing) return <LandingPage onOpenWorkspace={() => { setReviewing(true); window.scrollTo(0,0); }} />;
   return (
     <div className="review-workspace flex h-dvh flex-col overflow-hidden bg-slate-950 text-slate-100">

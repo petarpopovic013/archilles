@@ -1,3 +1,4 @@
+import { ReviewAnswerSchema, ReviewAnswerResponseSchema, type ReviewAnswer } from "../../domain";
 import type { z } from "zod";
 import {
   AnalysisSnapshotSchema, CreateElementRequestSchema,
@@ -122,6 +123,10 @@ export class HttpArchillesApiClient {
 
   startAnalysis(projectId: string, request: StartAnalysisRequest) {
     return this.json("POST", `/api/projects/${id(projectId)}/analyses`, StartAnalysisResponseSchema, StartAnalysisRequestSchema.parse(request));
+  }
+
+  answerQuestion(sessionId: string, questionId: string, answer: ReviewAnswer) {
+    return this.json("POST", `/api/analyses/${id(sessionId)}/questions/${id(questionId)}`, ReviewAnswerResponseSchema, ReviewAnswerSchema.parse(answer));
   }
 
   getAnalysis(sessionId: string): Promise<AnalysisSnapshot> {

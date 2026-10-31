@@ -19,16 +19,15 @@ function setup(){
   const context:VisionContext={settings:{unit:null,legendConfirmed:false,confirmedLegendIds:[]},sourceWidth:400,sourceHeight:300,cache:{async get(k){return cache.get(k);},async set(k,v){cache.set(k,v);}},current:()=>true,onStage:()=>{},readRegion:async geometry=>({id:JSON.stringify(geometry),geometry,width:200,height:150,image:await plainRaster(200,150)})};
   return {client,context,calls:()=>calls};
 }
-test('overview pauses for confirmation; continuation reuses it and reads every detail region',async()=>{
+test('internal legend continues automatically and reads every detail region',async()=>{
   const f=setup(),runner=createDrawingVisionRunner(f.client,'claude-sonnet-4-6');
   const image=await plainRaster(400,300);
   const first=await runner.run(image,400,300,f.context);
-  assert.equal(first.report?.stage,'AWAITING_CONFIRMATION');assert.equal(f.calls(),1);
-  assert.deepEqual((first.output as VisionOutput).elements,[]);
-  f.context.settings.legendConfirmed=true;f.context.priorUsage=first.report;
-  const second=await runner.run(image,400,300,f.context);
-  assert.equal(second.report?.regions.length,4);assert.ok(second.report?.regions.every(r=>r.processed));
-  assert.ok(f.calls()<=4);assert.equal(second.report?.calls,f.calls());
+  assert.notEqual(first.report?.stage,'AWAITING_CONFIRMATION');
+  assert.equal(first.report?.settings.conventionsSource,'AI');
+  assert.equal(first.report?.settings.legendConfirmed,false,'AI decisions are not human confirmations');
+  assert.equal(first.report?.regions.length,4);assert.ok(first.report?.regions.every(r=>r.processed));
+  assert.ok(f.calls()<=4);assert.equal(first.report?.calls,f.calls());
   const before=f.calls();await runner.run(image,400,300,f.context);assert.equal(f.calls(),before,'stage cache avoids another provider call');
 });
 test('stale revisions and page budget prevent provider access',async()=>{
@@ -48,14 +47,13 @@ test('crops cannot turn furniture or partial rooms into extra canonical spaces',
   assert.equal(result.elements.length,1);assert.equal(result.elements[0].labels?.[0].text,'80/200');
 });
 
-test('a transient retry is shared across overview and confirmed continuation',async()=>{
-  const f=setup(),original=f.client.messages.create.bind(f.client.messages);let attempts=0,failDetails=false;
-  const client={messages:{create:async(...args:Parameters<typeof original>)=>{attempts++;if(attempts===1||failDetails)throw {status:503};return original(...args);}}} as unknown as Anthropic;
+test('one transient retry is shared across the complete automatic pipeline',async()=>{
+  const f=setup(),original=f.client.messages.create.bind(f.client.messages);let attempts=0;
+  const client={messages:{create:async(...args:Parameters<typeof original>)=>{attempts++;if(attempts===1||attempts>=3)throw {status:503};return original(...args);}}} as unknown as Anthropic;
   const runner=createDrawingVisionRunner(client,'claude-sonnet-4-6'),image=await plainRaster(400,300);
-  const first=await runner.run(image,400,300,f.context);assert.equal(first.report?.calls,2);assert.equal(first.report?.logicalCalls,1);
-  f.context.priorUsage=first.report;f.context.settings.legendConfirmed=true;failDetails=true;
-  const second=await runner.run(image,400,300,f.context);
-  assert.equal(attempts,3,'the retry consumed before confirmation is not reset afterward');assert.equal(second.report?.stage,'PARTIAL');assert.ok(second.estimatedCostUsd!>0,'opaque failed requests still consume conservative cost');
+  const result=await runner.run(image,400,300,f.context);
+  assert.equal(attempts,3,'a second transient failure cannot buy a second retry');
+  assert.equal(result.report?.stage,'PARTIAL');assert.ok(result.estimatedCostUsd!>0);
 });
 
 test('door/window conflicts stay reviewable instead of letting the last crop silently overwrite meaning',()=>{

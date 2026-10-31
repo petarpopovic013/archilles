@@ -36,7 +36,7 @@ function materialize(output:VisionOutput,input:AnalyzeInput,usage:GeometryExtrac
       if (!geometryFitsFloor(labelGeometry, floor)) throw new GeometryError('VISION_GEOMETRY_BOUNDS');
       return EvidenceSchema.parse({...evidence, id:randomUUID(), text:label.text, geometry:labelGeometry});
     });
-    const element=ArchitecturalElementSchema.parse({id:randomUUID(),projectId:page.projectId,floorId:floor.id,revision:page.revision,type:item.type,subtype:item.subtype,label:item.label,geometry,relationIds:[],extraction:'AI_SUGGESTED',evidenceIds:[evidence.id,...labelEvidence.map(label=>label.id)]});
+    const element=ArchitecturalElementSchema.parse({id:randomUUID(),projectId:page.projectId,floorId:floor.id,revision:page.revision,type:item.type,subtype:item.subtype,classificationReason:item.classificationReason,label:item.label,geometry,relationIds:[],extraction:'AI_SUGGESTED',evidenceIds:[evidence.id,...labelEvidence.map(label=>label.id)]});
     result.elements.push(element); result.evidence.push(evidence,...labelEvidence);
     for(const m of item.measurements) {
       const labelGeometry=m.geometry?transformGeometry(page.rasterToSource,m.geometry):geometry;

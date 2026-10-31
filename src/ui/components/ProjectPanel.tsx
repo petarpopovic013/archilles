@@ -1,11 +1,12 @@
 "use client";
 
-import { GeometryPanel } from "./GeometryPanel";
+import {FindingsSummary} from "./FindingsSummary";
+import {assessFindings} from "../../review/assessment";
 import { useState, type FormEvent } from "react";
-import type { CharacteristicKey, EvaluationStatus, Project, ProjectPhase, UpdateProjectRequest } from "../../domain";
+import type { CharacteristicKey, Project, ProjectPhase, UpdateProjectRequest } from "../../domain";
 import { useWorkspace } from "../state/workspace";
 import { statusLabel } from "../format";
-import { OTHER_SUBTYPE, buildingClassLabel, buildingClasses, categoryLabel, checklistFor, notOnDrawing, ruleTypes, stepsFor, typeNoun } from "../guidance";
+import { OTHER_SUBTYPE, buildingClassLabel, buildingClasses, categoryLabel, typeNoun } from "../guidance";
 import { Button, Icon, Section, StatusBadge, inputClass } from "./common";
 
 const phases: Record<ProjectPhase, string> = { CONCEPT: "Concept design", DESIGN: "Design", RECONSTRUCTION: "Reconstruction" };
@@ -16,7 +17,7 @@ const characteristics: Record<CharacteristicKey, string> = {
   hasRamp: "Has a ramp",
   hasExternalStair: "Has external stairs",
 };
-const severity: EvaluationStatus[] = ["FAIL", "NEEDS_REVIEW", "UNKNOWN", "PASS", "NOT_APPLICABLE"];
+
 
 export function ProjectPanel() {
   const { project } = useWorkspace();
@@ -26,8 +27,7 @@ export function ProjectPanel() {
         <>
           <ProjectSummary project={project} />
           <DrawingSection />
-          <GeometryPanel />
-          <NeededChecklist />
+
           <ResultsTabs />
         </>
       ) : <NewProjectForm />}
@@ -129,14 +129,7 @@ function patchOf(project: Project, draft: Draft): UpdateProjectRequest["patch"] 
 }
 
 function ProjectSummary({ project }: { project: Project }) {
-  const { resetWorkspace, busy, activity, projectEditorOpen, setProjectEditorOpen } = useWorkspace();
-  // Latest question per missing fact, phrased by the Regulation agent.
-  const questions = [...new Map(activity
-    .filter((event) => event.type === "regulation.input.required")
-    .map((event) => {
-      const payload = event.payload as { field: string; reason: string };
-      return [payload.field, payload.reason] as const;
-    })).entries()];
+  const { resetWorkspace, busy, projectEditorOpen, setProjectEditorOpen } = useWorkspace();
   return (
     <Section title="Project" aside={<Button variant="ghost" onClick={resetWorkspace}>New</Button>}>
       <div className="text-sm font-semibold text-slate-100">{project.name}</div>
@@ -149,14 +142,6 @@ function ProjectSummary({ project }: { project: Project }) {
         <dt>Building height</dt><dd className="text-slate-200">{project.buildingHeightM !== undefined ? `${project.buildingHeightM} m` : "unknown"}</dd>
         <dt>Occupant count</dt><dd className="text-slate-200">{project.occupantCount ?? "unknown"}</dd>
       </dl>
-      {questions.length > 0 && (
-        <div className="space-y-1 rounded border border-amber-800 bg-amber-950/30 p-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-amber-300">Questions from the Regulation agent</div>
-          <ul className="space-y-1">
-            {questions.map(([field, question]) => <li key={field} className="text-[11px] leading-snug text-amber-100">{question}</li>)}
-          </ul>
-        </div>
-      )}
       {!projectEditorOpen ? (
         <Button onClick={() => setProjectEditorOpen(true)} disabled={busy !== null} className="w-full">Edit project details</Button>
       ) : <ProjectEditor project={project} onClose={() => setProjectEditorOpen(false)} />}
@@ -218,55 +203,6 @@ function ProjectEditor({ project, onClose }: { project: Project; onClose(): void
         <Button onClick={onClose} className="flex-1">Cancel</Button>
       </div>
     </form>
-  );
-}
-
-/** One place that says what is still needed before UNKNOWN checks can give a result. */
-function NeededChecklist() {
-  const { snapshot, select, setProjectEditorOpen } = useWorkspace();
-  if (!snapshot || snapshot.session.status === "RUNNING" || snapshot.evaluations.length === 0) return null;
-  const list = checklistFor(snapshot);
-  if (list.done) {
-    return (
-      <Section title="What’s needed">
-        <p className="text-[11px] text-emerald-300">Nothing else is needed. The results below use the information you confirmed.</p>
-        {list.notOnDrawing > 0 && (
-          <p className="text-[11px] text-slate-500">{list.notOnDrawing} check{list.notOnDrawing === 1 ? "" : "s"} look for things this drawing doesn’t show (for example stairs or ramps) and cannot run here.</p>
-        )}
-      </Section>
-    );
-  }
-  const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? "" : "s"}`;
-  return (
-    <Section title="What’s needed for results">
-      <ol className="space-y-1.5">
-        {list.questions.length > 0 && (
-          <ChecklistItem number={1} text={`Answer ${plural(list.questions.length, "project question")}: ${list.questions.join(" ")}`}
-            action="Answer" onClick={() => setProjectEditorOpen(true)} />
-        )}
-        {list.classify.map((entry, index) => (
-          <ChecklistItem key={entry.type} number={(list.questions.length ? 2 : 1) + index}
-            text={`Say what kind of ${typeNoun(entry.type)} each one is (${plural(entry.count, typeNoun(entry.type))})`}
-            action="Start" onClick={() => select({ kind: "element", id: entry.firstId })} />
-        ))}
-        {list.measure.count > 0 && (
-          <ChecklistItem number={(list.questions.length ? 1 : 0) + list.classify.length + 1}
-            text={`Confirm ${plural(list.measure.count, "measurement")} against the drawing`}
-            action="Start" onClick={() => list.measure.firstId && select({ kind: "element", id: list.measure.firstId })} />
-        )}
-      </ol>
-      <p className="text-[11px] text-slate-500">Checks stay “Unknown” until this information is confirmed. Nothing is guessed for you.</p>
-    </Section>
-  );
-}
-
-function ChecklistItem({ number, text, action, onClick }: { number: number; text: string; action: string; onClick(): void }) {
-  return (
-    <li className="flex items-start gap-2 rounded border border-amber-900/70 bg-amber-950/20 p-2 text-[11px] text-amber-100">
-      <span className="font-mono text-amber-300">{number}.</span>
-      <span className="flex-1 leading-snug">{text}</span>
-      <Button variant="primary" onClick={onClick} className="shrink-0">{action}</Button>
-    </li>
   );
 }
 
@@ -341,56 +277,32 @@ function ResultsTabs() {
 }
 
 function FindingsList() {
-  const { snapshot, selection, select, requirements } = useWorkspace();
-  const [showNotApplicable, setShowNotApplicable] = useState(false);
-  if (!snapshot) return <Empty text="Run an analysis to see findings." />;
-  if (snapshot.findings.length === 0) {
-    return <Empty text={snapshot.session.status === "RUNNING" ? "Agents are working..." : "No active checks were applied to this drawing."} />;
+  const {snapshot,selection,select,setPlanAction,busy,analysisOutdated}=useWorkspace();
+  const [showSummary,setShowSummary]=useState(false);
+  if(!snapshot)return <Empty text="Run an analysis to see findings."/>;
+  const review=snapshot.assessment??assessFindings({status:snapshot.session.status,findings:snapshot.findings,evaluations:snapshot.evaluations,elements:snapshot.elements,questions:snapshot.questions??[]});
+  if(review.phase==='ANALYSING')return <Empty text="Reading the drawing and preparing your findings…"/>;
+  if(review.phase==='SETUP'){
+    const q=snapshot.questions?.find(q=>q.id===review.setupQuestionId);
+    return <div className="findings-setup"><span className="text-[10px] uppercase">Before your findings</span><h3>{q?.kind==='UNIT'?'Set the drawing units':'One known distance is needed'}</h3><p>{q?.kind==='UNIT'?'Choose the unit used by the dimension labels.':'Select two points on the plan and enter their exact distance so the checks use the correct scale.'}</p><Button variant="primary" disabled={busy!==null} onClick={()=>q&&setPlanAction({kind:'question',id:q.id})}>{q?.kind==='UNIT'?'Choose units':'Set distance on plan'}</Button></div>;
   }
-  const elements = new Map(snapshot.elements.map((element) => [element.id, element]));
-  const evaluations = new Map(snapshot.evaluations.map((evaluation) => [evaluation.id, evaluation]));
-  const types = ruleTypes(requirements);
-  // Checks that don't apply, or look for something the drawing doesn't show, need no action.
-  const quiet = (finding: (typeof snapshot.findings)[number]) => {
-    const evaluation = evaluations.get(finding.evaluationId);
-    return finding.status === "NOT_APPLICABLE" || (evaluation !== undefined && notOnDrawing(evaluation));
-  };
-  const hidden = snapshot.findings.filter(quiet).length;
-  const sorted = [...snapshot.findings]
-    .filter((finding) => showNotApplicable || !quiet(finding))
-    .sort((a, b) => severity.indexOf(a.status) - severity.indexOf(b.status));
-  return (
-    <ul className="space-y-1.5">
-      {hidden > 0 && (
-        <li>
-          <button type="button" className="text-[11px] text-cyan-300 hover:underline" onClick={() => setShowNotApplicable(!showNotApplicable)}>
-            {showNotApplicable ? "Hide" : "Show"} {hidden} check{hidden === 1 ? "" : "s"} that don’t apply or can’t run on this drawing
-          </button>
-        </li>
-      )}
-      {sorted.map((finding) => {
-        const element = finding.elementId ? elements.get(finding.elementId) : undefined;
-        const evaluation = evaluations.get(finding.evaluationId);
-        const step = evaluation ? stepsFor(evaluation, element, types.get(finding.ruleId))[0] : undefined;
-        const active = selection?.kind === "finding" && selection.id === finding.id;
-        return (
-          <li key={finding.id}>
-            <button type="button" onClick={() => select({ kind: "finding", id: finding.id })} aria-pressed={active}
-              className={`w-full space-y-1 rounded border p-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 ${
-                active ? "border-cyan-500 bg-slate-800" : "border-slate-800 bg-slate-950/40 hover:border-slate-600"}`}>
-              <div className="flex items-center justify-between gap-2">
-                <StatusBadge status={finding.status} />
-                {finding.stale && <span className="text-[10px] text-amber-300">outdated</span>}
-              </div>
-              <div className="text-xs text-slate-100">{finding.title}</div>
-              <div className="text-[11px] text-slate-400">{element ? element.label ?? typeNoun(element.type) : "Whole project"}</div>
-              {step && <div className={`text-[11px] ${step.fix ? "text-amber-200" : "text-slate-500"}`}>{step.fix ? `To get a result: ${step.text}` : step.text}</div>}
-            </button>
-          </li>
-        );
-      })}
-    </ul>
-  );
+  const sorted=[...review.results].sort((a,b)=>Number(a.status!=='FAIL')-Number(b.status!=='FAIL'));
+  return <div className="space-y-3">
+    {review.summary&&!busy&&!analysisOutdated&&<Button variant="primary" className="w-full" onClick={()=>setShowSummary(true)}>Summarise findings</Button>}
+    {review.unresolved.length>0&&<div className="findings-unresolved"><h3>{review.unresolved.length} quick clarification{review.unresolved.length===1?'':'s'}</h3><p className="text-[11px]">Each answer can resolve several checks.</p>{review.unresolved.map(group=>{
+      const task=group.questionIds.map(id=>snapshot.questions?.find(q=>q.id===id)).find(Boolean);
+      const finding=snapshot.findings.find(f=>group.findingIds.includes(f.id));
+      return <div className="findings-clarification" key={group.key}><div><span className="text-[10px]">Unknown</span><strong>{group.title}</strong></div><Button disabled={busy!==null} onClick={()=>task?setPlanAction({kind:'question',id:task.id}):finding?.elementId?setPlanAction({kind:'element',id:finding.elementId}):finding&&select({kind:'finding',id:finding.id})}>Resolve</Button></div>;
+    })}</div>}
+    {sorted.length>0?<ul className="space-y-1.5">{sorted.map(result=>{
+      const finding=snapshot.findings.find(f=>f.id===result.findingId)!;
+      const element=snapshot.elements.find(e=>e.id===finding.elementId);
+      const active=selection?.kind==='finding'&&selection.id===finding.id;
+      return <li key={finding.id}><button type="button" onClick={()=>select({kind:'finding',id:finding.id})} aria-pressed={active} className={`w-full space-y-1 rounded border p-2 text-left ${active?'border-cyan-500 bg-slate-800':'border-slate-800 bg-slate-950/40'}`}><div className="flex justify-between items-center"><StatusBadge status={result.status==='GOOD'?'PASS':'FAIL'} label={result.status==='GOOD'?'Good':'Fail'}/>{result.estimated&&<span className="text-[10px] text-slate-400" title="Uses recorded AI assumptions">AI</span>}</div><div className="text-xs text-slate-100">{finding.title}</div><div className="text-[11px] text-slate-400">{element?.label??(element?typeNoun(element.type):'Project')}</div></button></li>;
+    })}</ul>:!review.unresolved.length&&<Empty text="No executable checks matched the identified elements on this page."/>}
+    {review.excluded.length>0&&<p className="text-[11px] text-slate-500">{review.excluded.length} check{review.excluded.length===1?' is':'s are'} outside this review. See Coverage for scope.</p>}
+    {showSummary&&review.summary&&!busy&&!analysisOutdated&&<FindingsSummary summary={review.summary} onClose={()=>setShowSummary(false)}/>}
+  </div>;
 }
 
 function ElementsList() {
@@ -411,7 +323,7 @@ function ElementsList() {
               </div>
               <div className="mt-0.5 text-[11px] text-slate-400">
                 {element.extraction === "AI_SUGGESTED"
-                  ? element.subtype ? `AI suggests: ${categoryLabel(element.subtype)} — please confirm` : "Not confirmed yet"
+                  ? element.subtype ? `AI suggests: ${categoryLabel(element.subtype)} · preliminary` : "AI suggestion"
                   : element.subtype ? (element.subtype === OTHER_SUBTYPE ? "Confirmed: not checked" : `Confirmed: ${categoryLabel(element.subtype)}`) : "Confirmed"}
               </div>
             </button>

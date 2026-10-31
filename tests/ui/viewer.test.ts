@@ -41,3 +41,11 @@ test("requirements read as at-least or at-most from the engine reason, never fro
   assert.equal(formatValue(0.05, "ratio"), "5 %");
   assert.equal(formatValue(undefined, "m"), "not established");
 });
+
+test('review input stays inside desktop and mobile viewports',async()=>{
+  const {reviewAnchor}=await import('../../src/ui/viewer/transforms');
+  for(const viewport of [{width:390,height:600},{width:1200,height:800}])for(const p of [{x:-100,y:9000},{x:3000,y:-9000},{x:100,y:100}]){
+    const a=reviewAnchor(p,viewport);
+    assert.ok(a.left>=8&&a.left+a.width<=viewport.width-8);assert.ok(a.top>=8&&a.top+235<=viewport.height-8);
+  }
+});

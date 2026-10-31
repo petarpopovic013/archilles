@@ -53,7 +53,8 @@ test("a failed Review model call leaves template findings and a PARTIAL session,
   assert.equal(review.status, "FAILED");
   assert.equal(review.errorCode, "PROVIDER_UNAVAILABLE");
   assert.equal(snapshot.findings[0].status, "UNKNOWN");
-  assert.match(snapshot.findings[0].explanation, /cannot be decided/);
+  assert.match(snapshot.findings[0].explanation, /confirmed outcome remains unknown/);
+  assert.equal(snapshot.findings[0].preliminary?.status,"FAIL");
   assert.ok(listSessionEvents(app.ctx.db, sessionId, 0).some((event) => event.type === "agent.run.failed"));
 
   // The Regulation question call failed too: the architect still gets the template question.

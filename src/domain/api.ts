@@ -1,3 +1,5 @@
+import {FindingsAssessmentSchema} from "./assessment";
+import { ReviewQuestionSchema, ReviewAnswerSchema, ReviewAnswerResponseSchema } from "./questions";
 import { z } from "zod";
 import { GeometryReportSchema, GeometrySetupRequestSchema, GeometryPageRequestSchema, GeometryPageResponseSchema } from "./geometry";
 import {
@@ -206,6 +208,8 @@ export const AnalysisSnapshotSchema = z.strictObject({
   elements: z.array(ArchitecturalElementSchema),
   measurements: z.array(MeasurementSchema),
   geometry: GeometryReportSchema.optional(),
+  questions: z.array(ReviewQuestionSchema).optional(),
+  assessment: FindingsAssessmentSchema.optional(),
   evaluations: z.array(RuleEvaluationSchema),
   findings: z.array(ComplianceFindingSchema),
   coverage: CoverageSummarySchema,
@@ -227,6 +231,7 @@ export type ApiError = z.infer<typeof ApiErrorSchema>;
 
 /** One source of truth for JSON route shapes. The upload route also requires file bytes. */
 export const apiContracts = {
+  answerQuestion: { method: "POST", path: "/api/analyses/:id/questions/:questionId", request: ReviewAnswerSchema, response: ReviewAnswerResponseSchema },
   retireElement: { method: "DELETE", path: "/api/elements/:id", request: GeometryPageRequestSchema, response: ElementUpdateResponseSchema },
   createElement: { method: "POST", path: "/api/projects/:id/elements", request: CreateElementRequestSchema, response: ElementUpdateResponseSchema },
   geometrySetup: { method: "PATCH", path: "/api/drawings/:id/pages/:page/geometry", request: GeometrySetupRequestSchema, response: GeometryPageResponseSchema },

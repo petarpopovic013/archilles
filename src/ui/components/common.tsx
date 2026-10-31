@@ -11,11 +11,11 @@ export const statusTone: Record<EvaluationStatus, { text: string; border: string
 };
 
 /** Status is always shown as text; colour only reinforces it. */
-export function StatusBadge({ status }: { status: EvaluationStatus }) {
+export function StatusBadge({ status, label }: { status: EvaluationStatus; label?: string }) {
   const tone = statusTone[status];
   return (
     <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[11px] font-semibold ${tone.text} ${tone.border} ${tone.fill}`}>
-      {statusLabel[status]}
+      {label??statusLabel[status]}
     </span>
   );
 }

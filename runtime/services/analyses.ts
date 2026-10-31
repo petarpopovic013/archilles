@@ -1,3 +1,5 @@
+import {assessFindings} from "../../src/review/assessment";
+import { reviewQuestions } from "./questions";
 import { geometryReport } from "./geometry";
 import { randomUUID } from "node:crypto";
 import type { z } from "zod";
@@ -74,7 +76,8 @@ export async function startAnalysis(
 
   const existing = findSessionByRunKey(ctx.db, runKey);
   // The start contract only carries RUNNING; clients read the real status from the snapshot.
-  if (existing && existing.status !== "FAILED") return { sessionId: existing.id, status: "RUNNING" };
+  const paused=existing&&geometryReport(ctx.db,floor.id,project.revision)?.stage==="AWAITING_CONFIRMATION";
+  if (existing && existing.status !== "FAILED" && !paused) return { sessionId: existing.id, status: "RUNNING" };
 
   const current = getProject(ctx.db, projectId);
   if (current.revision !== project.revision) throw revisionConflict(current.revision, project.revision);
@@ -143,13 +146,19 @@ export async function getAnalysisSnapshot(ctx: RuntimeContext, sessionId: string
   const floor = findFloor(ctx.db, location.drawingId, location.page);
   const view = floor ? floorView(ctx.db, floor.floor.id, session.projectRevision) : { elements: [], measurements: [] };
   const report = floor ? geometryReport(ctx.db, floor.floor.id, session.projectRevision) : undefined;
+  const evaluations=listSessionEvaluations(ctx.db,sessionId).map(({evaluation})=>evaluation);
+  const questions=reviewQuestions(ctx,session,evaluations,view.elements,await ctx.registry.getActiveRules(asOfDate(ctx)),report,view.measurements);
+  const findings=listSessionFindings(ctx.db,sessionId);
+  const assessment=assessFindings({status:session.status,findings,evaluations,elements:view.elements,questions});
   return AnalysisSnapshotSchema.parse({
     session,
     elements: view.elements,
     measurements: view.measurements,
     geometry: report,
+    questions,
+    assessment,
     evaluations: listSessionEvaluations(ctx.db, sessionId).map(({ evaluation }) => evaluation),
-    findings: listSessionFindings(ctx.db, sessionId),
+    findings,
     coverage: await computeCoverage(ctx, session.projectId, session),
     participants: listSessionParticipants(ctx.db, sessionId, ctx.liveParticipantIds),
   });

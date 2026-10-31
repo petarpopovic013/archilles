@@ -4,9 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, 
 import type { ArchitecturalElement, EvaluationStatus, Point, ElementType } from "../../domain";
 import { useWorkspace } from "../state/workspace";
 import { statusLabel } from "../format";
-import { boundsOf, fitRect, panBy, pathOf, toSource, zoomAt, type Viewport } from "../viewer/transforms";
+import { boundsOf, fitRect, panBy, pathOf, toSource, zoomAt, reviewAnchor, type Viewport } from "../viewer/transforms";
 import { simplePolygon } from "../../geometry/topology";
 import { layoutPlanLabels } from "../viewer/labels";
+import { RecheckForm } from "./Inspector";
+import { AnalysisSettings, CalibrationInput, ElementQuickEdit, ReviewQuestionCard } from "./PlanReviewControls";
+import { effectiveStatus, preliminaryLabel } from "../review";
 import { Button, Icon, statusTone } from "./common";
 
 const severity: EvaluationStatus[] = ["FAIL", "NEEDS_REVIEW", "UNKNOWN", "PASS", "NOT_APPLICABLE"];
@@ -20,7 +23,7 @@ interface PageImage {
 }
 
 export function PlanViewer() {
-  const { client, drawing, page, snapshot, select, selectedElement, selectedFinding, evidence, loadEvidence, confirmElement, createElement, busy, calibrationPicking, calibrationPoints, pickCalibrationPoint } = useWorkspace();
+  const { client, drawing, page, snapshot, select, selectedElement, selectedFinding, evidence, loadEvidence, confirmElement, createElement, busy, calibrationPicking, calibrationPoints, pickCalibrationPoint, planAction, setPlanAction, answerQuestion, startCalibration, cancelCalibration } = useWorkspace();
   const frame = useRef<HTMLDivElement>(null);
   const [image, setImage] = useState<PageImage | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
@@ -29,10 +32,19 @@ export function PlanViewer() {
   const [layers, setLayers] = useState({ elements: true, labels: true, evidence: true, rooms: true, openings: true, dimensions: false, issues: true });
   const drag = useRef<{ id: number; x: number; y: number; moved: number } | null>(null);
   const [editing, setEditing] = useState<{id:string;points:Point[]}|null>(null);
+  const [questionSelection,setQuestionSelection]=useState<{id:string;ids:string[]}>({id:'',ids:[]});
+  const [manualCalibration,setManualCalibration]=useState(false);
+  const question=planAction?.kind==='question'?snapshot?.questions?.find(q=>q.id===planAction.id):planAction?undefined:snapshot?.questions?.find(q=>q.id===snapshot.assessment?.setupQuestionId&&q.status==='PENDING')??snapshot?.questions?.find(q=>q.automatic&&q.status==='PENDING');
+  const questionIds=questionSelection.id===question?.id?questionSelection.ids:[];
+  const focusCandidates=question?.kind==='CLASSIFICATION';
+  const visibleElements=(snapshot?.elements??[]).filter(e=>!focusCandidates||question.candidateIds.includes(e.id));
+  const editorElement=planAction?.kind==='element'?snapshot?.elements.find(e=>e.id===planAction.id):undefined;
+  const closeReview=()=>{if(question)void answerQuestion(question.id,{action:'DISMISS'});setPlanAction(null);};
   const vertexDrag = useRef<number|null>(null);
   const edit = editing?.id === "new" || editing?.id === selectedElement?.id ? editing : null;
   const [newType, setNewType] = useState<ElementType>("ROOM");
   const startEdit = () => {
+    setPlanAction(null);
     if(!selectedElement) return;
     const g=selectedElement.geometry;
     const points=g.kind==='BBOX'?[{x:g.x,y:g.y},{x:g.x+g.width,y:g.y},{x:g.x+g.width,y:g.y+g.height},{x:g.x,y:g.y+g.height}]:g.points;
@@ -109,26 +121,34 @@ export function PlanViewer() {
     const result = new Map<string, EvaluationStatus>();
     for (const finding of snapshot?.findings ?? []) {
       if (!finding.elementId) continue;
-      const previous = result.get(finding.elementId);
-      if (!previous || severity.indexOf(finding.status) < severity.indexOf(previous)) result.set(finding.elementId, finding.status);
+      const previous = result.get(finding.elementId), status=effectiveStatus(finding);
+      if (!previous || severity.indexOf(status) < severity.indexOf(previous)) result.set(finding.elementId, status);
     }
     return result;
   }, [snapshot]);
 
-  const labelLayout = useMemo(() => layoutPlanLabels((snapshot?.elements ?? []).map((element, index) => {
+  const labelLayout = layoutPlanLabels(visibleElements.map((element, index) => {
     const status = worstStatus.get(element.id);
     const name = element.type.toLowerCase().replaceAll("_", " ");
     const shortName = name.charAt(0).toUpperCase() + name.slice(1);
+    const displayFinding=snapshot?.findings.find(f=>f.elementId===element.id&&effectiveStatus(f)===status);
+    const labelStatus=displayFinding?preliminaryLabel(displayFinding):undefined;
     return {
       id: element.id, bounds: boundsOf(element.geometry),
-      text: `${index + 1}. ${shortName}${status ? ` · ${statusLabel[status]}` : element.extraction === "AI_SUGGESTED" ? " · AI" : ""}`,
+      text: `${index + 1}. ${shortName}${status ? ` · ${labelStatus??statusLabel[status]}` : element.extraction === "AI_SUGGESTED" ? " · AI" : ""}`,
       priority: status ? severity.indexOf(status) : severity.length,
       selected: selectedElement?.id === element.id,
     };
-  }), view, frameSize), [snapshot, worstStatus, selectedElement?.id, view, frameSize]);
+  }), view, frameSize);
 
   const selectElement = (element: ArchitecturalElement) => {
-    const finding = snapshot?.findings.find((item) => item.elementId === element.id && item.status === worstStatus.get(element.id));
+    if(focusCandidates&&question) {
+      const ids=questionSelection.id===question.id?questionSelection.ids:[];
+      setQuestionSelection({id:question.id,ids:ids.includes(element.id)?ids.filter(id=>id!==element.id):[...ids,element.id]});
+      return;
+    }
+    setPlanAction({kind:'element',id:element.id});
+    const finding = snapshot?.findings.find((item) => item.elementId === element.id && effectiveStatus(item) === worstStatus.get(element.id));
     select(finding ? { kind: "finding", id: finding.id } : { kind: "element", id: element.id });
   };
 
@@ -184,6 +204,11 @@ export function PlanViewer() {
     setCursor(point.x >= 0 && point.y >= 0 && point.x <= current.width && point.y <= current.height ? point : null);
   };
 
+  const anchor=(element:ArchitecturalElement)=>{
+    const b=boundsOf(element.geometry);
+    return reviewAnchor({x:view.x+(b.x+b.width/2)*view.scale,y:view.y+(b.y+b.height)*view.scale},frameSize);
+  };
+  const calibrationAnchor=calibrationPoints[1]?reviewAnchor({x:view.x+calibrationPoints[1].x*view.scale,y:view.y+calibrationPoints[1].y*view.scale},frameSize):undefined;
   return (
     <main id="workspace-plan" className="plan-panel flex min-h-0 min-w-0 flex-1 flex-col bg-slate-950" aria-label="Plan viewer">
       <div className="plan-toolbar flex shrink-0 flex-wrap items-center gap-1 border-b border-slate-800 bg-slate-900 px-2 py-1.5">
@@ -191,9 +216,10 @@ export function PlanViewer() {
         <Button variant="ghost" aria-label="Zoom out" onClick={() => zoomCentre(0.8)} disabled={!current}><Icon name="minus" /></Button>
         <Button variant="ghost" aria-label="Fit drawing to view" onClick={fit} disabled={!current}><Icon name="fit" /></Button>
         <Button variant="ghost" aria-label="Focus selected element" onClick={focusSelected} disabled={!current || !selectedElement}><Icon name="focus" /></Button>
-        <Button variant="ghost" disabled={!selectedElement || busy!==null || snapshot?.session.status==='RUNNING'} onClick={startEdit}>Edit boundary</Button>
+        <Button variant="ghost" onClick={()=>setPlanAction({kind:"settings"})} disabled={!snapshot}>Adjust analysis</Button>
+        <Button variant="ghost" disabled={!!question || !selectedElement || busy!==null || snapshot?.session.status==='RUNNING'} onClick={startEdit}>Edit boundary</Button>
         {edit && <><Button disabled={busy!==null || !simplePolygon({kind:"POLYGON",points:edit.points})} onClick={()=>{const geometry={kind:"POLYGON" as const,points:edit.points}; void (edit.id === "new" ? createElement(newType,geometry) : confirmElement(edit.id,{geometry})).then(saved=>{if(saved)setEditing(null);});}}>Save boundary</Button><Button onClick={()=>setEditing(null)}>Cancel edit</Button></>}
-        <Button variant="ghost" disabled={!current || busy!==null || snapshot?.session.status==='RUNNING'} onClick={()=>setEditing({id:"new",points:[]})}>Add element</Button>
+        <Button variant="ghost" disabled={!!question || !current || busy!==null || snapshot?.session.status==='RUNNING'} onClick={()=>setEditing({id:"new",points:[]})}>Add element</Button>
         {edit?.id === "new" && <select aria-label="New element type" value={newType} onChange={e=>setNewType(e.target.value as ElementType)}>{(["ROOM","CORRIDOR","DOOR","OPENING","STAIR","RAMP"] as const).map(t=><option key={t} value={t}>{t.toLowerCase()}</option>)}</select>}
         <span className="ml-1 w-12 font-mono text-[11px] text-slate-400" aria-live="polite">{Math.round(view.scale * 100)}%</span>
         <div className="plan-layers ml-auto flex flex-wrap items-center gap-3 text-[11px] text-slate-300">
@@ -224,16 +250,16 @@ export function PlanViewer() {
             <svg style={{pointerEvents:calibrationPicking || edit?.id === "new" ? "none":undefined}} className="absolute left-0 top-0 overflow-visible" width={current.width} height={current.height}
               viewBox={`0 0 ${current.width} ${current.height}`}>
               <rect data-plan-background width={current.width} height={current.height} fill="transparent" />
-              {layers.evidence && highlighted.map((record) => (
+              {!question && layers.evidence && highlighted.map((record) => (
                 <path key={record.id} d={pathOf(record.geometry!)} fill="rgba(250, 204, 21, 0.12)" stroke="#facc15"
                   strokeDasharray="6 4" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none" />
               ))}
-              {layers.elements && snapshot?.elements.filter(e=>["ROOM","CORRIDOR"].includes(e.type)?layers.rooms:["DOOR","ENTRANCE","EXIT","OPENING"].includes(e.type)?layers.openings:true).map((element) => (
+              {(focusCandidates || layers.elements) && visibleElements.filter(e=>focusCandidates || (["ROOM","CORRIDOR"].includes(e.type)?layers.rooms:["DOOR","ENTRANCE","EXIT","OPENING"].includes(e.type)?layers.openings:true)).map((element) => (
                 <ElementShape key={element.id} element={element} status={worstStatus.get(element.id)}
-                  selected={selectedElement?.id === element.id} onSelect={() => selectElement(element)} />
+                  selected={focusCandidates?questionIds.includes(element.id):selectedElement?.id === element.id} onSelect={() => selectElement(element)} />
               ))}
-              {layers.dimensions && snapshot?.geometry?.annotations.map(a=><g key={a.id}>{a.span&&<path d={pathOf({kind:"POLYLINE",points:a.span})} stroke="#9333ea" strokeWidth={1.5} vectorEffect="non-scaling-stroke" pointerEvents="none"/>}<path d={pathOf(a.geometry)} fill="rgba(168,85,247,.08)" stroke="#9333ea" strokeWidth={1} vectorEffect="non-scaling-stroke" pointerEvents="none"><title>{a.text}</title></path></g>)}
-              {layers.issues && snapshot?.geometry?.issues.filter(i=>i.geometry).map((issue,i)=><path key={i} d={pathOf(issue.geometry!)} fill="none" stroke="#b45309" strokeDasharray="4 5" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none"><title>{issue.message}</title></path>)}
+              {!question && layers.dimensions && snapshot?.geometry?.annotations.map(a=><g key={a.id}>{a.span&&<path d={pathOf({kind:"POLYLINE",points:a.span})} stroke="#9333ea" strokeWidth={1.5} vectorEffect="non-scaling-stroke" pointerEvents="none"/>}<path d={pathOf(a.geometry)} fill="rgba(168,85,247,.08)" stroke="#9333ea" strokeWidth={1} vectorEffect="non-scaling-stroke" pointerEvents="none"><title>{a.text}</title></path></g>)}
+              {!question && layers.issues && snapshot?.geometry?.issues.filter(i=>i.geometry).map((issue,i)=><path key={i} d={pathOf(issue.geometry!)} fill="none" stroke="#b45309" strokeDasharray="4 5" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none"><title>{issue.message}</title></path>)}
               {edit && <g>{edit.points.length>=2&&<path d={pathOf({kind:'POLYGON',points:edit.points})} fill="rgba(8,145,178,.1)" stroke="#0891b2" strokeWidth={2} vectorEffect="non-scaling-stroke"
                 onPointerDown={e=>e.stopPropagation()} onPointerUp={e=>e.stopPropagation()}
                 onDoubleClick={event=>{
@@ -250,7 +276,7 @@ export function PlanViewer() {
               {calibrationPoints.length===2&&<path d={pathOf({kind:'POLYLINE',points:calibrationPoints})} stroke="#c026d3" strokeWidth={2} vectorEffect="non-scaling-stroke" pointerEvents="none"/>}
             </svg>
           </div>
-          {layers.elements && layers.labels && !calibrationPicking && edit?.id !== "new" && (
+          {(focusCandidates || layers.elements && layers.labels) && !calibrationPicking && edit?.id !== "new" && (
             <svg className="plan-label-overlay absolute inset-0" width={frameSize.width} height={frameSize.height}
               aria-label="Element labels">
               <g aria-hidden="true">
@@ -269,7 +295,7 @@ export function PlanViewer() {
               {labelLayout.labels.map((label) => {
                 const element = snapshot!.elements.find((item) => item.id === label.id)!;
                 const status = worstStatus.get(element.id);
-                const selected = selectedElement?.id === element.id;
+                const selected = focusCandidates?questionIds.includes(element.id):selectedElement?.id === element.id;
                 const title = `${element.label ?? element.type} · ${status ? statusLabel[status] : "No evaluated finding"}${element.extraction === "AI_SUGGESTED" ? " · AI suggestion, unconfirmed" : ""}`;
                 return (
                     <g key={label.id} className="plan-label" role="button" tabIndex={0} aria-label={title} aria-pressed={selected}
@@ -289,6 +315,13 @@ export function PlanViewer() {
           )}
           </>
         )}
+        {question && !edit && <ReviewQuestionCard key={question.id} question={question} selectedIds={questionIds}
+          style={question.kind==='MEASUREMENT'&&visibleElements.find(e=>e.id===question.candidateIds[0])?anchor(visibleElements.find(e=>e.id===question.candidateIds[0])!):question.kind==='CALIBRATION'&&calibrationPoints.length===2?calibrationAnchor:undefined}
+          onSkip={()=>void answerQuestion(question.id,{action:'SKIP'})} onClose={closeReview}/>}
+        {editorElement && !edit && <ElementQuickEdit key={`${editorElement.id}:${editorElement.revision}`} element={editorElement} style={anchor(editorElement)} onClose={()=>setPlanAction(null)}/>}
+        {planAction?.kind==='recheck' && snapshot?.elements.find(e=>e.id===planAction.id) && <div className="plan-review-card" onPointerDown={e=>e.stopPropagation()} onPointerUp={e=>e.stopPropagation()}><button className="float-right" aria-label="Close recheck" onClick={()=>setPlanAction(null)}>×</button><RecheckForm element={snapshot.elements.find(e=>e.id===planAction.id)!}/></div>}
+        {planAction?.kind==='settings'  && <AnalysisSettings onClose={()=>setPlanAction(null)} onCalibrate={()=>{setManualCalibration(true);setPlanAction({kind:'calibration'});startCalibration();}}/>}
+        {manualCalibration && calibrationPoints.length===2 && !question && <CalibrationInput style={calibrationAnchor??{}} onClose={()=>{setManualCalibration(false);setPlanAction(null);cancelCalibration();}}/>}
         <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-slate-900/90 px-2 py-1 font-mono text-[11px] text-slate-300">
           {layers.elements && layers.labels && labelLayout.hiddenCount > 0
             ? <span role="status">{labelLayout.hiddenCount} more labels · zoom in to inspect</span>

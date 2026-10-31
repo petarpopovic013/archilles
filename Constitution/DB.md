@@ -1,6 +1,6 @@
 # Archilles data constitution
 
-Version: 1.1, 30 October 2026. This document owns the canonical domain contract. `PrD.md` owns product behavior, `Tech.MD` owns implementation and transport, and `Agents.MD` owns runtime behavior. The C0 types and Zod validators now exist in `src/domain/`; the database tables and product features remain future work.
+Version: 1.1, 30 October 2026. This document owns the canonical domain contract. `PrD.md` owns product behavior, `Tech.MD` owns implementation and transport, and `Agents.MD` owns runtime behavior. The C0 types and Zod validators now exist in `src/domain/`; SQLite tables and product features are implemented; later ADR additions describe their extensions.
 
 ## 1. Invariants and persistence
 
@@ -218,3 +218,15 @@ Future hosted storage maps the same entities to relational tables (`projects`, `
 `ArchitecturalElement.geometryVerification?` tracks boundary approval independently from classification/extraction. A boundary-only edit cannot approve an AI subtype. Polygon/polyline input is limited to 400 vertices by application refinements. `DrawingAnnotation` retains optional two-point span evidence, kind, direction and association. Opening report kind may be WINDOW, DOOR or UNKNOWN; OPENING alone does not imply WINDOW. Manual creation/removal use new revisions and USER evidence; retirement applies only from that revision and retired IDs cannot be edited.
 
 Geometry issue codes include `SYMBOL_AMBIGUOUS`, `ROOM_UNLABELLED`, `INTERIOR_ENCLOSURE` and `ROOM_MASK_VARIANT` in addition to unsupported gaps/overlaps/partial reads. These codes express evidence uncertainty and never change a rule evaluation status. Reports recompute current room overlaps and opening adjacency after human revisions; historical snapshots use their own revision.
+
+
+### Assisted review records (ADR-14)
+RuleEvaluation and ComplianceFinding have optional `preliminary` scenario results with status, observed/required values, unit, reasonCode, assumption descriptions and evidence IDs. Their existing top-level status remains the confirmed outcome. No new evaluation-status or verification enums are introduced. Measurements may retain `assumption`; elements may retain `classificationReason`. AI-generated values remain UNVERIFIED and element subtypes remain AI_SUGGESTED until human action.
+
+DrawingSettings optionally records conventionsSource (AI/USER) and unitSource (DRAWING/USER); automatic convention processing does not set human-confirmed flags. GeometryReport may retain automaticScale with source annotation ID and metresPerPixel, distinct from user calibration. Unit/scale conflicts leave proposals unavailable.
+
+`review_questions` is keyed by floor, round revision and stable question key and retains validated question data, candidate/rule IDs, automatic-admission flag and PENDING/ANSWERED/SKIPPED state. `review_rounds` stores dismissal for that scope. Five automatic admissions include answered/skipped questions; later corrections cannot reset the count. Explicit rereading starts a new round; manual follow-up remains available beyond five. Historical snapshots do not create new questions for obsolete revisions. Only actual evidence corrections advance ProjectRevision; dismissal/skipping does not.
+
+
+### Findings readiness projection (ADR-15)
+`FindingsAssessment` is defined in src/domain/assessment.ts and derived from the current persisted session/evaluations/findings, identified elements and review questions. It references original finding IDs and retains GOOD/FAIL display results, estimated flags, up to five unresolved dependency groups and explicit exclusions. Existing canonical evaluation statuses remain unchanged. Summary counts and rating exist only for a nonempty, ready assessed set and exclude unperformed/not-applicable/stale checks. A review scope answer may record ReviewQuestion.resolution SELECTED or NOT_PRESENT without presenting it as verified physical evidence. A new migration repairs already-versioned databases missing review_rounds.

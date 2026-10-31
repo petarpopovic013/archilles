@@ -6,6 +6,7 @@ export type Truth = "TRUE" | "FALSE" | "UNKNOWN";
 export interface ConditionFacts {
   project: Project;
   element?: ArchitecturalElement;
+  allowAiSubtype?: boolean;
 }
 
 export interface ConditionResult {
@@ -54,14 +55,14 @@ export function evaluateCondition(condition: Condition, facts: ConditionFacts): 
 
 function enumFact(
   field: "jurisdiction" | "purpose" | "phase" | "classification" | "element.type" | "element.subtype",
-  { project, element }: ConditionFacts,
+  { project, element, allowAiSubtype }: ConditionFacts,
 ): string | undefined {
   switch (field) {
     case "element.type":
       return element?.type;
     case "element.subtype":
       // A subtype can decide whether a rule applies at all, so only a person-confirmed one counts.
-      return element?.extraction === "AI_SUGGESTED" ? undefined : element?.subtype;
+      return element?.extraction === "AI_SUGGESTED" && !allowAiSubtype ? undefined : element?.subtype;
     default:
       return project[field];
   }

@@ -16,12 +16,14 @@ import type {
   Project,
   RuleEvaluation,
   RuleRequirements,
+  ReviewAnswer,
   UpdateProjectRequest,
 } from "../../domain";
 import { unitForMetric } from "../../domain";
 import { ArchillesApiError, HttpArchillesApiClient } from "../api";
 
 export type Selection = { kind: "finding"; id: string } | { kind: "element"; id: string };
+export type PlanAction = { kind: "question"; id: string } | { kind: "element"; id: string } | { kind: "settings" } | {kind:"recheck";id:string} | {kind:"calibration"};
 export type Busy = "project" | "upload" | "analysis" | "save" | "recheck";
 
 export interface RecheckResult {
@@ -33,6 +35,9 @@ export interface RecheckResult {
 }
 
 export interface WorkspaceValue {
+  planAction: PlanAction | null;
+  setPlanAction(action: PlanAction | null): void;
+  answerQuestion(id: string, answer: Omit<ReviewAnswer, "baseRevision">): Promise<boolean>;
   client: HttpArchillesApiClient;
   project: Project | null;
   drawing: Drawing | null;
@@ -63,17 +68,18 @@ export interface WorkspaceValue {
   uploadDrawing(file: File): Promise<void>;
   setPage(page: number): void;
   runAnalysis(): Promise<void>;
-  confirmMeasurement(elementId: string, metric: Metric, value: number): Promise<void>;
+  confirmMeasurement(elementId: string, metric: Metric, value: number): Promise<boolean>;
   confirmElement(elementId: string, change: { type?: ElementType; subtype?: string | null; geometry?: Geometry }): Promise<boolean>;
   /** One revision for several elements, e.g. the same category for every door. */
   confirmElements(updates: Array<{ elementId: string; type?: ElementType; subtype?: string | null }>): Promise<void>;
-  retireElement(elementId:string):Promise<void>;
+  retireElement(elementId:string):Promise<boolean>;
   createElement(type: ElementType, geometry: Geometry): Promise<boolean>;
-  saveDrawingSetup(settings: DrawingSettings): Promise<void>;
+  saveDrawingSetup(settings: DrawingSettings): Promise<boolean>;
   readGeometryAgain(): Promise<void>;
   calibrationPicking: boolean;
   calibrationPoints: Point[];
   startCalibration(): void;
+  cancelCalibration(): void;
   pickCalibrationPoint(point: Point): void;
   setProjectEditorOpen(open: boolean): void;
   recheck(elementId: string, metric: Metric, proposedValue: number): Promise<void>;
@@ -146,6 +152,7 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   const [recheckResult, setRecheckResult] = useState<RecheckResult | null>(null);
   const [busy, setBusy] = useState<Busy | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [planAction,setPlanAction]=useState<PlanAction|null>(null);
   const [projectEditorOpen, setProjectEditorOpen] = useState(false);
   const requested = useRef(new Set<string>());
   const activeSessionId = useRef<string|null>(null);
@@ -184,10 +191,15 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   const refreshSnapshot = useCallback(async (id: string) => {
     const next = await client.getAnalysis(id);
     if(activeSessionId.current !== id) return next;
+    if(next.geometry?.stage==='AWAITING_CONFIRMATION' && project && drawing && next.session.status!=='RUNNING') {
+      const resumed=await client.startAnalysis(project.id,{projectRevision:next.session.projectRevision,drawingId:drawing.id,page});
+      if(activeSessionId.current===id){activeSessionId.current=resumed.sessionId;setActivity([]);setSessionId(resumed.sessionId);}
+      return next;
+    }
     setSnapshot(next);
     setCoverage(next.coverage);
     return next;
-  }, [client]);
+  }, [client,project,drawing,page]);
 
   // Follow the active session: stored events (with replay) drive refreshes; a slow poll only
   // catches the final status, which is not itself an event.
@@ -238,7 +250,7 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   }, [client, project]);
 
   const clearAnalysis = useCallback(() => {
-    activeSessionId.current=null; setCalibrationPicking(false); setCalibrationPoints([]);
+    setPlanAction(null); activeSessionId.current=null; setCalibrationPicking(false); setCalibrationPoints([]);
     setSessionId(null);
     setSnapshot(null);
     setActivity([]);
@@ -273,6 +285,18 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
   }, [client]);
 
   const value: WorkspaceValue = {
+    planAction, setPlanAction,
+    answerQuestion: async (id, answer) => {
+      let saved=false;
+      await run("save",async()=>{
+        if(!project||!sessionId)return;
+        const result=await client.answerQuestion(sessionId,id,{baseRevision:project.revision,...answer});
+        if(result.projectRevision!==project.revision)await followRevision(project.id);
+        else await refreshSnapshot(sessionId);
+        saved=true;setPlanAction(null);setCalibrationPicking(false);setCalibrationPoints([]);
+      });
+      return saved;
+    },
     client,
     project,
     drawing,
@@ -298,11 +322,12 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
     projectEditorOpen,
     setProjectEditorOpen,
     calibrationPicking, calibrationPoints,
+    cancelCalibration:()=>{setCalibrationPicking(false);setCalibrationPoints([]);},
     startCalibration: () => { setCalibrationPoints([]); setCalibrationPicking(!calibrationPicking); },
     pickCalibrationPoint: (point) => { setCalibrationPoints([...calibrationPoints, point].slice(0,2)); if(calibrationPoints.length) setCalibrationPicking(false); },
-    retireElement: elementId => run("save",async()=>{
-      if(!project)return;await client.retireElement(elementId,project.revision);setSelection(null);await followRevision(project.id);
-    }),
+    retireElement: async elementId => {let saved=false;await run("save",async()=>{
+      if(!project)return;await client.retireElement(elementId,project.revision);setSelection(null);await followRevision(project.id);saved=true;
+    });return saved;},
     createElement: async (type, geometry) => {
       let saved=false;await run("save",async()=>{
         if(!project || !drawing)return;
@@ -310,12 +335,12 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
         await followRevision(project.id);
       });return saved;
     },
-    saveDrawingSetup: (settings) => run("save", async () => {
+    saveDrawingSetup: async (settings) => { let saved=false; await run("save", async () => {
       if(!project || !drawing) return;
       const result=await client.saveDrawingSetup(drawing.id,page,project.revision,settings);
       setProject(await client.getProject(project.id)); setSnapshot(null); setSelection(null); setRecheckResult(null);
-      if(result.sessionId) followSession(result.sessionId);
-    }),
+      if(result.sessionId) followSession(result.sessionId); setCalibrationPicking(false);setCalibrationPoints([]);saved=true;
+    }); return saved; },
     readGeometryAgain: () => run("analysis", async () => {
       if(!project || !drawing) return;
       const result=await client.readGeometryAgain(drawing.id,page,project.revision);
@@ -403,13 +428,13 @@ export function WorkspaceProvider({ children, client: injected }: { children: Re
       followSession(next);
     }),
 
-    confirmMeasurement: (elementId, metric, measured) => run("save", async () => {
+    confirmMeasurement: async (elementId, metric, measured) => { let saved=false; await run("save", async () => {
       if (!project) return;
       await client.correctMeasurement(elementId, {
         baseRevision: project.revision, metric, value: measured, unit: unitForMetric(metric), evidenceIds: [],
       });
-      await followRevision(project.id);
-    }),
+      await followRevision(project.id);saved=true;
+    }); return saved; },
 
     confirmElement: async (elementId, change) => {
       let saved=false;await run("save",async()=>{

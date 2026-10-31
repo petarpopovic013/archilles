@@ -36,13 +36,8 @@ async function main(){
     const form=new FormData();form.append('file',new Blob([await readFile(plan)],{type:mime}),path.basename(plan));form.append('baseRevision','1');form.append('selectedPage',String(page));
     const r=await fetch(`${app.url}/api/projects/${project.id}/drawings`,{method:'POST',body:form});const {drawing}=UploadDrawingResponseSchema.parse(await r.json());
     const started=await json('POST',`/api/projects/${project.id}/analyses`,{projectRevision:2,drawingId:drawing.id,page});
-    const overview=await settle(started.sessionId);
-    console.log(JSON.stringify({phase:'overview',status:overview.session.status,stage:overview.geometry?.stage,calls:overview.geometry?.calls}));
-    if(overview.geometry?.stage!=='AWAITING_CONFIRMATION'){const runs=listSessionRuns(app.ctx.db,started.sessionId);await writeFile(path.join(out,'failed-overview.json'),JSON.stringify({overview,runs},null,2),{mode:0o600});throw new Error(`OVERVIEW_FAILED:${runs.filter(r=>r.errorCode).map(r=>r.errorCode).join(',')}`);}
-    // Test-only acknowledgement of drawing conventions. Units remain unknown, no dimension approved.
-    const next=await json('PATCH',`/api/drawings/${drawing.id}/pages/${page}/geometry`,{baseRevision:2,unit:null,legendConfirmed:true,confirmedLegendIds:[]});
-    const result=await settle(next.sessionId);
-    const runs=[...listSessionRuns(app.ctx.db,started.sessionId),...listSessionRuns(app.ctx.db,next.sessionId)];
+    const result=await settle(started.sessionId);
+    const runs=listSessionRuns(app.ctx.db,started.sessionId);
     const report=result.geometry;
     if(!report)throw new Error('GEOMETRY_REPORT_MISSING');
     await writeFile(path.join(out,'stages.json'),JSON.stringify(app.ctx.db.prepare('SELECT cache_key,data FROM geometry_stage_cache ORDER BY rowid').all().map(r=>{const row=r as {cache_key:string;data:string};return {key:row.cache_key,data:JSON.parse(row.data)};}),null,2),{mode:0o600});

@@ -17,7 +17,8 @@ export function geometryReport(db:Db,floorId:string,revision:number):GeometryRep
   const data=db.prepare('SELECT data FROM geometry_reports WHERE floor_id=? AND project_revision<=? ORDER BY project_revision DESC LIMIT 1').pluck().get(floorId,revision);
   if(!data)return undefined;
   const report=GeometryReportSchema.parse(JSON.parse(data as string));
-  const settings=drawingSettings(db,floorId,revision);
+  const stored=drawingSettings(db,floorId,revision);
+  const settings={...stored,unit:stored.unit??report.settings.unit,unitSource:stored.unitSource??report.settings.unitSource};
   const calibration=settings.calibration;
   const metresPerPixel=calibration?calibration.lengthM/Math.hypot(calibration.points[0].x-calibration.points[1].x,calibration.points[0].y-calibration.points[1].y):undefined;
   if(report.stage!=='AWAITING_CONFIRMATION') {

@@ -1,9 +1,11 @@
+import { drawingProposals, categoryProposals } from "../services/assumptions";
+import { geometryReport, saveGeometryReport } from "../services/geometry";
 import { randomUUID } from "node:crypto";
 import { createHuman, type Human } from "@mozaik-ai/core";
 import type { EvaluationStatus } from "../../src/domain";
 import { evaluateRules, fingerprint } from "../../src/rules/engine";
 import type { RuntimeContext } from "../context";
-import { floorView, insertEvaluation } from "../db/repo";
+import { floorView, insertEvaluation, insertObservations } from "../db/repo";
 import { createAppEvent, defineAppHandler, emitAppEvent, errorCode, type EventScope } from "../mozaik/app-events";
 import { coordination } from "../mozaik/runtime";
 import { findProject } from "../services/projects";
@@ -48,7 +50,18 @@ export function createEngineBridge(ctx: RuntimeContext, producers: () => { geome
     }
     const view = floorView(ctx.db, state.floorId, state.projectRevision);
     const selected = new Set(state.rules === "READY" ? state.selectedRuleIds : []);
-    const rules = (await ctx.registry.getActiveRules(state.asOf)).filter((rule) => selected.has(rule.id));
+    // Every active check gets an outcome; the pure engine still owns applicability.
+    void selected;
+    const rules = state.geometry === "READY" && state.rules === "READY" ? await ctx.registry.getActiveRules(state.asOf) : [];
+    const report = geometryReport(ctx.db, state.floorId, state.projectRevision);
+    const categories=categoryProposals(view.elements,report,rules);
+    for(const element of categories){
+      ctx.db.prepare('INSERT OR IGNORE INTO element_versions(element_id,revision,data) VALUES(?,?,?)').run(element.id,state.projectRevision,JSON.stringify(element));
+      const index=view.elements.findIndex(e=>e.id===element.id);if(index>=0)view.elements[index]=element;
+    }
+    const proposals = drawingProposals(report,view.elements,view.measurements,rules,state.projectRevision,ctx.now());
+    if(proposals.length) { insertObservations(ctx.db,{elements:[],evidence:[],measurements:proposals});view.measurements.push(...proposals); }
+    if(report)saveGeometryReport(ctx,state.floorId,state.projectRevision,report);
     const { results } = evaluateRules(rules, {
       project,
       elements: view.elements,

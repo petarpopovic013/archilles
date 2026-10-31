@@ -52,6 +52,11 @@ export function templateFinding(
       suggestedAction = "Have a qualified reviewer check the cited provision and its interpretation.";
       break;
   }
+  if(evaluation.preliminary) {
+    const p=evaluation.preliminary;
+    explanation=`Preliminary ${p.status.toLowerCase().replaceAll('_',' ')} for ${subject}: ${format(p.observed,p.unit)} against ${format(p.required,p.unit)}. This scenario uses AI assumptions; the confirmed outcome remains ${evaluation.status.toLowerCase()}.`;
+    suggestedAction="You can inspect or correct the AI assumptions directly on the plan.";
+  }
   return ComplianceFindingSchema.parse({
     id: randomUUID(),
     evaluationId: evaluation.id,
@@ -64,12 +69,13 @@ export function templateFinding(
     provisionIds: rule.provisionIds,
     elementId: evaluation.elementId,
     status: evaluation.status,
+    preliminary: evaluation.preliminary,
     title: rule.title,
     explanation,
     suggestedAction,
-    evidenceIds: evaluation.evidenceIds,
+    evidenceIds: [...new Set([...evaluation.evidenceIds,...(evaluation.preliminary?.evidenceIds??[])])],
     // A preliminary failure and an unresolved interpretation both need a professional's eye.
-    requiresHumanReview: evaluation.status === "FAIL" || evaluation.status === "NEEDS_REVIEW",
+    requiresHumanReview: !!evaluation.preliminary || evaluation.status === "FAIL" || evaluation.status === "NEEDS_REVIEW",
     stale: false,
     createdAt,
   });
